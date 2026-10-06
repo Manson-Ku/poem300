@@ -185,3 +185,36 @@ py scripts\tts_cost_report.py
 ```
 
 完整規格見 `docs/TTS_BATCH.md`。
+
+
+## Image Pipeline
+
+6 歲組先完成完整流程：
+
+- 25 poems
+- 54 scenes
+- 1 physical line = 1 background image
+- style preset: `storybook_cn_age6_v1`
+- asset path: `assets/pXXX/sYY/image/background.webp`
+
+先建立可審核 prompt manifest：
+
+```powershell
+py scripts\build_image_prompts.py --age 6
+```
+
+預期：
+
+```text
+poems=25 scenes=54
+output=data/image_prompts_age6.csv
+```
+
+第一輪圖片 POC 固定使用四個代表 Scene：
+
+- `p225_s01` 春曉：清晨 / 室內外
+- `p226_s03` 夜思：夜晚 / 人物 / 月光
+- `p217_s02` 鹿柴：純自然 / 光影
+- `p242_s01` 尋隱者不遇：人物互動
+
+圖片正式批次在 POC PASS 後才啟用。完整規格見 `docs/IMAGE_PIPELINE.md`。
