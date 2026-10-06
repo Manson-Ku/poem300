@@ -1,0 +1,54 @@
+{
+  "style_id": "storybook_cn_age6_v1",
+  "target_age": 6,
+  "aspect_ratio": "16:9",
+  "visual_style": [
+    "children's picture-book illustration",
+    "gentle East Asian classical atmosphere",
+    "soft painterly texture",
+    "warm, bright, clean color palette",
+    "simple readable composition",
+    "friendly and emotionally clear for a six-year-old child"
+  ],
+  "composition": {
+    "primary_subject_zone": "upper and middle area",
+    "text_safe_zone": "lower 25 percent",
+    "text_safe_zone_rule": "keep the lower 25 percent visually calm with low detail and no important faces, hands, animals, props, or narrative action",
+    "camera": "single clear focal point, medium-wide or wide composition unless the scene requires a close emotional moment"
+  },
+  "continuity": {
+    "within_poem": [
+      "keep recurring characters visually consistent",
+      "keep clothing, age, hairstyle, palette, architecture, season and time-of-day logic consistent",
+      "treat all scenes of the same poem as pages from the same picture book"
+    ],
+    "across_age_group": [
+      "maintain the same illustration family",
+      "avoid photorealism",
+      "avoid anime styling",
+      "avoid modern objects unless explicitly required by the poem interpretation"
+    ]
+  },
+  "content_rules": [
+    "visualize the meaning of the whole physical poem line, not each punctuation-separated phrase",
+    "use the child explanation as semantic guidance but do not illustrate extra facts not supported by the poem or explanation",
+    "prefer concrete visual storytelling over abstract symbolism for age 6",
+    "preserve a gentle emotional tone even for sadness, loneliness, or separation",
+    "do not add written Chinese, bopomofo, letters, captions, logos, watermarks, UI, frames, borders, or speech bubbles"
+  ],
+  "negative_rules": [
+    "no text",
+    "no typography",
+    "no subtitles",
+    "no bopomofo",
+    "no watermark",
+    "no logo",
+    "no photorealism",
+    "no horror",
+    "no graphic violence",
+    "no grotesque facial expressions",
+    "no cluttered lower text-safe area",
+    "no duplicated people or limbs",
+    "no malformed hands"
+  ]
+}
