@@ -65,6 +65,12 @@ AI Video 不作為全量預設，僅預留給少數值得動態化的 Scene。
 
 YouTube CC / SRT / VTT 可另外提供，但不作為注音版面 SSOT。
 
+### 5. 正式 TTS 預設使用 Gemini Flash-Lite TTS
+
+2026-10-06 POC 決議：正式大量生成預設採 `gemini-3.8-flash-lite-tts`。
+
+原因：同一首〈春曉〉、同一 voice/style 的雙模型實測中，Flash-Lite 品質已足夠，且音訊單價約比 Flash 低 33%。雙模型比較腳本保留作為歷史 POC，不作為正式產線預設。
+
 ## 資料量
 
 目前：
