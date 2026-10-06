@@ -95,12 +95,26 @@ YouTube CC / SRT / VTT 可另外提供，但不作為注音版面 SSOT。
 poem300/
 ├─ data/
 │  ├─ poems.csv
-│  └─ scenes.csv
+│  ├─ scenes.csv
+│  └─ tts_usage.csv
+├─ assets/
+│  └─ pXXX/
+│     ├─ poem.json
+│     └─ sYY/
+│        ├─ scene.json
+│        ├─ audio/
+│        │  ├─ poem.wav
+│        │  └─ explanation.wav
+│        ├─ image/
+│        │  └─ background.webp
+│        └─ text/
+│           └─ poem_bpmf.png
 ├─ docs/
-│  ├─ SCHEMA.md
-│  └─ VIDEO_PIPELINE.md
 ├─ scripts/
-│  └─ build_scenes.py
+│  ├─ build_scenes.py
+│  ├─ generate_tts_assets.py
+│  ├─ tts_cost_report.py
+│  └─ tts_poc.py
 ├─ .gitignore
 └─ README.md
 ```
@@ -112,6 +126,9 @@ poem300/
 3. AI prompt、產圖狀態、媒體路徑可在後續 pipeline 中補充或移至 manifest。
 4. 不將字型檔直接提交至公開 Repo；只記錄字型名稱、授權與本機配置方式。
 5. 原始高解析圖片、音檔與 MP4 不直接進 Git，後續使用外部 object storage 或 release artifact 管理。
+6. 資產以 `assets/pXXX/sYY/` 組織；`poem.json` / `scene.json` 可進 Git，生成的 WAV / image / text overlay 不進 Git。
+7. 正式 TTS 批次預設可續跑：已存在的音檔跳過；只有 `--force` 才覆蓋。
+8. 可用 `--age 6|7|8|9` 指定適齡分組批次生成。
 
 ## 下一步
 
@@ -132,3 +149,39 @@ poem300/
 5. TTS
 6. FFmpeg 動態化
 7. YouTube-ready MP4
+
+
+## Production TTS
+
+正式批次：
+
+```powershell
+py scripts\generate_tts_assets.py
+```
+
+指定年齡層：
+
+```powershell
+py scripts\generate_tts_assets.py --age 6
+py scripts\generate_tts_assets.py --age 6 7
+```
+
+預覽、不呼叫 API：
+
+```powershell
+py scripts\generate_tts_assets.py --age 6 --dry-run
+```
+
+預設已有音檔會跳過。只有明確指定才覆蓋：
+
+```powershell
+py scripts\generate_tts_assets.py --poem-id 225 --force
+```
+
+查詢每首目前語音成本：
+
+```powershell
+py scripts\tts_cost_report.py
+```
+
+完整規格見 `docs/TTS_BATCH.md`。
