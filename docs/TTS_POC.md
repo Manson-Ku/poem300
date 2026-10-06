@@ -131,3 +131,23 @@ TTS segmentation follows the exact same Scene boundary as image generation and c
 ```
 
 Do not split again by comma or period.
+
+
+## Decision — 2026-10-06
+
+Production default is:
+
+```text
+gemini-3.8-flash-lite-tts
+```
+
+The comparison POC is retained for regression/reference only.
+
+Observed on 春曉 (`poem_id=225`) with the same Kore voice and style:
+
+| Model | Requests | Audio duration | Audio tokens | Estimated standard cost |
+|---|---:|---:|---:|---:|
+| gemini-3.8-flash-tts | 4 | 29.8 s | 746 | $0.006750 |
+| gemini-3.8-flash-lite-tts | 4 | 32.0 s | 800 | $0.004836 |
+
+Decision rationale: Flash-Lite quality is sufficient for this project and the production cost profile is preferable.
