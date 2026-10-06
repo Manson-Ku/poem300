@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Generated media
+assets/generated/
+output/
+*.mp4
+*.mov
+*.wav
+*.mp3
+
+# Local fonts
+fonts/
+*.ttf
+*.otf
+*.woff
+*.woff2
+
+# Secrets / local config
+.env
+.env.*
+!*.example
+credentials/
+*.json.key
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
