@@ -55,6 +55,10 @@ YouTube CC 仍可另外生成，但不作為注音排版 SSOT。
 - Segmentation follows the same physical newline boundary as `scenes.csv`.
 - Usage/cost accounting is recorded per API request in `data/tts_usage.csv`.
 - The higher-cost `gemini-3.8-flash-tts` model is not part of the default production path.
+- Production assets live under `assets/pXXX/sYY/audio/`.
+- Existing WAV assets are skipped by default so the batch is resumable.
+- `--force` is the only normal path that overwrites existing audio.
+- `--age 6 7 8 9` can restrict generation to exact recommended-age groups.
 
 ## Motion
 
