@@ -4,12 +4,18 @@ __pycache__/
 .venv/
 
 # Generated media
-assets/generated/
 output/
 *.mp4
 *.mov
 *.wav
 *.mp3
+
+# Generated asset binaries (JSON manifests remain trackable)
+assets/**/image/*.webp
+assets/**/image/*.jpg
+assets/**/image/*.jpeg
+assets/**/image/*.png
+assets/**/text/*.png
 
 # Local fonts
 fonts/
