@@ -64,19 +64,33 @@
 
 它們必須由 poems.csv 重新生成。
 
-## Asset naming
+## Asset layout
 
-建議：
+資產以 poem → scene 為核心階層：
 
 ```text
 assets/
-  p001/
+  p225/
+    poem.json
     s01/
-      background.webp
-      text-overlay.png
-      tts.mp3
+      scene.json
+      audio/
+        poem.wav
+        explanation.wav
+      image/
+        background.webp
+      text/
+        poem_bpmf.png
     s02/
       ...
 ```
 
-Git Repo 預設不存大型生成資產；實際資產可放 Cloud Storage / Drive / R2，再由 manifest 記 URI。
+### 規則
+
+- `pXXX`：zero-padded `poem_id`。
+- `sYY`：zero-padded `scene_no`。
+- 一個 Scene 對應一組 image / text / audio 素材。
+- 每個 Scene 的 TTS 分為 `poem.wav` 與 `explanation.wav`。
+- `poem.json` / `scene.json` 是輕量 manifest，可納入 Git。
+- WAV、背景圖、注音 PNG 等 binary generated assets 不納入 Git。
+- TTS API 使用與成本紀錄集中於 `data/tts_usage.csv`。
