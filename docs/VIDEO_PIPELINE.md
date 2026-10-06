@@ -13,7 +13,7 @@ poems.csv
   -> scenes.csv
   -> AI background image
   -> BPMF text overlay PNG
-  -> TTS
+  -> TTS (default: gemini-3.8-flash-lite-tts)
   -> optional music
   -> FFmpeg motion / transition
   -> MP4
@@ -47,6 +47,14 @@ poems.csv
 - 兒童解釋可依影片模板決定是否同步顯示。
 
 YouTube CC 仍可另外生成，但不作為注音排版 SSOT。
+
+## TTS
+
+- Production default model: `gemini-3.8-flash-lite-tts`.
+- One Scene produces one poem TTS and one explanation TTS asset.
+- Segmentation follows the same physical newline boundary as `scenes.csv`.
+- Usage/cost accounting is recorded per API request in `data/tts_usage.csv`.
+- The higher-cost `gemini-3.8-flash-tts` model is not part of the default production path.
 
 ## Motion
 
