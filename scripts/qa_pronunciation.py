@@ -5,6 +5,7 @@ This is a data/contract QA step. It does not inspect audio acoustically.
 It verifies:
 - bopomofo IVS override source positions
 - project-font IVS extensions
+- raster-safe PUA aliases for every bopomofo override
 - TTS pronunciation override source text
 - no duplicate override keys
 """
@@ -264,6 +265,113 @@ def validate_font_extensions(
     return verified, errors
 
 
+def validate_render_aliases(
+    *,
+    font_path: Path,
+    bop: dict[str, Any],
+) -> tuple[int, list[str]]:
+    if not font_path.exists():
+        # validate_font_extensions reports the missing project font.
+        return 0, []
+
+    errors: list[str] = []
+    aliases: dict[tuple[str, str], int] = {}
+    pua_owners: dict[int, tuple[str, str]] = {}
+
+    for item in bop.get("items", []):
+        char = str(item["character"])
+        selector_text = str(item["selector"]).upper()
+        render_codepoint = item.get("render_codepoint")
+
+        if not render_codepoint:
+            errors.append(
+                f"bopomofo override missing render_codepoint: "
+                f"{char} {selector_text}"
+            )
+            continue
+
+        try:
+            pua = parse_uplus(str(render_codepoint))
+        except ValueError as exc:
+            errors.append(str(exc))
+            continue
+
+        if not (0xE000 <= pua <= 0xF8FF):
+            errors.append(
+                f"{char} {selector_text}: "
+                f"{render_codepoint} is outside BMP PUA"
+            )
+            continue
+
+        key = (char, selector_text)
+        existing = aliases.get(key)
+        if existing is not None and existing != pua:
+            errors.append(
+                f"{key}: inconsistent render aliases "
+                f"U+{existing:04X} vs U+{pua:04X}"
+            )
+            continue
+        aliases[key] = pua
+
+        owner = pua_owners.get(pua)
+        if owner is not None and owner != key:
+            errors.append(
+                f"U+{pua:04X} assigned to both "
+                f"{owner} and {key}"
+            )
+            continue
+        pua_owners[pua] = key
+
+    font = TTFont(str(font_path))
+    verified = 0
+
+    try:
+        uvs = find_uvs_table(font)
+        if uvs is None:
+            return 0, errors + [
+                "project font has no cmap format 14 IVS table"
+            ]
+
+        best_cmap = font.getBestCmap() or {}
+
+        for (char, selector_text), pua in sorted(
+            aliases.items(),
+            key=lambda pair: pair[1],
+        ):
+            selector = parse_uplus(selector_text)
+            expected_glyph = None
+
+            for uv, glyph_name in uvs.uvsDict.get(
+                selector,
+                [],
+            ):
+                if uv == ord(char):
+                    expected_glyph = glyph_name
+                    break
+
+            if not expected_glyph:
+                errors.append(
+                    f"{char} {selector_text}: "
+                    "selected IVS glyph missing from project font"
+                )
+                continue
+
+            actual_glyph = best_cmap.get(pua)
+            if actual_glyph != expected_glyph:
+                errors.append(
+                    f"U+{pua:04X}: expected alias to "
+                    f"{expected_glyph!r}, got {actual_glyph!r}"
+                )
+                continue
+
+            verified += 1
+
+    finally:
+        font.close()
+
+    return verified, errors
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Validate pronunciation QA data."
@@ -355,6 +463,12 @@ def main() -> int:
     )
     errors.extend(font_errors)
 
+    verified_aliases, alias_errors = validate_render_aliases(
+        font_path=Path(args.font_path),
+        bop=bop,
+    )
+    errors.extend(alias_errors)
+
     seen_tts: set[tuple[int, str, int]] = set()
     for item in tts.get("items", []):
         pid = int(item["poem_id"])
@@ -444,6 +558,10 @@ def main() -> int:
     )
     print(f"font_extensions_required={extension_count}")
     print(f"font_extensions_verified={verified_extensions}")
+    print(
+        "render_aliases_verified="
+        + str(verified_aliases)
+    )
     print(f"font_gaps={len(legacy_font_gaps)}")
     print(f"errors={len(errors)}")
 
