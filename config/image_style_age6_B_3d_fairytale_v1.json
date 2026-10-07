@@ -1,0 +1,70 @@
+{
+  "style_id": "age6_b_3d_fairytale_cinematic_v1",
+  "ab_slot": "B",
+  "target_age": 6,
+  "label_zh_tw": "3D電影童話插畫",
+  "purpose": "A/B style preset only; contains no scene semantics.",
+  "medium": [
+    "高品質3D動畫電影渲染",
+    "童話電影式立體場景與角色造型",
+    "細緻但柔和的材質表現",
+    "電影級全局光照與柔和體積光"
+  ],
+  "visual_character": [
+    "溫暖童話感",
+    "電影感",
+    "立體",
+    "角色表情清楚",
+    "柔和圓潤",
+    "自然親切",
+    "適合6歲兒童"
+  ],
+  "color_language": {
+    "saturation": "medium",
+    "contrast": "medium_cinematic",
+    "palette": "溫暖自然色與電影式冷暖對比；夜景可使用深藍月色搭配柔和金色室內光，避免螢光高飽和"
+  },
+  "shape_language": {
+    "silhouette": "清楚、圓潤、有立體體積感，角色與物件一眼可辨識",
+    "linework": "不使用明顯2D墨線，以3D形體、材質與光影建立輪廓",
+    "detail_level": "medium"
+  },
+  "character_rendering": {
+    "proportion": "動畫電影童話人物比例，略微理想化與圓潤，但不做大頭Q版",
+    "face": "五官柔和、表情自然清楚、情緒易被幼童理解",
+    "skin": "柔和次表面散射感，但保持童話動畫質感，不追求真人皮膚寫實",
+    "avoid": [
+      "塑膠玩具或公仔感",
+      "真人照片寫實",
+      "過度Q版大頭",
+      "2D動漫線稿風",
+      "僵硬蠟像感",
+      "恐怖或 uncanny valley"
+    ]
+  },
+  "environment_rendering": {
+    "priority": "電影式場景層次、氣氛光、空間深度與清楚故事焦點",
+    "texture": "柔和可信的3D材質；布料、木頭、石材與自然環境有細節但不髒亂，避免塑膠蠟感"
+  },
+  "lighting_language": {
+    "description": "柔和電影主光與環境光，適度體積光、輪廓光與景深；光線服務詩句情緒，不追求炫技"
+  },
+  "camera_language": {
+    "description": "動畫電影式構圖與鏡頭感，主體清楚、空間有前中後景；避免極端廣角、過度景深或戲劇化到搶走詩意"
+  },
+  "global_exclusions": [
+    "任何文字",
+    "題字",
+    "書法",
+    "字幕",
+    "注音",
+    "印章",
+    "Logo",
+    "UI",
+    "海報式排版",
+    "字幕底板",
+    "刻意空白橫條",
+    "塑膠玩具感",
+    "真人攝影感"
+  ]
+}
