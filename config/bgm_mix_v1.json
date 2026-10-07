@@ -6,7 +6,7 @@
   "selection_priority": [
     "render_video --bgm override",
     "data/poem_bgm.csv poem selection",
-    "no BGM"
+    "stable pseudo-random local BGM by poem_id"
   ],
   "supported_extensions": [
     ".mp3",
@@ -28,5 +28,7 @@
     "loop_to_video_duration": true,
     "normalize_final_mix": false
   },
-  "note": "Every selected BGM is first loudness-normalized to the same low background target, then an optional per-poem gain_db trim is applied. This keeps seven locally produced tracks comparable while preserving clear TTS."
+  "note": "Every selected BGM is first loudness-normalized to the same low background target, then an optional per-poem gain_db trim is applied. Unmapped poems automatically receive a reproducible pseudo-random track from bgm/, keyed by poem_id, so re-rendering the same poem keeps the same BGM unless the local track set changes.",
+  "auto_random_if_unmapped": true,
+  "stable_random_seed_namespace": "poem300-bgm-v1"
 }
