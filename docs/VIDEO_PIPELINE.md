@@ -307,48 +307,59 @@ If FFmpeg is installed but not in PATH:
 py scripts\render_video.py --poem-id 226 --style B --ffmpeg "C:\path\to\ffmpeg.exe"
 ```
 
-### Motion composer v2
+### Motion composer v3
 
-After the hard-cut assembly POC passed, the composer now uses:
+The previous v2 implementation still recalculated zoom inside timeline events. Even when the math was continuous, event boundaries could produce visible micro-jitter.
+
+v3 moves camera motion one level up:
 
 ```text
-scene background crossfade      0.30s
-new content line fade-in        0.15s
-explanation fade-in / fade-out  0.20s / 0.20s
-background centered zoom        1.00 <-> 1.015
+timeline events
+    ↓
+consecutive background run
+    ↓
+render ONE continuous background motion clip
+    ↓
+slice that clip back into poem / explanation / pause events
 ```
 
-SSOT:
+The camera therefore never restarts at poem/explanation event boundaries.
+
+Background motion SSOT:
 
 ```text
 config/video_motion_v1.json
 ```
 
+Current policy:
+
+```text
+run 1: centered crop window 100% -> 80%   (zoom in)
+run 2: centered crop window  80% -> 100%  (zoom out)
+run 3: 100% -> 80%
+run 4:  80% -> 100%
+...
+```
+
+Here 80% means the centered crop window is 80% of the original frame. It is equivalent to approximately 1.25x image zoom; it does not shrink the image and therefore does not create black borders.
+
 Important contract:
 
-- Motion does not add time to the timeline.
-- Scene crossfade is consumed inside the already reserved transition/pre-roll budget.
-- Background motion is centered zoom only; no pan or drift is allowed.
-- Zoom range is intentionally small: 1.000 <-> 1.015.
-- Zoom direction alternates by consecutive same-background run.
-- FFmpeg zoompan runs on a 2x intermediate canvas to reduce integer-coordinate jitter.
-- The outgoing side of a scene crossfade preserves the previous segment's final zoom state, avoiding a snap back to 1.000 before the fade.
+- Zoom is owned by the complete consecutive background run, not by individual timeline events.
+- Each run is rendered once as a temporary lossless H.264 background clip.
+- Event rendering only trims exact frame ranges from that clip.
+- No pan or drift is allowed.
+- The center point is fixed.
+- A scene change still uses the existing 0.30s crossfade.
+- The crossfade freezes the exact final frame of the outgoing run, so the outgoing image does not reset before fading.
 - Title, author, poem content and explanation remain fixed in display-space coordinates.
-- A newly revealed poem line fades in by itself; previously revealed lines do not pulse or refade.
-- Explanation uses an independent fade layer and disappears by the end of its own event.
+- Motion does not add time or change audio start times.
 
 For p226:
 
 ```powershell
 py scripts\render_video.py --poem-id 226 --style B --dry-run
 py scripts\render_video.py --poem-id 226 --style B --force
-```
-
-The timing contract remains:
-
-```text
-poem pre-roll / scene transition budget = 0.30s
-page turn pause = 0.45s
 ```
 
 
