@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Build style-specific image prompt manifests from poem-level visual SSOT.
+"""Build style-specific prompt manifests for independent poem Scenes.
 
-The semantic source is data/poems.csv -> visual_plan_json.
-Style A/B may change rendering language only; they must not change scene
-entities, actions, locations, or continuity.
+The semantic source is data/poems.csv + data/scenes.csv.
+Each physical poem line is an independent image Scene. The poem-level world
+is shared soft context; the current line remains the semantic priority.
+Style A/B may change rendering language only.
 """
 
 from __future__ import annotations
