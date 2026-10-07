@@ -1,0 +1,199 @@
+{
+  "version": "pronunciation_qa_age6_v1",
+  "scope": {
+    "recommended_age": 6,
+    "poems": 25
+  },
+  "policy": {
+    "authority": "Taiwan Ministry of Education dictionary/education references where available; bpmfvs phonic_table_A defines supported IVS reading order.",
+    "bopomofo_tone_policy": "Use lexical/citation readings for written bopomofo; do not encode ordinary speech tone sandhi for 一/不.",
+    "ivs_selector_rule": "bpmfvs first reading is default; second reading uses U+E01E1, third U+E01E2, etc."
+  },
+  "resolved_with_ivs": [
+    {
+      "poem_id": 219,
+      "field": "content",
+      "line_no": 1,
+      "char_index": 2,
+      "character": "相",
+      "expected_reading": "ㄒㄧㄤ",
+      "selector": "U+E01E1",
+      "note": "山中相送罷；相=互相/相送"
+    },
+    {
+      "poem_id": 220,
+      "field": "title",
+      "line_no": 0,
+      "char_index": 0,
+      "character": "相",
+      "expected_reading": "ㄒㄧㄤ",
+      "selector": "U+E01E1",
+      "note": "相思"
+    },
+    {
+      "poem_id": 220,
+      "field": "content",
+      "line_no": 2,
+      "char_index": 9,
+      "character": "相",
+      "expected_reading": "ㄒㄧㄤ",
+      "selector": "U+E01E1",
+      "note": "此物最相思"
+    },
+    {
+      "poem_id": 225,
+      "field": "content",
+      "line_no": 1,
+      "char_index": 6,
+      "character": "處",
+      "expected_reading": "ㄔㄨˋ",
+      "selector": "U+E01E1",
+      "note": "處處聞啼鳥，第1個處"
+    },
+    {
+      "poem_id": 225,
+      "field": "content",
+      "line_no": 1,
+      "char_index": 7,
+      "character": "處",
+      "expected_reading": "ㄔㄨˋ",
+      "selector": "U+E01E1",
+      "note": "處處聞啼鳥，第2個處"
+    },
+    {
+      "poem_id": 230,
+      "field": "content",
+      "line_no": 2,
+      "char_index": 0,
+      "character": "荷",
+      "expected_reading": "ㄏㄜˋ",
+      "selector": "U+E01E1",
+      "note": "荷笠=背負斗笠"
+    },
+    {
+      "poem_id": 231,
+      "field": "title",
+      "line_no": 0,
+      "char_index": 0,
+      "character": "彈",
+      "expected_reading": "ㄊㄢˊ",
+      "selector": "U+E01E1",
+      "note": "彈琴=彈奏"
+    },
+    {
+      "poem_id": 231,
+      "field": "content",
+      "line_no": 2,
+      "char_index": 10,
+      "character": "彈",
+      "expected_reading": "ㄊㄢˊ",
+      "selector": "U+E01E1",
+      "note": "今人多不彈=彈奏"
+    },
+    {
+      "poem_id": 233,
+      "field": "content",
+      "line_no": 1,
+      "char_index": 2,
+      "character": "屬",
+      "expected_reading": "ㄓㄨˇ",
+      "selector": "U+E01E1",
+      "note": "懷君屬秋夜；屬=適逢/正值"
+    },
+    {
+      "poem_id": 242,
+      "field": "content",
+      "line_no": 2,
+      "char_index": 10,
+      "character": "處",
+      "expected_reading": "ㄔㄨˋ",
+      "selector": "U+E01E1",
+      "note": "雲深不知處；處=地方"
+    },
+    {
+      "poem_id": 254,
+      "field": "content",
+      "line_no": 1,
+      "char_index": 0,
+      "character": "少",
+      "expected_reading": "ㄕㄠˋ",
+      "selector": "U+E01E1",
+      "note": "少小=年少"
+    },
+    {
+      "poem_id": 254,
+      "field": "content",
+      "line_no": 1,
+      "char_index": 14,
+      "character": "衰",
+      "expected_reading": "ㄘㄨㄟ",
+      "selector": "U+E01E1",
+      "note": "鬢毛衰；詩中讀ㄘㄨㄟ"
+    },
+    {
+      "poem_id": 254,
+      "field": "content",
+      "line_no": 2,
+      "char_index": 2,
+      "character": "相",
+      "expected_reading": "ㄒㄧㄤ",
+      "selector": "U+E01E1",
+      "note": "兒童相見"
+    },
+    {
+      "poem_id": 254,
+      "field": "content",
+      "line_no": 2,
+      "char_index": 5,
+      "character": "相",
+      "expected_reading": "ㄒㄧㄤ",
+      "selector": "U+E01E1",
+      "note": "不相識"
+    },
+    {
+      "poem_id": 254,
+      "field": "content",
+      "line_no": 2,
+      "char_index": 13,
+      "character": "處",
+      "expected_reading": "ㄔㄨˋ",
+      "selector": "U+E01E1",
+      "note": "何處來；處=地方"
+    }
+  ],
+  "font_gaps": [
+    {
+      "poem_id": 217,
+      "field": "title",
+      "line_no": 0,
+      "char_index": 1,
+      "character": "柴",
+      "source_text": "鹿柴",
+      "expected_reading": "ㄓㄞˋ",
+      "bpmfvs_supported_readings": [
+        "ㄔㄞˊ"
+      ],
+      "status": "font_gap",
+      "evidence": "教育部《重編國語辭典修訂本》：鹿柴 ㄌㄨˋ ㄓㄞˋ",
+      "evidence_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=66107&la=0&powerMode=0",
+      "note": "Current bpmfvs tables do not include ㄓㄞˋ for 柴, so IVS alone cannot render the required reading."
+    },
+    {
+      "poem_id": 217,
+      "field": "content",
+      "line_no": 2,
+      "char_index": 1,
+      "character": "景",
+      "source_text": "返景入深林，復照青苔上。",
+      "expected_reading": "ㄧㄥˇ",
+      "bpmfvs_supported_readings": [
+        "ㄐㄧㄥˇ"
+      ],
+      "status": "font_gap",
+      "evidence": "教育部《重編國語辭典修訂本》：返景 ㄈㄢˇ ㄧㄥˇ",
+      "evidence_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=35251&la=0&powerMode=0",
+      "note": "Current bpmfvs tables do not include ㄧㄥˇ for 景, so IVS alone cannot render the required reading."
+    }
+  ],
+  "qa_status": "blocked_by_2_font_gaps"
+}
