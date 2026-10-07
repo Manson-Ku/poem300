@@ -688,7 +688,7 @@ def continuity_lock_items(
     plan: dict[str, Any],
     scene_index: int,
 ) -> list[str]:
-    """Return only entities that persist from the previous Scene."""
+    """Lock current entities that have appeared anywhere earlier in the chain."""
     scenes = [
         item
         for item in plan.get("scenes", [])
@@ -697,7 +697,10 @@ def continuity_lock_items(
     if scene_index <= 0 or scene_index >= len(scenes):
         return []
 
-    previous_ids = set(_scene_entity_ids(scenes[scene_index - 1]))
+    previous_ids: set[str] = set()
+    for earlier_scene in scenes[:scene_index]:
+        previous_ids.update(_scene_entity_ids(earlier_scene))
+
     current_ids = _scene_entity_ids(scenes[scene_index])
 
     return _unique_lines(
@@ -719,8 +722,9 @@ def build_anchor_prompt(
         "ANCHOR SCENE — 只畫這一幕。",
         "生成一張 16:9、1K、完整滿版的兒童繪本背景插畫。",
         "這張圖要建立後續 Scene 可延續的人物與場景外觀，但不得提前畫後續事件。",
+        "Scene 的邊界就是 data/scenes.csv 的一個實際換行；即使上下句語意相連，也禁止把相鄰詩句合併進本幕。",
         "",
-        f"本幕詩句：{scene['original_line']}",
+        f"本幕唯一詩句：{scene['original_line']}",
         f"本幕意思：{scene['child_explanation_line']}",
     ]
 
@@ -769,8 +773,9 @@ def build_transition_prompt(
         "NEXT SCENE — 本幕詩意優先。",
         "把上一輪影像當成『人物／場景 identity 與畫風參考』，不是構圖模板。",
         "目標是讓觀者第一眼就看懂現在這一句詩，而不是把上一張只做小幅修圖。",
+        "Scene 的邊界就是 data/scenes.csv 的一個實際換行；只能處理本行，禁止把前一句或下一句合併成同一畫面語意。",
         "",
-        f"現在要表現的詩句：{scene['original_line']}",
+        f"現在唯一要表現的詩句：{scene['original_line']}",
         f"現在這一幕的意思：{scene['child_explanation_line']}",
     ]
 
@@ -1354,6 +1359,31 @@ def main() -> int:
     ]
     poem_scenes.sort(key=lambda row: int(row["scene_no"]))
 
+    plan_scene_ids = [
+        item.get("id") or item.get("scene_id")
+        for item in plan.get("scenes", [])
+        if isinstance(item, dict)
+    ]
+    source_scene_ids = [
+        row["scene_id"]
+        for row in poem_scenes
+    ]
+    if plan_scene_ids != source_scene_ids:
+        print(
+            "ERROR: visual_plan_json Scene IDs/order do not match "
+            "data/scenes.csv physical-line Scenes.",
+            file=sys.stderr,
+        )
+        print(
+            f"plan={plan_scene_ids}",
+            file=sys.stderr,
+        )
+        print(
+            f"source={source_scene_ids}",
+            file=sys.stderr,
+        )
+        return 2
+
     requested_scene_ids = {
         item.strip()
         for item in args.scene_ids.split(",")
@@ -1412,6 +1442,11 @@ def main() -> int:
     print(
         "scenes="
         + ",".join(row["scene_id"] for row in poem_scenes)
+    )
+    print(f"scene_count={len(poem_scenes)}")
+    print(
+        f"planned_images={len(poem_scenes) * len(styles)} "
+        f"({len(poem_scenes)} scenes x {len(styles)} styles)"
     )
     print(f"force={args.force} dry_run={args.dry_run}")
 
