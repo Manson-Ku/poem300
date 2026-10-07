@@ -1,0 +1,733 @@
+# 開發狀態與 Production Baseline
+
+更新日期：2026-10-07
+
+本文件是 poem300 專案的當前開發狀態 / 下一階段筆記。功能細節仍以各專門文件與 config / script 為 SSOT；本文件負責記錄目前已驗證到哪裡、哪些決策已進入 production baseline、下一批內容應如何推進。
+
+---
+
+## 1. 當前里程碑
+
+### Age 6 production：COMPLETE
+
+6 歲組已完成第一個完整 end-to-end production cycle：
+
+~~~text
+poem data
+  -> Scene
+  -> visual plan
+  -> background image
+  -> pronunciation QA
+  -> TTS
+  -> BPMF/text overlay
+  -> audio-driven timeline
+  -> FFmpeg video composition
+  -> poem-level BGM
+  -> MP4
+  -> YouTube OAuth
+  -> metadata
+  -> publication
+  -> made-for-kids
+  -> recommended_age playlist
+  -> channel inventory / duplicate avoidance
+  -> resumable batch upload
+~~~
+
+Age 6 資料：
+
+~~~text
+poems            25
+approved         25
+scenes           54
+nonblank scenes  54
+blank scenes      0
+~~~
+
+Age 6 YouTube batch 最終結果：
+
+~~~text
+already_uploaded=2
+existing_postchecked=2
+existing_post_failed=0
+uploaded_now=23
+failed=0
+waiting_local=0
+PASS
+~~~
+
+因此以「25 首都有完成影片，且 25 首都已存在於 KidMoreTW 頻道」作為 Age 6 完成標準，已達成。
+
+注意：第一支 p225〈春曉〉是歷史 private POC。batch reconciliation 對既有影片不自動修改 privacy，所以 Age 6 的 channel completeness 已完成；若未來要求 25/25 全部 public，仍需另做 publication-state audit / update。
+
+---
+
+## 2. 全資料集現況
+
+data/poems.csv：
+
+~~~text
+total poems = 313
+~~~
+
+data/scenes.csv：
+
+~~~text
+total scenes = 1,626
+~~~
+
+依 recommended_age：
+
+| Age | Poems | Approved | Draft | Scenes | Nonblank | Blank |
+|---:|---:|---:|---:|---:|---:|---:|
+| 6 | 25 | 25 | 0 | 54 | 54 | 0 |
+| 7 | 50 | 0 | 50 | 127 | 127 | 0 |
+| 8 | 100 | 0 | 100 | 395 | 395 | 0 |
+| 9 | 138 | 0 | 138 | 1,050 | 1,044 | 6 |
+
+重要含義：
+
+- 6 歲組是目前唯一已 approved 且完成 production delivery 的 age group。
+- 7 / 8 / 9 歲目前 visual plans 全部仍是 draft。
+- 9 歲資料含 6 個 blank separator Scenes；這些是既有 Scene 結構，不應在重建時被默默刪除。
+
+---
+
+## 3. Data / Scene SSOT
+
+Poem SSOT：
+
+~~~text
+data/poems.csv
+~~~
+
+一首詩一列，主要包含 poem_id、author、poem_type、title、content、child_explanation_6_8、popularity_level、recommended_age、visual_plan_* 與 visual_* 欄位。
+
+Scene SSOT：
+
+~~~text
+data/scenes.csv
+~~~
+
+核心 invariant：
+
+~~~text
+一個實際換行段落 = 一個 Scene
+~~~
+
+不能用逗號、句號或其他標點再切 Scene。content 與 child_explanation_6_8 以 physical line 對應。Scene 表核心欄位由 script 展開，不手工破壞對應關係。
+
+---
+
+## 4. Image production baseline
+
+主程式：
+
+~~~text
+scripts/generate_images.py
+~~~
+
+目前 production architecture：
+
+~~~text
+poem-world + independent-scene
+~~~
+
+原則：
+
+- 每首詩有共用 visual world。
+- 每個 Scene 獨立呼叫 image model。
+- 不做 multi-turn image editing。
+- 不要求漫畫式強 continuity。
+- Scene 圖只負責表達當前詩句。
+- 圖片不得生成字幕、注音、logo、UI、卡片、對話框等文字層元素。
+
+目前模型：
+
+~~~text
+gemini-3.1-flash-lite-image
+~~~
+
+Age 6 production style：
+
+~~~text
+B = age6_b_3d_fairytale_cinematic_v1
+~~~
+
+相關 SSOT：
+
+~~~text
+config/image_styles_age6.json
+config/image_style_age6_B_3d_fairytale_v1.json
+docs/IMAGE_PIPELINE.md
+~~~
+
+Age 6 Style B 已完成 25 poems / 54 Scenes 的素材基線。
+
+### Age 7+ architecture check
+
+目前 image style registry / file naming 仍明確帶有 age6。進 Age 7 大量生成前，先決定：
+
+1. 7–9 歲是否沿用同一 Style B。
+2. 若沿用，是否將 registry 正名為 age-neutral production style。
+3. 若需不同年齡視覺成熟度，新增 age-specific preset，但不要複製整套 pipeline。
+
+不應直接大量呼叫 image API 後才處理這個問題。
+
+---
+
+## 5. Pronunciation / BPMF baseline
+
+Canonical pronunciation data：
+
+~~~text
+data/bopomofo_overrides.json
+data/bpmf_font_extensions.json
+data/pronunciation_qa_age6.json
+data/tts_pronunciation_overrides.json
+docs/PRONUNCIATION_QA.md
+~~~
+
+正式文字 config：
+
+~~~text
+config/text_overlay_1080p_v2.json
+~~~
+
+已驗證 renderer strategy：
+
+~~~text
+canonical pronunciation metadata
+  -> IVS semantic selection
+  -> project-font PUA render alias
+  -> complete integrated Han+Bopomofo glyph
+~~~
+
+PUA 只存在於 renderer / derived font lookup，不改 canonical poem text。
+
+Age 6 已處理：
+
+~~~text
+17 pronunciation-sensitive occurrences
+9 PUA aliases
+2 missing literary IVS extensions
+font_gaps=0
+QA=PASS
+~~~
+
+兩個 project font extensions：
+
+- 鹿柴：柴 ㄓㄞˋ
+- 返景：景 ㄧㄥˇ
+
+Age 7 / 8 / 9 不應假設 Age 6 override 已完整涵蓋。每個 age group 進 production 前都要重新做 pronunciation inventory / QA。
+
+---
+
+## 6. TTS production baseline
+
+主程式：
+
+~~~text
+scripts/generate_tts_assets.py
+~~~
+
+Production model：
+
+~~~text
+gemini-3.8-flash-lite-tts
+~~~
+
+Voice baseline：
+
+~~~text
+Kore
+~~~
+
+TTS asset contract：
+
+- canonical source text 保留原詩。
+- 必要時 synthesis_text 可使用同音代理強制正確讀音。
+- proxy 只影響送進 TTS 的字串，不改 poem / Scene SSOT。
+- 生成流程預設 resume-safe；已有 WAV 會跳過，--force 才覆蓋。
+
+Age 6 已實際使用並驗證的 proxy：
+
+- 鹿柴：柴 -> 寨，強制 ㄓㄞˋ
+- 返景：景 -> 影，強制 ㄧㄥˇ
+- 疑是地上霜：疑 -> 宜，強制 ㄧˊ
+
+正式文件：
+
+~~~text
+docs/TTS_BATCH.md
+docs/PRONUNCIATION_QA.md
+~~~
+
+---
+
+## 7. Text overlay production baseline
+
+主程式：
+
+~~~text
+scripts/render_text_overlays.py
+~~~
+
+Canvas：
+
+~~~text
+1920 x 1080
+raster scale = 2
+~~~
+
+目前主要 contract：
+
+- title + content：BPMF
+- author / poem_type / explanation：plain text
+- title / author 固定
+- poem_type：intro / end
+- content：progressive accumulate + page
+- explanation：active Scene only
+- 長詩分頁，不硬縮到不可讀
+- text PNG 與 background image 完全分離
+
+正式規格：
+
+~~~text
+config/text_overlay_1080p_v2.json
+docs/TEXT_OVERLAY_PIPELINE.md
+~~~
+
+---
+
+## 8. Timeline / video composer baseline
+
+Timeline：
+
+~~~text
+scripts/build_video_timeline.py
+config/video_sessions_v1.json
+config/video_timing_v1.json
+~~~
+
+Composer：
+
+~~~text
+scripts/render_video.py
+config/video_motion_v1.json
+~~~
+
+輸出：
+
+~~~text
+assets/pXXX/video/pXXX_B_1080p.mp4
+~~~
+
+目前 video baseline：
+
+- 1920x1080
+- 30 fps
+- H.264 / yuv420p
+- AAC 48 kHz stereo
+- timing 由實際 WAV 長度驅動
+- content progressive reveal
+- page turn / session reset
+- explanation fade
+- scene crossfade
+
+### Background motion
+
+已棄用 FFmpeg zoompan，原因是整數取樣造成可見 micro-jitter。
+
+目前 production motion：
+
+~~~text
+consecutive background run
+  -> render one continuous motion clip
+  -> FFmpeg perspective
+  -> cubic interpolation
+  -> floating-point source corners
+  -> slice into timeline events
+~~~
+
+運鏡交替：
+
+~~~text
+run 1: crop window 100% -> 80%
+run 2: crop window 80% -> 100%
+repeat
+~~~
+
+中心固定、無 pan / drift。Age 6 人工觀看 QA 已通過。
+
+---
+
+## 9. BGM baseline
+
+Local BGM：
+
+~~~text
+bgm/
+~~~
+
+音檔不進 Git。
+
+SSOT：
+
+~~~text
+config/bgm_mix_v1.json
+data/poem_bgm.csv
+docs/BGM_PIPELINE.md
+~~~
+
+Selection priority：
+
+~~~text
+CLI override
+  > poem_bgm.csv mapping
+  > stable pseudo-random by poem_id
+~~~
+
+若沒有指定 mapping，會從本機可用 BGM 中依 poem_id 做可重現 stable random selection。
+
+音量 production baseline：
+
+~~~text
+narration gain       0 dB
+BGM target          -35 LUFS
+BGM true peak        -9 dBTP
+fade in              1.2 s
+fade out             1.8 s
+~~~
+
+這是 Age 6 聽感 QA 後，從原本 -32 LUFS 再降低約 3 dB 的版本。
+
+---
+
+## 10. Age-group batch video pipeline
+
+主程式：
+
+~~~text
+scripts/render_video_batch.py
+docs/VIDEO_BATCH.md
+~~~
+
+特性：
+
+- 依 recommended_age 選組。
+- 預設 approved only。
+- 既有 MP4 自動 skip。
+- 全部 remaining poems 先做 timeline + composer dry-run preflight。
+- preflight 有任一 FAIL 時，不開始新的 expensive render。
+- render 中途失敗可重跑。
+- 已完成 MP4 下次會 skip。
+
+Age 6 已通過這套流程並完成 25 支影片。
+
+---
+
+## 11. YouTube production baseline
+
+頻道：
+
+~~~text
+https://www.youtube.com/@KidMoreTW
+channel title = KidMore啟蒙
+channel id = UC3W0UpC1Qu3KmkvITG_iNFw
+~~~
+
+OAuth：
+
+~~~text
+scripts/youtube_auth.py
+config/youtube_v1.json
+credentials/youtube_token.json   # local / gitignored
+~~~
+
+Scopes：
+
+- youtube.readonly
+- youtube.upload
+- youtube.force-ssl
+
+### Metadata contract
+
+Title：
+
+~~~text
+唐詩三百首-注音版-{詩名}-{作者}-KidMore啟蒙
+~~~
+
+Description：
+
+~~~text
+{詩名}-{作者}-{poem_type}
+{完整詩詞}
+
+https://kidmore.tw?utm_source=ytbc&utm_medium=videoDescription&utm_campaign={詩名}
+~~~
+
+Tags：
+
+~~~text
+唐詩三百首
+唐詩
+兒童朗讀
+兒童閱讀
+~~~
+
+Production defaults：
+
+~~~text
+privacyStatus = public
+selfDeclaredMadeForKids = true
+notifySubscribers = false
+thumbnail = YouTube automatic
+~~~
+
+Playlist routing：
+
+~~~text
+6 -> 6歲建議
+7 -> 7歲建議
+8 -> 8歲建議
+9 -> 9歲建議
+~~~
+
+### Playlist propagation recovery
+
+實際 production 曾遇到：
+
+~~~text
+video upload = PASS
+playlistItems = 404 playlistNotFound
+~~~
+
+已改為：
+
+- direct playlist insert。
+- playlistNotFound / videoNotFound bounded retry。
+- videoAlreadyInPlaylist 視為 idempotent success。
+- --existing-video-id 可補做 playlist post-step，不重傳 MP4。
+
+---
+
+## 12. YouTube batch / reconciliation baseline
+
+主程式：
+
+~~~text
+scripts/youtube_upload_batch.py
+docs/YOUTUBE_BATCH_UPLOAD.md
+~~~
+
+YouTube channel 本身是 runtime uploaded-state SSOT。
+
+每次 batch：
+
+1. inventory authenticated channel。
+2. 對每首 poem 產生 canonical title + tracking URL。
+3. 判斷 channel 是否已有該 poem。
+4. 已有：不重傳 MP4，只做 idempotent postcheck。
+5. 未有且本機 MP4 存在：READY upload。
+6. 本機 MP4 不存在：WAIT_LOCAL。
+7. 多個 channel matches：CONFLICT，停止自動上傳。
+
+已上傳判定：
+
+~~~text
+exact generated title
+OR
+canonical poem tracking URL in description
+~~~
+
+Age 6 最終 batch：
+
+~~~text
+already_uploaded=2
+existing_postchecked=2
+existing_post_failed=0
+uploaded_now=23
+failed=0
+waiting_local=0
+PASS
+~~~
+
+此結果驗證 duplicate avoidance、existing-video reconciliation、playlist postcheck、fail-safe resume、23 支連續新 upload、全組 local availability 與全組 channel completeness。
+
+---
+
+## 13. Age 6 已驗證的重要 production cases
+
+### p225 春曉
+
+第一支真正 YouTube upload：
+
+~~~text
+video_id=g8daVN7W2bg
+privacy=private
+made_for_kids=true
+upload=PASS
+~~~
+
+用途：驗證 OAuth / resumable upload / metadata / made-for-kids。
+
+### p226 夜思
+
+第一支 public production upload / playlist recovery case：
+
+~~~text
+video_id=l5WYLemUnuQ
+privacy=public
+made_for_kids=true
+~~~
+
+曾碰到 playlist 404 propagation，之後以 existing-video repair path PASS。
+
+用途：驗證 public publication + playlist recovery + no duplicate re-upload。
+
+---
+
+## 14. Definition of Done：每個 age group
+
+之後 7 / 8 / 9 歲沿用同一 DoD。
+
+### Data / semantic
+
+- 該 age poems 數量確認
+- Scenes 數量確認
+- visual_plan_status 全部 approved
+- physical-line Scene invariant PASS
+- blank Scene invariants preserved
+
+### Pronunciation / audio
+
+- pronunciation inventory 完成
+- BPMF override / font gap QA PASS
+- TTS pronunciation QA PASS
+- 必要 synthesis proxies 登錄
+- 所需 WAV 全部存在
+
+### Visual / text
+
+- production style 決策完成
+- backgrounds 全部存在
+- text overlays 全部存在
+- asset preflight PASS
+
+### Video
+
+- timelines 全部 PASS
+- batch MP4 render 完成
+- waiting / failed = 0
+- spot-check motion / text / audio / BGM
+
+### YouTube
+
+- OAuth token scopes valid
+- batch inventory 無 unresolved CONFLICT
+- waiting_local = 0
+- failed = 0
+- existing_post_failed = 0
+- channel completeness = poem count
+- age playlist routing complete
+
+---
+
+## 15. 下一階段：Age 7
+
+Age 7 現況：
+
+~~~text
+poems            50
+approved          0
+draft            50
+scenes          127
+nonblank scenes 127
+blank scenes      0
+~~~
+
+因此下一步不是直接組影片，而是先完成 Age 7 resource production gate。
+
+建議順序：
+
+~~~text
+1. Age 7 inventory
+2. visual plan review / approve
+3. image style generalization decision
+4. pronunciation inventory / QA
+5. TTS assets
+6. BPMF/text overlays
+7. background images
+8. full asset preflight
+9. batch timeline
+10. batch MP4
+11. YouTube dry-run inventory
+12. batch upload
+13. reconciliation PASS
+14. mark Age 7 COMPLETE
+~~~
+
+完成後依序：
+
+~~~text
+Age 8 -> 100 poems / 395 scenes
+Age 9 -> 138 poems / 1,050 scenes
+~~~
+
+Age 9 特別注意 6 個 blank separator Scenes，不應因為空行而被重建 script 刪掉。
+
+---
+
+## 16. 當前 phase 定義
+
+~~~text
+Phase 1  Age 6 production pipeline + delivery   COMPLETE
+Phase 2  Age 7 resource production              NEXT
+Phase 3  Age 8 resource production              PENDING
+Phase 4  Age 9 resource production              PENDING
+Phase 5  Full 313-poem reconciliation           PENDING
+~~~
+
+目前不需要再重做 Age 6 pipeline architecture；除非 Age 7 出現真正的跨 age contract gap，否則後續應優先複用既有 production components，而不是重新設計一套流程。
+
+---
+
+## 17. Repo / local boundary
+
+GitHub Repo 是 code / config / metadata / development contract SSOT。
+
+下列大型或敏感 runtime assets 預設只存在 local，不進 Git：
+
+- .env
+- OAuth client / user token
+- fonts
+- BGM audio files
+- generated WAV
+- generated image binaries
+- generated text PNG
+- generated MP4
+
+因此 Repo 可以定義「應該有什麼」，但不能單靠 Git 證明 local binary assets 是否存在。
+
+正式判定 local completeness 仍必須依 generation scripts 的 resume logic、timeline preflight、render batch preflight、YouTube batch inventory / reconciliation。
+
+---
+
+## 18. 主要文件索引
+
+~~~text
+docs/SCHEMA.md
+docs/IMAGE_PIPELINE.md
+docs/PRONUNCIATION_QA.md
+docs/TTS_BATCH.md
+docs/TEXT_OVERLAY_PIPELINE.md
+docs/VIDEO_PIPELINE.md
+docs/VIDEO_BATCH.md
+docs/BGM_PIPELINE.md
+docs/YOUTUBE_UPLOAD.md
+docs/YOUTUBE_BATCH_UPLOAD.md
+~~~
+
+本文件只記錄「目前開發到哪裡」；細部 contract 以各專門文件、config 與 script 為準。
