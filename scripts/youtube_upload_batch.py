@@ -648,6 +648,8 @@ def main() -> int:
 
     if not queue:
         print("PASS: nothing ready requires upload.")
+        if existing_post_failed:
+            return 1
         return 0
 
     print("")
@@ -732,11 +734,19 @@ def main() -> int:
         f"waiting_local={len(missing_local)}"
     )
 
+    if existing_post_failed:
+        for pid, rc in existing_post_failed:
+            print(
+                f"  POSTCHECK_FAIL p{pid:03d} rc={rc}"
+            )
+
     if failed:
         for pid, rc in failed:
             print(
                 f"  FAIL p{pid:03d} rc={rc}"
             )
+
+    if existing_post_failed or failed:
         return 1
 
     print("PASS")
