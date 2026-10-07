@@ -36,5 +36,17 @@
   },
   "thumbnail": {
     "mode": "youtube_auto"
+  },
+  "batch_upload": {
+    "channel_is_uploaded_state_ssot": true,
+    "approved_only_default": true,
+    "uploaded_detection": [
+      "exact generated title",
+      "canonical poem tracking URL in description"
+    ],
+    "multiple_match_policy": "stop_before_upload",
+    "missing_local_policy": "skip_and_report",
+    "error_policy": "fail_fast",
+    "child_uploader": "scripts/youtube_upload.py"
   }
 }
