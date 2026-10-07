@@ -286,6 +286,27 @@ py scripts\render_video.py --poem-id 226 --style B --force
 
 FFmpeg must be available in `PATH`. A custom executable can be supplied with `--ffmpeg`.
 
+On Windows, `pip install FFmpeg` is **not** sufficient; that installs a Python package, not `ffmpeg.exe`.
+
+Recommended Windows install:
+
+```powershell
+winget install --id Gyan.FFmpeg -e
+```
+
+Then reopen PowerShell and verify:
+
+```powershell
+ffmpeg -version
+where.exe ffmpeg
+```
+
+If FFmpeg is installed but not in PATH:
+
+```powershell
+py scripts\render_video.py --poem-id 226 --style B --ffmpeg "C:\path\to\ffmpeg.exe"
+```
+
 ### Transition status
 
 Assembly POC v1 uses hard visual cuts.
