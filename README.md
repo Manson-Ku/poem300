@@ -396,3 +396,24 @@ config/bgm_mix_v1.json
 data/poem_bgm.csv
 docs/BGM_PIPELINE.md
 ```
+
+
+## YouTube OAuth connection
+
+The local `.env` stores the OAuth Desktop-app client JSON in `YTB_KEY_JSON`.
+
+Install dependencies:
+
+```powershell
+pip install -r requirements.txt
+```
+
+Authorize and verify the signed-in YouTube channel:
+
+```powershell
+py scripts\youtube_auth.py
+```
+
+The local refreshable user token is stored under `credentials/youtube_token.json`, which is gitignored. The expected channel is `@KidMoreTW`.
+
+Full workflow: `docs/YOUTUBE_UPLOAD.md`.
