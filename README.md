@@ -463,3 +463,14 @@ py scripts\youtube_upload.py --poem-id 225 --style B
 ```
 
 Expected preview includes `privacy=public`, `made_for_kids=true`, `playlist=6歲建議`, and `thumbnail=youtube_auto`.
+
+
+### Repair a playlist step without re-uploading
+
+If the video upload succeeds but the playlist step fails, reuse the returned YouTube video ID:
+
+```powershell
+py scripts\youtube_upload.py --poem-id 226 --existing-video-id l5WYLemUnuQ
+```
+
+The repair mode verifies the existing video and retries only the age-playlist routing. It never uploads the MP4 again.
