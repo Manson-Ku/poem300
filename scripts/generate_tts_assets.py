@@ -295,6 +295,14 @@ def style_with_pronunciation(
             f"expected={expected_text!r} actual={text!r}"
         )
 
+    if override.get("synthesis_text"):
+        return (
+            base_style.rstrip()
+            + " The input may contain pronunciation-only homophonic "
+            + "substitutions. Recite the supplied input exactly and "
+            + "do not explain or mention the substitutions."
+        )
+
     rules = []
     for item in override.get("pronunciations", []):
         character = str(item["character"])
@@ -326,6 +334,31 @@ def style_with_pronunciation(
     )
 
 
+def synthesis_text_for_override(
+    *,
+    source_text: str,
+    override: dict[str, Any] | None,
+) -> str:
+    if not override:
+        return source_text
+
+    expected_text = str(override.get("source_text", ""))
+    if expected_text != source_text:
+        raise ValueError(
+            "TTS pronunciation override source_text mismatch: "
+            f"expected={expected_text!r} actual={source_text!r}"
+        )
+
+    synthesis_text = str(
+        override.get("synthesis_text") or source_text
+    )
+
+    if not synthesis_text.strip():
+        raise ValueError("TTS synthesis_text must not be empty")
+
+    return synthesis_text
+
+
 def is_retryable(exc: Exception) -> bool:
     message = f"{type(exc).__name__}: {exc}".upper()
     retry_markers = (
@@ -350,6 +383,7 @@ def generate_audio(
     scene: dict[str, Any],
     audio_type: str,
     text: str,
+    synthesis_text: str | None,
     voice: str,
     style: str,
     output_path: Path,
@@ -380,6 +414,8 @@ def generate_audio(
         "audio_file": relative_audio_path,
     }
 
+    api_text = synthesis_text or text
+
     last_exc: Exception | None = None
     total_started = time.perf_counter()
 
@@ -393,7 +429,7 @@ def generate_audio(
                         "content": [
                             {
                                 "type": "text",
-                                "text": text,
+                                "text": api_text,
                                 "annotations": [
                                     {
                                         "type": "speech_metadata",
@@ -901,6 +937,10 @@ def main() -> int:
                 text=text,
                 override=override,
             )
+            synthesis_text = synthesis_text_for_override(
+                source_text=text,
+                override=override,
+            )
 
             if output_path.exists() and not args.force:
                 skipped += 1
@@ -917,9 +957,15 @@ def main() -> int:
                     if output_path.exists()
                     else "GENERATE"
                 )
+                proxy_note = (
+                    f" proxy={synthesis_text!r}"
+                    if synthesis_text != text
+                    else ""
+                )
                 print(
                     f"  poem {audio_type}: {action} "
                     f"-> {output_path.as_posix()}"
+                    f"{proxy_note}"
                 )
                 continue
 
@@ -943,6 +989,7 @@ def main() -> int:
                     scene=meta_scene,
                     audio_type=audio_type,
                     text=text,
+                    synthesis_text=synthesis_text,
                     voice=args.voice,
                     style=effective_style,
                     output_path=output_path,
@@ -1033,6 +1080,10 @@ def main() -> int:
                     text=text,
                     override=override,
                 )
+                synthesis_text = synthesis_text_for_override(
+                    source_text=text,
+                    override=override,
+                )
 
                 if output_path.exists() and not args.force:
                     skipped += 1
@@ -1046,9 +1097,15 @@ def main() -> int:
 
                 if args.dry_run:
                     action = "OVERWRITE" if output_path.exists() else "GENERATE"
+                    proxy_note = (
+                        f" proxy={synthesis_text!r}"
+                        if synthesis_text != text
+                        else ""
+                    )
                     print(
                         f"  {scene['scene_id']} {audio_type}: "
                         f"{action} -> {output_path.as_posix()}"
+                        f"{proxy_note}"
                     )
                     continue
 
@@ -1065,6 +1122,7 @@ def main() -> int:
                         scene=scene,
                         audio_type=audio_type,
                         text=text,
+                        synthesis_text=synthesis_text,
                         voice=args.voice,
                         style=effective_style,
                         output_path=output_path,
