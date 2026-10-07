@@ -577,7 +577,7 @@ def main() -> int:
         else str(
             config["upload"].get(
                 "default_privacy",
-                "private",
+                "public",
             )
         )
     )
