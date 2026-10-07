@@ -264,3 +264,92 @@ local rendered MP4
 ```
 
 The first-upload POC is therefore accepted as the baseline for later batch/publication workflow work.
+
+
+## Production publication defaults
+
+After the first private-upload POC passed, the default publication policy is now:
+
+```text
+privacyStatus = public
+selfDeclaredMadeForKids = true
+notifySubscribers = false
+thumbnail = YouTube automatic
+```
+
+No `thumbnails.set` API call is made. YouTube chooses the thumbnail automatically.
+
+### Age playlist routing
+
+Each upload is routed by `data/poems.csv.recommended_age`.
+
+Playlist title template:
+
+```text
+{recommended_age}歲建議
+```
+
+Examples:
+
+```text
+recommended_age=6 -> 6歲建議
+recommended_age=7 -> 7歲建議
+recommended_age=8 -> 8歲建議
+recommended_age=9 -> 9歲建議
+```
+
+After a video upload succeeds, the uploader:
+
+1. searches the authenticated channel's owned playlists for the exact age-playlist title;
+2. creates the playlist as public if it does not exist;
+3. checks whether the uploaded video is already in that playlist;
+4. inserts it only if missing.
+
+The playlist write operations require the additional OAuth scope:
+
+```text
+https://www.googleapis.com/auth/youtube.force-ssl
+```
+
+The existing token created before this change does not have that scope. Reauthorize once:
+
+```powershell
+py scripts\youtube_auth.py --force-reauth
+```
+
+After that, normal uploads reuse the saved token.
+
+### Production dry-run
+
+Example:
+
+```powershell
+py scripts\youtube_upload.py --poem-id 225 --style B --dry-run
+```
+
+The preview now includes:
+
+```text
+privacy=public
+made_for_kids=true
+playlist=6歲建議
+thumbnail=youtube_auto
+```
+
+### Production upload
+
+```powershell
+py scripts\youtube_upload.py --poem-id 225 --style B
+```
+
+On success, the command also prints:
+
+```text
+playlist_title=6歲建議
+playlist_id=...
+playlist_created=true|false
+playlist_item_added=true|false
+thumbnail=youtube_auto
+```
+
+The first p225 private-upload POC remains a historical test artifact; this policy applies to subsequent uploads unless `--privacy` explicitly overrides the default.
