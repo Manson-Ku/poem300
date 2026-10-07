@@ -306,3 +306,36 @@ data/bopomofo_overrides.json
 ```
 
 Title + content 使用 local bpmfvs-compatible 字型；author / poem_type / explanation 不加注音。超過 8 行採分頁，不將長詩硬縮成不可讀字級。
+
+
+## Pronunciation QA and Timeline Preflight
+
+Age-6 pronunciation QA:
+
+```powershell
+py scripts\qa_pronunciation.py
+```
+
+Reviewed pronunciation data:
+
+```text
+data/bopomofo_overrides.json
+data/pronunciation_qa_age6.json
+data/tts_pronunciation_overrides.json
+docs/PRONUNCIATION_QA.md
+```
+
+Audio-driven timing:
+
+```text
+config/video_timing_v1.json
+scripts/build_video_timeline.py
+```
+
+Build one timeline without rendering video:
+
+```powershell
+py scripts\build_video_timeline.py --poem-id 226 --style B --dry-run
+```
+
+MP4 composition is intentionally not started until pronunciation QA and timeline asset preflight pass.
