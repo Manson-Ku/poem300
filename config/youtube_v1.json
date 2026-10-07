@@ -7,5 +7,23 @@
     "https://www.googleapis.com/auth/youtube.readonly",
     "https://www.googleapis.com/auth/youtube.upload"
   ],
-  "note": "OAuth Desktop-app client JSON stays in .env. User token stays under credentials/ and is gitignored."
+  "note": "OAuth Desktop-app client JSON stays in .env. User token stays under credentials/ and is gitignored. Upload metadata is generated from data/poems.csv. Initial upload default is private, made-for-kids=true, notifySubscribers=false.",
+  "upload": {
+    "title_template": "唐詩三百首-注音版-{title}-{author}-KidMore啟蒙",
+    "description_header_template": "{title}-{author}-{poem_type}",
+    "website_url": "https://kidmore.tw",
+    "utm_source": "ytbc",
+    "utm_medium": "videoDescription",
+    "utm_campaign": "poem_title",
+    "tags": [
+      "唐詩三百首",
+      "唐詩",
+      "兒童朗讀",
+      "兒童閱讀"
+    ],
+    "default_language": "zh-TW",
+    "default_privacy": "private",
+    "self_declared_made_for_kids": true,
+    "notify_subscribers_default": false
+  }
 }
