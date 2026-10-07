@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import math
 import shutil
@@ -125,6 +126,53 @@ def resolve_bgm_track(
     )
 
 
+def discover_bgm_tracks(
+    *,
+    bgm_dir: Path,
+    supported_extensions: set[str],
+) -> list[Path]:
+    if not bgm_dir.exists():
+        return []
+
+    return sorted(
+        (
+            path
+            for path in bgm_dir.iterdir()
+            if path.is_file()
+            and path.suffix.lower() in supported_extensions
+        ),
+        key=lambda path: path.name.casefold(),
+    )
+
+
+def stable_random_bgm(
+    *,
+    poem_id: int,
+    bgm_dir: Path,
+    supported_extensions: set[str],
+    seed_namespace: str,
+) -> Path | None:
+    """Choose one reproducible pseudo-random local BGM per poem."""
+
+    tracks = discover_bgm_tracks(
+        bgm_dir=bgm_dir,
+        supported_extensions=supported_extensions,
+    )
+    if not tracks:
+        return None
+
+    digest = hashlib.sha256(
+        f"{seed_namespace}:{poem_id}".encode("utf-8")
+    ).digest()
+    index = int.from_bytes(
+        digest[:8],
+        "big",
+        signed=False,
+    ) % len(tracks)
+
+    return tracks[index]
+
+
 def select_bgm(
     *,
     poem_id: int,
@@ -154,16 +202,41 @@ def select_bgm(
     source = "none"
     selected_value: str | None = None
     mapped_gain: float | None = None
+    track: Path | None = None
 
     if cli_bgm is not None:
-        if cli_bgm.strip().casefold() in {
+        cli_key = cli_bgm.strip().casefold()
+
+        if cli_key in {
             "none",
             "off",
             "no",
         }:
             return None
-        source = "cli"
-        selected_value = cli_bgm.strip()
+
+        if cli_key in {
+            "random",
+            "auto",
+        }:
+            track = stable_random_bgm(
+                poem_id=poem_id,
+                bgm_dir=bgm_dir,
+                supported_extensions=supported,
+                seed_namespace=str(
+                    config.get(
+                        "stable_random_seed_namespace",
+                        "poem300-bgm-v1",
+                    )
+                ),
+            )
+            if track is None:
+                return None
+            source = "cli_stable_random"
+            selected_value = track.name
+        else:
+            source = "cli"
+            selected_value = cli_bgm.strip()
+
     else:
         for row in read_csv(map_path):
             raw_pid = row.get("poem_id", "").strip()
@@ -177,8 +250,27 @@ def select_bgm(
                 "",
             ).strip()
             if candidate:
-                source = "poem_map"
-                selected_value = candidate
+                if candidate.casefold() in {
+                    "random",
+                    "auto",
+                }:
+                    track = stable_random_bgm(
+                        poem_id=poem_id,
+                        bgm_dir=bgm_dir,
+                        supported_extensions=supported,
+                        seed_namespace=str(
+                            config.get(
+                                "stable_random_seed_namespace",
+                                "poem300-bgm-v1",
+                            )
+                        ),
+                    )
+                    if track is not None:
+                        source = "poem_map_stable_random"
+                        selected_value = track.name
+                else:
+                    source = "poem_map"
+                    selected_value = candidate
 
                 raw_gain = row.get(
                     "gain_db",
@@ -189,13 +281,37 @@ def select_bgm(
             break
 
     if not selected_value:
-        return None
+        if not bool(
+            config.get(
+                "auto_random_if_unmapped",
+                False,
+            )
+        ):
+            return None
 
-    track = resolve_bgm_track(
-        bgm_dir=bgm_dir,
-        value=selected_value,
-        supported_extensions=supported,
-    )
+        track = stable_random_bgm(
+            poem_id=poem_id,
+            bgm_dir=bgm_dir,
+            supported_extensions=supported,
+            seed_namespace=str(
+                config.get(
+                    "stable_random_seed_namespace",
+                    "poem300-bgm-v1",
+                )
+            ),
+        )
+        if track is None:
+            return None
+
+        source = "stable_random"
+        selected_value = track.name
+
+    if track is None:
+        track = resolve_bgm_track(
+            bgm_dir=bgm_dir,
+            value=selected_value,
+            supported_extensions=supported,
+        )
 
     default_gain = float(
         config["mix"].get(
@@ -1409,7 +1525,8 @@ def build_parser() -> argparse.ArgumentParser:
         "--bgm",
         help=(
             "Override poem BGM with a filename or unique stem under "
-            "bgm/. Use --bgm none to disable a mapped BGM."
+            "bgm/. Use --bgm random/auto for stable per-poem random "
+            "selection, or --bgm none to disable BGM."
         ),
     )
     parser.add_argument(
