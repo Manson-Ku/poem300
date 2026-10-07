@@ -155,7 +155,7 @@ p067_s03 = 正文第一行
 SSOT：
 
 ```text
-config/text_overlay_1080p_v1.json
+config/text_overlay_1080p_v2.json
 ```
 
 ### 核心顯示模型
