@@ -356,4 +356,4 @@ Output:
 assets/p226/video/p226_B_1080p.mp4
 ```
 
-The first hard-cut assembly POC has passed. The current composer uses `config/video_motion_v1.json` for 0.30s scene crossfades, background-only slow zoom, new-line fade-in, and explanation fade-in/out while preserving the same six-session audio timeline.
+The first hard-cut assembly POC has passed. The current composer renders one continuous background-motion clip per consecutive scene/background run, alternating centered 100% -> 80% and 80% -> 100% crop-window zoom. Timeline events slice that run-level clip, so poem/explanation boundaries do not restart the camera.
