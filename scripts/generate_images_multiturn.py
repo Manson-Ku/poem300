@@ -683,6 +683,155 @@ GLOBAL_VISUAL_EXCLUSIONS = [
 ]
 
 
+def continuity_lock_items(
+    plan: dict[str, Any],
+    scene_index: int,
+) -> list[str]:
+    """Return only entities that persist from the previous Scene."""
+    scenes = [
+        item
+        for item in plan.get("scenes", [])
+        if isinstance(item, dict)
+    ]
+    if scene_index <= 0 or scene_index >= len(scenes):
+        return []
+
+    previous_ids = set(_scene_entity_ids(scenes[scene_index - 1]))
+    current_ids = _scene_entity_ids(scenes[scene_index])
+
+    return _unique_lines(
+        [
+            _entity_text(plan, entity_id)
+            for entity_id in current_ids
+            if entity_id in previous_ids
+        ]
+    )
+
+
+def build_anchor_prompt(
+    scene: dict[str, str],
+    isolation: dict[str, Any],
+    style: dict[str, Any],
+    exclusions: list[str],
+) -> str:
+    blocks = [
+        "ANCHOR SCENE — 只畫這一幕。",
+        "生成一張 16:9、1K、完整滿版的兒童繪本背景插畫。",
+        "這張圖要建立後續 Scene 可延續的人物與場景外觀，但不得提前畫後續事件。",
+        "",
+        f"本幕詩句：{scene['original_line']}",
+        f"本幕意思：{scene['child_explanation_line']}",
+    ]
+
+    _append_list_section(
+        blocks,
+        "必須清楚呈現：",
+        isolation["must_show"],
+        "依本幕詩句與兒童理解自然呈現。",
+    )
+    _append_list_section(
+        blocks,
+        "絕對不要提前出現：",
+        isolation["must_not_show"],
+        "任何後續 Scene 的事件、結果或專屬元素。",
+    )
+
+    blocks += [
+        "",
+        "畫風：",
+        style_text(style),
+        "",
+        "構圖原則：",
+        "- 只服務本幕詩意，不替下一幕做預告。",
+        "- 建立清楚的人物外觀、服裝、房間／場景與主要物件，供下一幕延續 identity。",
+        "- 畫面自然延伸到四邊；不要字幕安全區、白色橫條、刻意留白或卡片框。",
+        "- 聲音以姿態與環境表現，不使用音符、對話框或漫畫聲效符號。",
+    ]
+
+    if exclusions:
+        blocks += [
+            "",
+            "禁止出現：",
+            *[f"- {item}" for item in exclusions],
+        ]
+
+    return "\n".join(blocks)
+
+
+def build_transition_prompt(
+    scene: dict[str, str],
+    isolation: dict[str, Any],
+    exclusions: list[str],
+    continuity_locks: list[str],
+) -> str:
+    blocks = [
+        "NEXT SCENE — 本幕詩意優先。",
+        "把上一輪影像當成『人物／場景 identity 與畫風參考』，不是構圖模板。",
+        "目標是讓觀者第一眼就看懂現在這一句詩，而不是把上一張只做小幅修圖。",
+        "",
+        f"現在要表現的詩句：{scene['original_line']}",
+        f"現在這一幕的意思：{scene['child_explanation_line']}",
+    ]
+
+    _append_list_section(
+        blocks,
+        "這一幕相對上一幕必須發生的變化：",
+        isolation["scene_delta"],
+        "依現在這句詩重新安排畫面重心。",
+    )
+    _append_list_section(
+        blocks,
+        "這一幕必須清楚呈現：",
+        isolation["must_show"],
+        "依現在這句詩與兒童理解自然呈現。",
+    )
+    _append_list_section(
+        blocks,
+        "這一幕絕對不能出現：",
+        isolation["must_not_show"],
+        "本幕未要求的事件或錯誤時序。",
+    )
+    _append_list_section(
+        blocks,
+        "只鎖定以下 continuity：",
+        continuity_locks,
+        "沒有需要硬鎖定的上一幕實體。",
+    )
+
+    blocks += [
+        "",
+        "重構規則：",
+        "- 保留上列 continuity 的 identity；其餘上一幕細節不必保留。",
+        "- 可以主動改變人物姿勢、視線、鏡頭距離、取景與畫面重心，只要人物與固定場景仍辨識為同一個。",
+        "- 不要只是沿用上一張構圖再加幾個雨滴、花瓣、雪、煙或其他小物件；本幕必須有明確的新敘事重心。",
+        "- 上一幕曾經是焦點、但本幕沒有要求的元素，不得搶走現在這句詩的主題。",
+        "",
+        "時序硬規則：",
+        "- 只畫本幕『現在』正在發生或現在看得到的狀態。",
+        "- 若詩句／兒童理解提到『昨夜、之前、回想、曾經、結果』，過去事件本身不得被畫成現在仍在發生；只能表現它留在現在的結果，除非本幕明確說事件此刻仍在發生。",
+        "",
+        "空間硬規則：",
+        "- 雨水、花瓣、雪、煙、泥濘等狀態只能出現在本幕語意指定的位置，不要擴散到無關的室內表面或物件。",
+        "",
+        "畫風鎖定：",
+        "- 沿用上一輪完全相同的插畫風格、媒材語言與角色設計，不重新選畫風。",
+        "",
+        "輸出規則：",
+        "- 生成一張新的 16:9、1K、完整滿版插畫。",
+        "- 不要多格、拼貼、漫畫分鏡、字幕安全區、白色橫條、刻意留白或卡片框。",
+        "- 聲音以姿態與環境表現，不使用音符、對話框或漫畫聲效符號。",
+    ]
+
+    if exclusions:
+        blocks += [
+            "",
+            "禁止出現：",
+            *[f"- {item}" for item in exclusions],
+        ]
+
+    return "\n".join(blocks)
+
+
 def build_prompt(
     poem: dict[str, str],
     scene: dict[str, str],
@@ -690,11 +839,15 @@ def build_prompt(
     style: dict[str, Any],
     chain_index: int,
 ) -> str:
+    # Intentionally do not inject poem-level world/full poem/continuity prose.
+    # Multi-turn context carries visual history; the runtime prompt should
+    # stay narrowly scoped to the current physical poem line.
+    del poem
+
     isolation = resolve_scene_isolation(
         plan,
         scene["scene_id"],
     )
-    scene_plan = isolation["scene_plan"]
 
     style_exclusions = style.get("global_exclusions") or []
     exclusions = _unique_lines(
@@ -702,102 +855,24 @@ def build_prompt(
         + GLOBAL_VISUAL_EXCLUSIONS
     )
 
-    blocks = [
-        "請以繁體中文理解以下結構化視覺指令。",
-        "生成一張 16:9、1K、完整滿版的兒童繪本背景插畫。",
-    ]
-
     if chain_index == 1:
-        blocks += [
-            "",
-            "Scene Isolation：這是第一幕，也是後續影像的視覺錨點。",
-            "只能呈現本 Scene；後續 Scene 的事件、結果、角色狀態與專屬物件不得提前出現。",
-            "整體世界設定只用來固定世界與連續性；若與本幕 must_show / must_not_show 有先後差異，以本幕規則優先。",
-            "",
-            "Poem-level 視覺連續性：",
-            "世界：",
-            visual_world(poem, plan) or "依 visual plan 建立。",
-            "",
-            "跨 Scene 固定人物／場景／共用物件：",
-            recurring_visual_objects(plan)
-            or "- 依本幕與 continuity 建立。",
-            "",
-            "跨 Scene 連貫規則：",
-            visual_continuity(poem, plan)
-            or "重複元素保持一致。",
-        ]
-    else:
-        blocks += [
-            "",
-            "Scene Isolation：這是同一條 multi-turn chain 的下一幕。",
-            "以上一輪影像上下文為外觀與空間的既定基準，只執行本 Scene 的必要變化。",
-            "不要重新設計人物、房間、固定場景、主要物件、構圖語言或畫風；除非 scene_delta 明確要求。",
-            "不要回頭重新詮釋整首詩，也不要提前呈現後續 Scene。",
-            "",
-            "跨 Scene 連貫規則：",
-            visual_continuity(poem, plan)
-            or "重複元素保持一致。",
-        ]
+        return build_anchor_prompt(
+            scene,
+            isolation,
+            style,
+            exclusions,
+        )
 
-    blocks += [
-        "",
-        "畫風：",
-        style_text(style),
-        "",
-        f"本 Scene：{scene['scene_id']}",
-        f"原詩本段：{scene['original_line']}",
-        f"兒童理解：{scene['child_explanation_line']}",
-    ]
-
-    planned = scene_plan_text(plan, scene["scene_id"])
-    if planned:
-        blocks += [
-            "",
-            "本 Scene 已定義內容：",
-            planned,
-        ]
-
-    _append_list_section(
-        blocks,
-        "must_show：",
-        isolation["must_show"],
-        "依本 Scene 已定義內容呈現。",
+    continuity_locks = continuity_lock_items(
+        plan,
+        isolation["scene_index"],
     )
-    _append_list_section(
-        blocks,
-        "scene_delta：",
-        isolation["scene_delta"],
-        (
-            "第一幕無前一幕差分，建立本幕視覺錨點。"
-            if chain_index == 1
-            else "沒有額外差分；延續上一幕。"
-        ),
+    return build_transition_prompt(
+        scene,
+        isolation,
+        exclusions,
+        continuity_locks,
     )
-    _append_list_section(
-        blocks,
-        "must_not_show：",
-        isolation["must_not_show"],
-        "不得加入本 Scene 未定義的後續事件。",
-    )
-
-    blocks += [
-        "",
-        "生成規則：",
-        "- must_not_show 是硬限制；不得用背景、回憶、象徵、倒影、夢境或裝飾方式偷渡。",
-        "- 只生成一個完整 Scene，不依逗號或句號拆成多格、拼貼或漫畫分鏡。",
-        "- 畫面自然延伸到四邊，保持完整滿版；不要設計白色橫條、刻意空白區或卡片式邊框。",
-        "- 不要加入本 Scene 不需要的新角色或新物件。",
-        "- 聲音用角色／動物姿態與環境氛圍表現；例如鳥叫用鳥的姿態、張口與晨間氛圍，不使用音符或漫畫聲效符號。",
-    ]
-
-    if exclusions:
-        blocks += [
-            "",
-            "全局禁止出現：",
-            *[f"- {item}" for item in exclusions],
-        ]
-
-    return "\n".join(blocks)
 
 def calc_cost(
     total_input_tokens: int,
@@ -1304,7 +1379,10 @@ def main() -> int:
 
     if args.dry_run:
         print("\n=== Scene Isolation semantics (shared by A/B) ===")
+        print("prompt_strategy=anchor_then_minimal_transition")
         print("whole_poem_text_in_prompt=no")
+        print("poem_world_in_prompt=no")
+        print("poem_continuity_prose_in_transition=no")
         for index, scene in enumerate(poem_scenes, start=1):
             isolation = resolve_scene_isolation(
                 plan,
@@ -1366,9 +1444,13 @@ def main() -> int:
                 prompt_hash = hashlib.sha256(
                     prompt.encode("utf-8")
                 ).hexdigest()[:12]
+                prompt_mode = (
+                    "ANCHOR" if index == 1 else "TRANSITION"
+                )
                 print(
                     f"{index}. {scene['scene_id']}: "
-                    f"{action} -> {image_path.as_posix()} "
+                    f"{prompt_mode} {action} -> "
+                    f"{image_path.as_posix()} "
                     f"prompt={prompt_hash}"
                 )
         return 0
