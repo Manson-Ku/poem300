@@ -1,0 +1,42 @@
+{
+  "version": "bpmf_font_extensions_v1",
+  "base_font": {
+    "expected_filename": "BpmfHuninn-Regular.ttf",
+    "upstream": "ButTaiwan/bpmfvs",
+    "license": "SIL Open Font License 1.1"
+  },
+  "output_font": {
+    "filename": "BpmfHuninn-Poem300-Regular.ttf",
+    "family_name": "Poem300 Bpmf Huninn",
+    "full_name": "Poem300 Bpmf Huninn Regular",
+    "postscript_name": "Poem300BpmfHuninn-Regular"
+  },
+  "extensions": [
+    {
+      "character": "柴",
+      "codepoint": "U+67F4",
+      "default_reading": "ㄔㄞˊ",
+      "added_reading": "ㄓㄞˋ",
+      "selector": "U+E01E1",
+      "component_glyph": "z_zhai4",
+      "glyph_suffix": "zhai4",
+      "contexts": [
+        "鹿柴"
+      ],
+      "evidence_note": "唐詩〈鹿柴〉之柴讀ㄓㄞˋ"
+    },
+    {
+      "character": "景",
+      "codepoint": "U+666F",
+      "default_reading": "ㄐㄧㄥˇ",
+      "added_reading": "ㄧㄥˇ",
+      "selector": "U+E01E1",
+      "component_glyph": "z_ying3",
+      "glyph_suffix": "ying3",
+      "contexts": [
+        "返景"
+      ],
+      "evidence_note": "返景之景讀ㄧㄥˇ"
+    }
+  ]
+}
