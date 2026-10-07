@@ -1,0 +1,57 @@
+{
+  "style_id": "age6_a_watercolor_ink_v1",
+  "ab_slot": "A",
+  "target_age": 6,
+  "label_zh_tw": "東方淡彩水彩繪本",
+  "purpose": "A/B style preset only; contains no scene semantics and no prompt text.",
+  "medium": [
+    "透明水彩",
+    "淡墨線稿",
+    "細緻紙張紋理",
+    "柔和手繪筆觸"
+  ],
+  "visual_character": [
+    "東方古典",
+    "詩意",
+    "輕盈",
+    "自然",
+    "溫暖",
+    "安靜"
+  ],
+  "color_language": {
+    "saturation": "low_to_medium",
+    "contrast": "soft",
+    "palette": "溫暖淡彩、自然色、避免高飽和螢光色"
+  },
+  "shape_language": {
+    "silhouette": "自然柔和",
+    "linework": "細緻但不繁複",
+    "detail_level": "medium"
+  },
+  "character_rendering": {
+    "proportion": "兒童繪本比例，略圓潤但不Q版",
+    "face": "自然、溫和、表情清楚",
+    "avoid": [
+      "動漫大眼",
+      "3D塑膠感",
+      "寫實攝影感"
+    ]
+  },
+  "environment_rendering": {
+    "priority": "氣氛、自然光、季節感與詩意",
+    "texture": "水彩暈染與留白感，但畫面仍需完整"
+  },
+  "global_exclusions": [
+    "任何文字",
+    "題字",
+    "書法",
+    "字幕",
+    "注音",
+    "印章",
+    "Logo",
+    "UI",
+    "海報式排版",
+    "字幕底板",
+    "刻意空白橫條"
+  ]
+}
