@@ -171,3 +171,20 @@ py scripts\tts_cost_report.py --mode spend
 ```
 
 The default `current` mode keeps only the latest completed production request for each Scene/audio type. This prevents a `--force` regeneration from double-counting the current asset cost.
+
+## Pronunciation QA regeneration
+
+Pronunciation-sensitive assets are declared in:
+
+```text
+data/tts_pronunciation_overrides.json
+```
+
+Regenerate only those reviewed assets:
+
+```powershell
+py scripts\generate_tts_assets.py --age 6 --types title author poem --pronunciation-qa-only --dry-run
+py scripts\generate_tts_assets.py --age 6 --types title author poem --pronunciation-qa-only --force
+```
+
+The original source text remains unchanged. The pronunciation requirement is added only to the speech style metadata for that asset.
