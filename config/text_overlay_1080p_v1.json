@@ -1,0 +1,152 @@
+{
+  "version": "text_overlay_1080p_v1",
+  "canvas": {
+    "width": 1920,
+    "height": 1080
+  },
+  "raster_scale": 2,
+  "font": {
+    "source": "local_only",
+    "path_env": "BPMF_FONT_PATH",
+    "git_policy": "fonts/ and font binaries must stay untracked",
+    "ivs_spec": "ButTaiwan/bpmfvs",
+    "bopomofo_fields": [
+      "title",
+      "content"
+    ],
+    "plain_fields": [
+      "author",
+      "poem_type",
+      "child_explanation_6_8"
+    ]
+  },
+  "zones": {
+    "title": {
+      "x": 120,
+      "y": 48,
+      "width": 1680,
+      "height": 120,
+      "align": "center"
+    },
+    "meta": {
+      "x": 120,
+      "y": 174,
+      "width": 1680,
+      "height": 62,
+      "align": "center",
+      "layout": "author_then_poem_type",
+      "gap": 48
+    },
+    "content": {
+      "x": 160,
+      "y": 260,
+      "width": 1600,
+      "height": 560,
+      "align": "center"
+    },
+    "explanation": {
+      "x": 180,
+      "y": 870,
+      "width": 1560,
+      "height": 120,
+      "align": "center"
+    }
+  },
+  "typography": {
+    "title": {
+      "font_px_max": 108,
+      "font_px_min": 36,
+      "single_line": true,
+      "fit": "shrink_to_width"
+    },
+    "author": {
+      "font_px_max": 42,
+      "font_px_min": 32,
+      "single_line": true,
+      "fit": "shrink_to_width"
+    },
+    "poem_type": {
+      "font_px_max": 42,
+      "font_px_min": 32,
+      "single_line": true,
+      "fit": "shrink_to_width"
+    },
+    "content": {
+      "single_line_per_asset": true,
+      "max_lines_per_page": 8,
+      "tiers": [
+        {
+          "min_lines": 1,
+          "max_lines": 4,
+          "target_font_px": 96,
+          "min_font_px": 72,
+          "line_gap_px": 18
+        },
+        {
+          "min_lines": 5,
+          "max_lines": 6,
+          "target_font_px": 78,
+          "min_font_px": 60,
+          "line_gap_px": 14
+        },
+        {
+          "min_lines": 7,
+          "max_lines": 8,
+          "target_font_px": 60,
+          "min_font_px": 50,
+          "line_gap_px": 10
+        }
+      ],
+      "fit": "measure_actual_font_then_shrink_to_width",
+      "overflow_policy": "qa_fail_if_single_line_cannot_fit_at_tier_min",
+      "page_policy": "paginate_when_poem_has_more_than_8_lines"
+    },
+    "explanation": {
+      "font_px_max": 42,
+      "font_px_min": 24,
+      "single_line": true,
+      "mode": "active_scene_only",
+      "fit": "measure_actual_font_then_shrink_to_width"
+    }
+  },
+  "appearance": {
+    "title_content": {
+      "fill": "#FFF8E8",
+      "stroke": "#1A1A1A",
+      "stroke_px": 3,
+      "shadow": {
+        "dx": 2,
+        "dy": 3,
+        "blur_px": 4,
+        "alpha": 0.45
+      }
+    },
+    "meta_explanation": {
+      "fill": "#F7F2E8",
+      "stroke": "#1A1A1A",
+      "stroke_px": 2,
+      "shadow": {
+        "dx": 2,
+        "dy": 2,
+        "blur_px": 3,
+        "alpha": 0.4
+      }
+    }
+  },
+  "output": {
+    "image_format": "PNG",
+    "background": "transparent",
+    "crop": "tight_bbox_with_padding",
+    "padding_px": 12,
+    "manifest_coordinates": "display_space_1920x1080"
+  },
+  "pronunciation_override": {
+    "storage": "data/bopomofo_overrides.json",
+    "applies_to": [
+      "title",
+      "content"
+    ],
+    "method": "insert_explicit_IVS_selector_after_target_character",
+    "qa": "source_text_must_match_before_override"
+  }
+}
