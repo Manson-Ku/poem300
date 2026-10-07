@@ -294,3 +294,15 @@ data/image_usage.csv
 `previous_interaction_id` 欄位保留，但在 independent-scene 架構下固定為空。
 
 完整規格見 `docs/IMAGE_PIPELINE.md`.
+
+## Text Overlay Pipeline
+
+1920×1080 注音文字圖層已定義：
+
+```text
+config/text_overlay_1080p_v1.json
+docs/TEXT_OVERLAY_PIPELINE.md
+data/bopomofo_overrides.json
+```
+
+Title + content 使用 local bpmfvs-compatible 字型；author / poem_type / explanation 不加注音。超過 8 行採分頁，不將長詩硬縮成不可讀字級。
