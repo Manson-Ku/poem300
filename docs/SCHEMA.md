@@ -14,6 +14,9 @@
 | child_explanation_6_8 | text | 6–8 歲兒童版解釋；必須與 content 逐行 1:1 |
 | popularity_level | integer | 熱門程度 1–5 |
 | recommended_age | integer | 建議最低起始年齡 6–9 |
+| visual_plan_version | string | 視覺語意 schema 版本；尚未建立時可空白 |
+| visual_plan_status | string | pending/draft/approved 等視覺計畫狀態 |
+| visual_plan_json | JSON string | 整首詩跨 Scene 共用的場景、人物、物件、狀態與 continuity SSOT |
 
 ### 驗證規則
 
@@ -22,6 +25,8 @@
 - recommended_age ∈ {6,7,8,9}。
 - content 與 child_explanation_6_8 的實際行數必須一致。
 - 不依逗號或句號重新切 Scene；只依實際換行。
+- `visual_plan_json` 不保存畫風、模型、prompt 或字幕/注音版面。
+- 相同 `visual_plan_json` 必須可套用不同 style preset 做 A/B test。
 
 目前適齡分布：
 
@@ -78,7 +83,10 @@ assets/
         poem.wav
         explanation.wav
       image/
-        background.webp
+        age6_a_watercolor_ink_v1/
+          background.webp
+        age6_b_gouache_storybook_v1/
+          background.webp
       text/
         poem_bpmf.png
     s02/
@@ -89,8 +97,37 @@ assets/
 
 - `pXXX`：zero-padded `poem_id`。
 - `sYY`：zero-padded `scene_no`。
-- 一個 Scene 對應一組 image / text / audio 素材。
+- 一個 Scene 對應一組 text / audio 素材，以及一個或多個 style-specific image variants。
 - 每個 Scene 的 TTS 分為 `poem.wav` 與 `explanation.wav`。
 - `poem.json` / `scene.json` 是輕量 manifest，可納入 Git。
 - WAV、背景圖、注音 PNG 等 binary generated assets 不納入 Git。
 - TTS API 使用與成本紀錄集中於 `data/tts_usage.csv`。
+
+
+## visual_plan_json
+
+`visual_plan_json` 是 poem-level 的視覺語意 SSOT。核心概念：
+
+```text
+poem
+├─ world
+├─ entities
+│  ├─ characters
+│  ├─ animals
+│  ├─ locations
+│  └─ objects
+└─ scenes
+   ├─ s01
+   ├─ s02
+   └─ ...
+```
+
+Scene 只引用穩定 entity ID，並描述該 Scene 的狀態 / 動作 / 關係。
+
+例如同一位主角跨 Scene 都應引用同一個 `character_id`，而不是每次重新用自然語言創造一個新人物。
+
+Style 不屬於 visual plan；Style registry 位於：
+
+```text
+config/image_styles_age6.json
+```
