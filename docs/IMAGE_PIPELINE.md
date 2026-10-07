@@ -290,6 +290,24 @@ py scripts\generate_images.py --poem-id 226 --force
 py scripts\generate_images.py --poem-id 226 --styles A --force
 ```
 
+批次生成全部 6 歲 approved 詩，只生成 Style B：
+
+```powershell
+py scripts\generate_images.py --age 6 --approved-only --styles B --dry-run
+py scripts\generate_images.py --age 6 --approved-only --styles B
+```
+
+目前資料 gate：
+
+```text
+poems = 25
+scenes = 54
+styles = B only
+planned_images = 54
+```
+
+批次正式執行預設採 resume 行為：正式輸出已存在就 SKIP，不重複付費。需要故意全部覆蓋時才使用 `--force`。
+
 只測指定 Scene：
 
 ```powershell
