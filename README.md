@@ -387,7 +387,7 @@ Or test a track without changing the poem map:
 py scripts\render_video.py --poem-id 226 --style B --bgm "空山滴翠V2" --force
 ```
 
-BGM is normalized to a low background target of -32 LUFS before the optional poem-level trim is applied. Narration stays at 0 dB and remains the foreground.
+BGM is normalized to a low background target of -35 LUFS before the optional poem-level trim is applied. Narration stays at 0 dB and remains the foreground.
 
 SSOT:
 
