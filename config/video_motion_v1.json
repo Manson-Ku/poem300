@@ -15,9 +15,9 @@
     "direction_policy": "run 1: 100% -> 80%; next background run: 80% -> 100%; alternate thereafter",
     "center": "image_center_fixed",
     "pan": false,
-    "implementation": "render each complete background run once, then slice that run for timeline events",
-    "oversample": 2,
-    "note": "Percent means centered crop-window size, not image scale. 100% -> 80% is a centered zoom-in equivalent to scale 1.00 -> 1.25; 80% -> 100% is the reverse. Rendering once per background run prevents per-event zoom resets/jitter."
+    "implementation": "render each complete background run once with FFmpeg perspective + cubic interpolation, then slice that run for timeline events",
+    "note": "Percent means centered crop-window size. 100% -> 80% is zoom-in; 80% -> 100% is zoom-out. Motion is continuous across the whole background run and uses no pan/drift.",
+    "jitter_policy": "never use zoompan; perspective eval=frame uses floating-point source-corner coordinates to keep the image center stable"
   },
   "content_overlay": {
     "reveal": "fade_in",
