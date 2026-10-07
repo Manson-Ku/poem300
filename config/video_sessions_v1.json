@@ -1,0 +1,159 @@
+{
+  "version": "video_sessions_v1",
+  "canvas": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30
+  },
+  "persistent_overlays": {
+    "title": {
+      "asset": "assets/pXXX/text/title_bpmf.png",
+      "visible_in": [
+        "session_intro",
+        "session_content",
+        "session_explain",
+        "session_recap1",
+        "session_recap2",
+        "session_end"
+      ]
+    },
+    "author": {
+      "asset": "assets/pXXX/text/author.png",
+      "visible_in": [
+        "session_intro",
+        "session_content",
+        "session_explain",
+        "session_recap1",
+        "session_recap2",
+        "session_end"
+      ]
+    },
+    "poem_type": {
+      "asset": "assets/pXXX/text/poem_type.png",
+      "visible_in": [
+        "session_intro",
+        "session_end"
+      ]
+    }
+  },
+  "content_display": {
+    "mode": "progressive_accumulate_within_content_page",
+    "page_capacity": 4,
+    "page_turn_scope": "content_zone_only",
+    "reset_at_session_start": true,
+    "reset_on_page_turn": true,
+    "keep_previous_lines_same_page": true,
+    "line_position_source": "config/text_overlay_1080p_v1.json",
+    "blank_scene_policy": "separator_no_audio_force_page_turn_if_page_has_content"
+  },
+  "sessions": [
+    {
+      "id": "session_intro",
+      "order": 1,
+      "purpose": "announce_poem_identity",
+      "background_source": "first_nonblank_scene",
+      "content_visible": false,
+      "explanation_visible": false,
+      "audio_sequence": [
+        {
+          "type": "title",
+          "path": "assets/pXXX/audio/title.wav"
+        },
+        {
+          "type": "author",
+          "path": "assets/pXXX/audio/author.wav"
+        }
+      ]
+    },
+    {
+      "id": "session_content",
+      "order": 2,
+      "purpose": "first_poem_readthrough",
+      "iteration": "scene_order",
+      "background_source": "current_scene",
+      "before_each_scene": [
+        "reveal_content_line_in_fixed_slot"
+      ],
+      "audio_sequence_per_scene": [
+        {
+          "type": "poem",
+          "path": "assets/pXXX/sYY/audio/poem.wav"
+        }
+      ],
+      "explanation_visible": false
+    },
+    {
+      "id": "session_explain",
+      "order": 3,
+      "purpose": "poem_line_then_child_explanation",
+      "iteration": "scene_order",
+      "background_source": "current_scene",
+      "before_each_scene": [
+        "reveal_content_line_in_fixed_slot"
+      ],
+      "audio_sequence_per_scene": [
+        {
+          "type": "poem",
+          "path": "assets/pXXX/sYY/audio/poem.wav"
+        },
+        {
+          "type": "explanation",
+          "path": "assets/pXXX/sYY/audio/explanation.wav",
+          "show_overlay_during_audio": "assets/pXXX/sYY/text/explanation.png"
+        }
+      ]
+    },
+    {
+      "id": "session_recap1",
+      "order": 4,
+      "purpose": "first_recap",
+      "iteration": "scene_order",
+      "background_source": "current_scene",
+      "before_each_scene": [
+        "reveal_content_line_in_fixed_slot"
+      ],
+      "audio_sequence_per_scene": [
+        {
+          "type": "poem",
+          "path": "assets/pXXX/sYY/audio/poem.wav"
+        }
+      ],
+      "explanation_visible": false
+    },
+    {
+      "id": "session_recap2",
+      "order": 5,
+      "purpose": "second_recap",
+      "iteration": "scene_order",
+      "background_source": "current_scene",
+      "before_each_scene": [
+        "reveal_content_line_in_fixed_slot"
+      ],
+      "audio_sequence_per_scene": [
+        {
+          "type": "poem",
+          "path": "assets/pXXX/sYY/audio/poem.wav"
+        }
+      ],
+      "explanation_visible": false
+    },
+    {
+      "id": "session_end",
+      "order": 6,
+      "purpose": "repeat_poem_identity_and_close",
+      "background_source": "last_nonblank_scene",
+      "content_visible": false,
+      "explanation_visible": false,
+      "audio_sequence": [
+        {
+          "type": "title",
+          "path": "assets/pXXX/audio/title.wav"
+        },
+        {
+          "type": "author",
+          "path": "assets/pXXX/audio/author.wav"
+        }
+      ]
+    }
+  ]
+}
