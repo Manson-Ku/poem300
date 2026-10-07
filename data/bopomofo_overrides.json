@@ -10,7 +10,9 @@
       "character": "景",
       "selector": "U+E01E1",
       "expected_reading": "ㄧㄥˇ",
-      "note": "返景；poem300 font extension"
+      "note": "返景；poem300 font extension",
+      "render_codepoint": "U+E901",
+      "render_mode": "project_font_pua_alias"
     },
     {
       "poem_id": 217,
@@ -20,7 +22,9 @@
       "character": "柴",
       "selector": "U+E01E1",
       "expected_reading": "ㄓㄞˋ",
-      "note": "鹿柴；poem300 font extension"
+      "note": "鹿柴；poem300 font extension",
+      "render_codepoint": "U+E900",
+      "render_mode": "project_font_pua_alias"
     },
     {
       "poem_id": 219,
@@ -30,7 +34,9 @@
       "character": "相",
       "selector": "U+E01E1",
       "expected_reading": "ㄒㄧㄤ",
-      "note": "山中相送罷；相=互相/相送"
+      "note": "山中相送罷；相=互相/相送",
+      "render_codepoint": "U+E902",
+      "render_mode": "project_font_pua_alias"
     },
     {
       "poem_id": 220,
@@ -40,7 +46,9 @@
       "character": "相",
       "selector": "U+E01E1",
       "expected_reading": "ㄒㄧㄤ",
-      "note": "此物最相思"
+      "note": "此物最相思",
+      "render_codepoint": "U+E902",
+      "render_mode": "project_font_pua_alias"
     },
     {
       "poem_id": 220,
@@ -50,7 +58,9 @@
       "character": "相",
       "selector": "U+E01E1",
       "expected_reading": "ㄒㄧㄤ",
-      "note": "相思"
+      "note": "相思",
+      "render_codepoint": "U+E902",
+      "render_mode": "project_font_pua_alias"
     },
     {
       "poem_id": 225,
@@ -60,7 +70,9 @@
       "character": "處",
       "selector": "U+E01E1",
       "expected_reading": "ㄔㄨˋ",
-      "note": "處處聞啼鳥，第1個處"
+      "note": "處處聞啼鳥，第1個處",
+      "render_codepoint": "U+E903",
+      "render_mode": "project_font_pua_alias"
     },
     {
       "poem_id": 225,
@@ -70,7 +82,9 @@
       "character": "處",
       "selector": "U+E01E1",
       "expected_reading": "ㄔㄨˋ",
-      "note": "處處聞啼鳥，第2個處"
+      "note": "處處聞啼鳥，第2個處",
+      "render_codepoint": "U+E903",
+      "render_mode": "project_font_pua_alias"
     },
     {
       "poem_id": 230,
@@ -80,7 +94,9 @@
       "character": "荷",
       "selector": "U+E01E1",
       "expected_reading": "ㄏㄜˋ",
-      "note": "荷笠=背負斗笠"
+      "note": "荷笠=背負斗笠",
+      "render_codepoint": "U+E904",
+      "render_mode": "project_font_pua_alias"
     },
     {
       "poem_id": 231,
@@ -90,7 +106,9 @@
       "character": "彈",
       "selector": "U+E01E1",
       "expected_reading": "ㄊㄢˊ",
-      "note": "今人多不彈=彈奏"
+      "note": "今人多不彈=彈奏",
+      "render_codepoint": "U+E905",
+      "render_mode": "project_font_pua_alias"
     },
     {
       "poem_id": 231,
@@ -100,7 +118,9 @@
       "character": "彈",
       "selector": "U+E01E1",
       "expected_reading": "ㄊㄢˊ",
-      "note": "彈琴=彈奏"
+      "note": "彈琴=彈奏",
+      "render_codepoint": "U+E905",
+      "render_mode": "project_font_pua_alias"
     },
     {
       "poem_id": 233,
@@ -110,7 +130,9 @@
       "character": "屬",
       "selector": "U+E01E1",
       "expected_reading": "ㄓㄨˇ",
-      "note": "懷君屬秋夜；屬=適逢/正值"
+      "note": "懷君屬秋夜；屬=適逢/正值",
+      "render_codepoint": "U+E906",
+      "render_mode": "project_font_pua_alias"
     },
     {
       "poem_id": 242,
@@ -120,7 +142,9 @@
       "character": "處",
       "selector": "U+E01E1",
       "expected_reading": "ㄔㄨˋ",
-      "note": "雲深不知處；處=地方"
+      "note": "雲深不知處；處=地方",
+      "render_codepoint": "U+E903",
+      "render_mode": "project_font_pua_alias"
     },
     {
       "poem_id": 254,
@@ -130,7 +154,9 @@
       "character": "少",
       "selector": "U+E01E1",
       "expected_reading": "ㄕㄠˋ",
-      "note": "少小=年少"
+      "note": "少小=年少",
+      "render_codepoint": "U+E907",
+      "render_mode": "project_font_pua_alias"
     },
     {
       "poem_id": 254,
@@ -140,7 +166,9 @@
       "character": "衰",
       "selector": "U+E01E1",
       "expected_reading": "ㄘㄨㄟ",
-      "note": "鬢毛衰；詩中讀ㄘㄨㄟ"
+      "note": "鬢毛衰；詩中讀ㄘㄨㄟ",
+      "render_codepoint": "U+E908",
+      "render_mode": "project_font_pua_alias"
     },
     {
       "poem_id": 254,
@@ -150,7 +178,9 @@
       "character": "相",
       "selector": "U+E01E1",
       "expected_reading": "ㄒㄧㄤ",
-      "note": "兒童相見"
+      "note": "兒童相見",
+      "render_codepoint": "U+E902",
+      "render_mode": "project_font_pua_alias"
     },
     {
       "poem_id": 254,
@@ -160,7 +190,9 @@
       "character": "相",
       "selector": "U+E01E1",
       "expected_reading": "ㄒㄧㄤ",
-      "note": "不相識"
+      "note": "不相識",
+      "render_codepoint": "U+E902",
+      "render_mode": "project_font_pua_alias"
     },
     {
       "poem_id": 254,
@@ -170,7 +202,9 @@
       "character": "處",
       "selector": "U+E01E1",
       "expected_reading": "ㄔㄨˋ",
-      "note": "何處來；處=地方"
+      "note": "何處來；處=地方",
+      "render_codepoint": "U+E903",
+      "render_mode": "project_font_pua_alias"
     }
   ],
   "item_schema": {
@@ -181,6 +215,8 @@
     "character": "expected Han character at char_index",
     "selector": "explicit IVS selector, e.g. U+E01E1",
     "expected_reading": "human-readable bopomofo for QA",
-    "note": "optional"
+    "note": "optional",
+    "render_codepoint": "project-font PUA codepoint used by raster renderer instead of emitting the IVS selector",
+    "render_mode": "project_font_pua_alias for Pillow rasterization; selector remains canonical pronunciation metadata"
   }
 }
