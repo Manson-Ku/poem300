@@ -37,6 +37,9 @@ DEFAULT_STYLE = (
     "Use natural pauses at Chinese punctuation and a calm educational pace."
 )
 
+DEFAULT_TYPES = ("poem", "explanation")
+ALL_TYPES = ("title", "author", "poem", "explanation")
+
 PRICING = {
     "pricing_as_of": "2026-10-06",
     "pricing_basis": "paid_standard_list_price",
@@ -497,16 +500,32 @@ def poem_manifest(
 ) -> dict[str, Any]:
     pid = int(poem["poem_id"])
     poem_dir = assets_root / f"p{pid:03d}"
+    title_audio = poem_dir / "audio" / "title.wav"
+    author_audio = poem_dir / "audio" / "author.wav"
+
     scene_entries = []
-    tts_complete = True
+    scene_tts_complete = True
 
     for scene in scenes:
         scene_dir = poem_dir / f"s{scene['scene_no']:02d}"
         poem_audio = scene_dir / "audio" / "poem.wav"
         explanation_audio = scene_dir / "audio" / "explanation.wav"
-        complete = poem_audio.exists() and explanation_audio.exists()
+
+        # Blank physical lines are separators and do not require TTS.
+        if (
+            not scene["original_line"].strip()
+            and not scene["child_explanation_line"].strip()
+        ):
+            complete = True
+        else:
+            complete = (
+                poem_audio.exists()
+                and explanation_audio.exists()
+            )
+
         if not complete:
-            tts_complete = False
+            scene_tts_complete = False
+
         scene_entries.append(
             {
                 "scene_id": scene["scene_id"],
@@ -518,6 +537,10 @@ def poem_manifest(
             }
         )
 
+    poem_level_tts_complete = (
+        title_audio.exists() and author_audio.exists()
+    )
+
     return {
         "poem_id": pid,
         "title": poem["title"],
@@ -526,10 +549,26 @@ def poem_manifest(
         "recommended_age": int(poem["recommended_age"]),
         "popularity_level": int(poem["popularity_level"]),
         "scene_count": len(scenes),
-        "tts_complete": tts_complete,
+        "tts_complete": (
+            poem_level_tts_complete and scene_tts_complete
+        ),
+        "tts": {
+            "model": MODEL,
+            "audio": {
+                "title": {
+                    "path": title_audio.as_posix(),
+                    "exists": title_audio.exists(),
+                },
+                "author": {
+                    "path": author_audio.as_posix(),
+                    "exists": author_audio.exists(),
+                },
+            },
+            "poem_level_complete": poem_level_tts_complete,
+            "scene_level_complete": scene_tts_complete,
+        },
         "scenes": scene_entries,
     }
-
 
 def main() -> int:
     load_dotenv()
@@ -548,6 +587,17 @@ def main() -> int:
         "--poem-id",
         type=int,
         help="Generate only one poem_id.",
+    )
+    parser.add_argument(
+        "--types",
+        nargs="+",
+        choices=ALL_TYPES,
+        default=list(DEFAULT_TYPES),
+        help=(
+            "Audio asset types to generate. "
+            "Default: poem explanation. "
+            "Example: --types title author"
+        ),
     )
     parser.add_argument(
         "--start-poem-id",
@@ -621,6 +671,8 @@ def main() -> int:
     if args.request_delay_ms < 0:
         parser.error("--request-delay-ms must be >= 0")
 
+    requested_types = set(args.types)
+
     poems = read_poems(Path(args.poems))
     ages = set(args.age) if args.age else None
     selected = select_poems(
@@ -643,11 +695,33 @@ def main() -> int:
     assets_root = Path(args.assets_root)
     ledger_path = Path(args.ledger)
 
-    total_scenes = sum(len(build_scenes(poem)) for poem in selected)
-    total_assets = total_scenes * 2
+    total_scenes = sum(
+        len(build_scenes(poem))
+        for poem in selected
+    )
+    poem_level_assets_per_poem = sum(
+        audio_type in requested_types
+        for audio_type in ("title", "author")
+    )
+    scene_assets_per_scene = sum(
+        audio_type in requested_types
+        for audio_type in ("poem", "explanation")
+    )
+    total_assets = (
+        len(selected) * poem_level_assets_per_poem
+        + total_scenes * scene_assets_per_scene
+    )
 
     print(f"run_id={run_id}")
     print(f"model={MODEL} voice={args.voice}")
+    print(
+        "types="
+        + ",".join(
+            audio_type
+            for audio_type in ALL_TYPES
+            if audio_type in requested_types
+        )
+    )
     print(
         f"selected_poems={len(selected)} "
         f"scenes={total_scenes} "
@@ -700,6 +774,112 @@ def main() -> int:
             poem_dir.mkdir(parents=True, exist_ok=True)
 
         poem_failed = False
+        poem_audio_dir = poem_dir / "audio"
+
+        if not args.dry_run:
+            poem_audio_dir.mkdir(
+                parents=True,
+                exist_ok=True,
+            )
+
+        poem_level_jobs = []
+        if "title" in requested_types:
+            poem_level_jobs.append(
+                (
+                    "title",
+                    poem["title"],
+                    poem_audio_dir / "title.wav",
+                )
+            )
+        if "author" in requested_types:
+            poem_level_jobs.append(
+                (
+                    "author",
+                    poem["author"],
+                    poem_audio_dir / "author.wav",
+                )
+            )
+
+        for audio_type, text, output_path in poem_level_jobs:
+            if output_path.exists() and not args.force:
+                skipped += 1
+                print(
+                    f"  poem {audio_type}: SKIP existing"
+                )
+                continue
+
+            planned += 1
+
+            if args.dry_run:
+                action = (
+                    "OVERWRITE"
+                    if output_path.exists()
+                    else "GENERATE"
+                )
+                print(
+                    f"  poem {audio_type}: {action} "
+                    f"-> {output_path.as_posix()}"
+                )
+                continue
+
+            print(
+                f"  poem {audio_type}: GENERATE "
+                f"-> {output_path.as_posix()}"
+            )
+
+            meta_scene = {
+                "scene_id": (
+                    f"p{pid:03d}_{audio_type}"
+                ),
+                "scene_no": 0,
+            }
+
+            try:
+                row = generate_audio(
+                    client,
+                    run_id=run_id,
+                    poem=poem,
+                    scene=meta_scene,
+                    audio_type=audio_type,
+                    text=text,
+                    voice=args.voice,
+                    style=args.style,
+                    output_path=output_path,
+                    ledger_path=ledger_path,
+                    max_retries=args.max_retries,
+                    retry_base_seconds=(
+                        args.retry_base_seconds
+                    ),
+                )
+                generated += 1
+                new_audio_seconds += float(
+                    row["audio_duration_sec"]
+                )
+                new_estimated_cost += float(
+                    row["estimated_total_cost_usd"]
+                )
+                print(
+                    "    OK "
+                    f"{row['audio_duration_sec']}s "
+                    f"tokens={row['output_audio_tokens']} "
+                    f"est_usd="
+                    f"{row['estimated_total_cost_usd']}"
+                )
+
+                if args.request_delay_ms:
+                    time.sleep(
+                        args.request_delay_ms / 1000
+                    )
+
+            except Exception as exc:
+                failed += 1
+                poem_failed = True
+                print(
+                    f"    FAILED: {exc}",
+                    file=sys.stderr,
+                )
+                if args.fail_fast:
+                    return 1
 
         for scene in scenes:
             scene_dir = poem_dir / f"s{scene['scene_no']:02d}"
@@ -712,18 +892,29 @@ def main() -> int:
                 image_dir.mkdir(parents=True, exist_ok=True)
                 text_dir.mkdir(parents=True, exist_ok=True)
 
-            jobs = (
-                (
-                    "poem",
-                    scene["original_line"],
-                    audio_dir / "poem.wav",
-                ),
-                (
-                    "explanation",
-                    scene["child_explanation_line"],
-                    audio_dir / "explanation.wav",
-                ),
-            )
+            jobs = []
+            if (
+                "poem" in requested_types
+                and scene["original_line"].strip()
+            ):
+                jobs.append(
+                    (
+                        "poem",
+                        scene["original_line"],
+                        audio_dir / "poem.wav",
+                    )
+                )
+            if (
+                "explanation" in requested_types
+                and scene["child_explanation_line"].strip()
+            ):
+                jobs.append(
+                    (
+                        "explanation",
+                        scene["child_explanation_line"],
+                        audio_dir / "explanation.wav",
+                    )
+                )
 
             for audio_type, text, output_path in jobs:
                 if output_path.exists() and not args.force:
