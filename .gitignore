@@ -15,6 +15,10 @@ assets/**/image/*.webp
 assets/**/image/*.jpg
 assets/**/image/*.jpeg
 assets/**/image/*.png
+assets/**/image/**/*.webp
+assets/**/image/**/*.jpg
+assets/**/image/**/*.jpeg
+assets/**/image/**/*.png
 assets/**/text/*.png
 
 # Local fonts
