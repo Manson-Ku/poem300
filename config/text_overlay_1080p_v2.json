@@ -7,7 +7,7 @@
   "raster_scale": 2,
   "font": {
     "source": "local_only",
-    "default_path": "fonts/BpmfHuninn-Regular.ttf",
+    "default_path": "fonts/BpmfHuninn-Poem300-Regular.ttf",
     "path_env": "BPMF_FONT_PATH",
     "git_policy": "fonts/ and font binaries must stay untracked",
     "ivs_spec": "ButTaiwan/bpmfvs",
