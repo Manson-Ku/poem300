@@ -73,8 +73,13 @@ def ffmpeg_path(explicit: str | None) -> str:
     path = shutil.which("ffmpeg")
     if not path:
         raise FileNotFoundError(
-            "ffmpeg was not found in PATH. Install FFmpeg "
-            "and reopen the terminal before rendering video."
+            "ffmpeg.exe was not found in PATH. "
+            "The Python package installed by 'pip install FFmpeg' "
+            "does not include the FFmpeg executable. "
+            "On Windows install the binary, for example: "
+            "winget install --id Gyan.FFmpeg -e ; "
+            "then reopen PowerShell and verify with: ffmpeg -version. "
+            "Alternatively pass --ffmpeg C:\\path\\to\\ffmpeg.exe."
         )
     return path
 
