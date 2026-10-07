@@ -128,3 +128,108 @@ assets/p225/video/p225_B_1080p.mp4
 ```
 
 and will initially default to a safe non-public upload status until metadata / thumbnail / playlist behavior has been verified.
+
+## Upload metadata contract
+
+SSOT:
+
+```text
+config/youtube_v1.json
+scripts/youtube_upload.py
+```
+
+For every poem upload, metadata is generated from `data/poems.csv`.
+
+### Title
+
+```text
+唐詩三百首-注音版-{詩名}-{作者}-KidMore啟蒙
+```
+
+Example for p225:
+
+```text
+唐詩三百首-注音版-春曉-孟浩然-KidMore啟蒙
+```
+
+### Description
+
+Format:
+
+```text
+{詩名}-{作者}-{poem_type}
+{完整詩詞}
+
+https://kidmore.tw?utm_source=ytbc&utm_medium=videoDescription&utm_campaign={URL encoded 詩名}
+```
+
+The UTM campaign value is the poem title once. For example, p225 uses `utm_campaign=春曉` before URL encoding.
+
+### Audience
+
+Every upload explicitly sets:
+
+```text
+status.selfDeclaredMadeForKids = true
+```
+
+### Tags
+
+```text
+唐詩三百首
+唐詩
+兒童朗讀
+兒童閱讀
+```
+
+### Test privacy
+
+The first upload workflow defaults to:
+
+```text
+privacyStatus = private
+notifySubscribers = false
+```
+
+This is an operational test safeguard and is separate from the made-for-kids audience setting.
+
+## Dry-run metadata check
+
+For p225:
+
+```powershell
+py scripts\youtube_upload.py --poem-id 225 --style B --dry-run
+```
+
+This prints the resolved title, full description, tags, privacy and made-for-kids status without calling YouTube.
+
+Expected video file:
+
+```text
+assets/p225/video/p225_B_1080p.mp4
+```
+
+## First private upload
+
+After reviewing the dry-run metadata:
+
+```powershell
+py scripts\youtube_upload.py --poem-id 225 --style B
+```
+
+The uploader uses a resumable upload session and the existing local token:
+
+```text
+credentials/youtube_token.json
+```
+
+On success it prints the YouTube video ID and watch URL.
+
+To explicitly override the privacy setting later:
+
+```powershell
+py scripts\youtube_upload.py --poem-id 225 --style B --privacy unlisted
+py scripts\youtube_upload.py --poem-id 225 --style B --privacy public
+```
+
+Subscriber notifications remain off unless `--notify-subscribers` is supplied.
