@@ -339,3 +339,21 @@ py scripts\build_video_timeline.py --poem-id 226 --style B --dry-run
 ```
 
 MP4 composition is intentionally not started until pronunciation QA and timeline asset preflight pass.
+
+
+## First MP4 assembly test
+
+After timeline preflight passes:
+
+```powershell
+py scripts\render_video.py --poem-id 226 --style B --dry-run
+py scripts\render_video.py --poem-id 226 --style B
+```
+
+Output:
+
+```text
+assets/p226/video/p226_B_1080p.mp4
+```
+
+The first composer validates the full six-session layout/audio contract using hard cuts. Motion and crossfade are the next refinement layer.
