@@ -13,7 +13,9 @@
           "reading": "ㄓㄞˋ",
           "context": "鹿柴"
         }
-      ]
+      ],
+      "synthesis_text": "鹿寨",
+      "synthesis_reason": "Use homophonic proxy 寨 to force 柴 in 鹿柴 to ㄓㄞˋ. Output asset still represents source_text 鹿柴."
     },
     {
       "poem_id": 217,
@@ -26,7 +28,9 @@
           "reading": "ㄧㄥˇ",
           "context": "返景"
         }
-      ]
+      ],
+      "synthesis_text": "返影入深林，復照青苔上。",
+      "synthesis_reason": "Use homophonic proxy 影 to force 景 in 返景 to ㄧㄥˇ. Output asset still represents the original poem line."
     },
     {
       "poem_id": 219,
