@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
 """Render one poem MP4 from an existing timeline.json.
 
-POC composer v1 intentionally focuses on contract correctness:
-- 1920x1080 / 30 fps / H.264 / AAC
-- measured timeline duration and audio pre/post rolls
-- title + author persistent overlays
-- intro/end poem_type
-- progressive four-slot content accumulation
-- explanation overlay only during explanation events
-- content reset at each content-bearing session and page turn
+Composer v2 adds low-distraction motion while preserving the exact
+audio-driven timeline:
+- background-only slow zoom
+- 0.30s scene crossfade when background_image changes
+- fade-in for each newly revealed content line
+- fade-in/out for explanation overlays
+- title / author remain fixed in display space
+- content accumulation and page/session reset rules remain unchanged
 
-Visual transitions are NOT yet blended in this first assembly test.
-The timeline already reserves transition time, so later crossfade/motion
-can be added without changing the audio/session contract.
+The motion layer never changes event durations or audio start times.
 """
 
 from __future__ import annotations
@@ -31,6 +29,8 @@ from PIL import Image
 
 
 DEFAULT_TEXT_CONFIG = Path("config/text_overlay_1080p_v2.json")
+DEFAULT_MOTION_CONFIG = Path("config/video_motion_v1.json")
+
 CONTENT_SESSIONS = {
     "session_content",
     "session_explain",
@@ -84,7 +84,10 @@ def ffmpeg_path(explicit: str | None) -> str:
     return path
 
 
-def display_asset(path: Path, raster_scale: int) -> Image.Image:
+def display_asset(
+    path: Path,
+    raster_scale: int,
+) -> Image.Image:
     require_file(path, label="overlay")
     with Image.open(path) as source:
         image = source.convert("RGBA")
@@ -100,36 +103,6 @@ def display_asset(path: Path, raster_scale: int) -> Image.Image:
     )
 
 
-def cover_background(
-    path: Path,
-    *,
-    width: int,
-    height: int,
-) -> Image.Image:
-    require_file(path, label="background")
-    with Image.open(path) as source:
-        image = source.convert("RGB")
-
-    scale = max(
-        width / image.width,
-        height / image.height,
-    )
-    resized = image.resize(
-        (
-            max(1, math.ceil(image.width * scale)),
-            max(1, math.ceil(image.height * scale)),
-        ),
-        Image.Resampling.LANCZOS,
-    )
-
-    left = max(0, (resized.width - width) // 2)
-    top = max(0, (resized.height - height) // 2)
-
-    return resized.crop(
-        (left, top, left + width, top + height)
-    ).convert("RGBA")
-
-
 def paste_centered(
     canvas: Image.Image,
     overlay: Image.Image,
@@ -142,14 +115,29 @@ def paste_centered(
     canvas.alpha_composite(overlay, (x, y))
 
 
-def zone_center(zone: dict[str, Any]) -> tuple[int, int]:
+def zone_center(
+    zone: dict[str, Any],
+) -> tuple[int, int]:
     return (
         int(zone["x"]) + int(zone["width"]) // 2,
         int(zone["y"]) + int(zone["height"]) // 2,
     )
 
 
-class VisualState:
+def transparent_canvas(
+    width: int,
+    height: int,
+) -> Image.Image:
+    return Image.new(
+        "RGBA",
+        (width, height),
+        (0, 0, 0, 0),
+    )
+
+
+class OverlayState:
+    """Stateful text-overlay planner for timeline events."""
+
     def __init__(
         self,
         *,
@@ -166,6 +154,7 @@ class VisualState:
                 text_config.get("raster_scale", 1),
             )
         )
+
         self.current_session: str | None = None
         self.current_page: int | None = None
         self.content_by_slot: dict[int, Path] = {}
@@ -195,7 +184,77 @@ class VisualState:
             self._cache[key] = cached
         return cached
 
-    def begin_event(self, event: dict[str, Any]) -> None:
+    def _paste_poem_identity(
+        self,
+        canvas: Image.Image,
+        *,
+        session: str,
+    ) -> None:
+        zones = self.config["zones"]
+
+        tx, ty = zone_center(zones["title"])
+        paste_centered(
+            canvas,
+            self.cached_overlay(self.title),
+            center_x=tx,
+            center_y=ty,
+        )
+
+        ax, ay = zone_center(zones["author"])
+        paste_centered(
+            canvas,
+            self.cached_overlay(self.author),
+            center_x=ax,
+            center_y=ay,
+        )
+
+        if session in POEM_TYPE_SESSIONS:
+            px, py = zone_center(zones["poem_type"])
+            paste_centered(
+                canvas,
+                self.cached_overlay(self.poem_type),
+                center_x=px,
+                center_y=py,
+            )
+
+    def _paste_content(
+        self,
+        canvas: Image.Image,
+        content_by_slot: dict[int, Path],
+    ) -> None:
+        if not content_by_slot:
+            return
+
+        zone = self.config["zones"]["content"]
+        center_x = int(zone["x"]) + int(zone["width"]) // 2
+        slots = {
+            int(item["slot"]): int(item["center_y"])
+            for item in zone["slots"]
+        }
+
+        for slot in sorted(content_by_slot):
+            path = content_by_slot[slot]
+            require_file(path, label="content overlay")
+            paste_centered(
+                canvas,
+                self.cached_overlay(path),
+                center_x=center_x,
+                center_y=slots[slot],
+            )
+
+    def build_layers(
+        self,
+        event: dict[str, Any],
+        *,
+        width: int,
+        height: int,
+    ) -> tuple[Image.Image, Image.Image | None, str | None]:
+        """Return static layer, optional fade layer, and fade kind.
+
+        The state is advanced to the visual state that should be visible
+        after the fade-in has completed.
+        """
+
         session = str(event["session"])
 
         if session != self.current_session:
@@ -203,15 +262,24 @@ class VisualState:
             self.current_page = None
             self.content_by_slot = {}
 
+        static_layer = transparent_canvas(width, height)
+        fade_layer: Image.Image | None = None
+        fade_kind: str | None = None
+
+        self._paste_poem_identity(
+            static_layer,
+            session=session,
+        )
+
         if session not in CONTENT_SESSIONS:
             self.current_page = None
             self.content_by_slot = {}
-            return
+            return static_layer, None, None
 
         if event["kind"] == "content_page_turn":
             self.current_page = None
             self.content_by_slot = {}
-            return
+            return static_layer, None, None
 
         if (
             event.get("kind") == "audio"
@@ -227,92 +295,79 @@ class VisualState:
             ):
                 self.content_by_slot = {}
 
-            self.current_page = page
-            self.content_by_slot[slot] = repo_path(
+            # Existing content remains fully visible.
+            previous_content = dict(self.content_by_slot)
+            self._paste_content(
+                static_layer,
+                previous_content,
+            )
+
+            new_path = repo_path(
                 str(event["content_image"])
             )
+            require_file(new_path, label="content overlay")
 
-    def compose(
-        self,
-        event: dict[str, Any],
-        *,
-        width: int,
-        height: int,
-    ) -> Image.Image:
-        self.begin_event(event)
-
-        background = cover_background(
-            repo_path(str(event["background_image"])),
-            width=width,
-            height=height,
-        )
-
-        zones = self.config["zones"]
-
-        # Title and author are persistent through all six sessions.
-        tx, ty = zone_center(zones["title"])
-        paste_centered(
-            background,
-            self.cached_overlay(self.title),
-            center_x=tx,
-            center_y=ty,
-        )
-
-        ax, ay = zone_center(zones["author"])
-        paste_centered(
-            background,
-            self.cached_overlay(self.author),
-            center_x=ax,
-            center_y=ay,
-        )
-
-        session = str(event["session"])
-        if session in POEM_TYPE_SESSIONS:
-            px, py = zone_center(zones["poem_type"])
-            paste_centered(
-                background,
-                self.cached_overlay(self.poem_type),
-                center_x=px,
-                center_y=py,
+            fade_layer = transparent_canvas(
+                width,
+                height,
             )
-
-        if session in CONTENT_SESSIONS:
-            content_zone = zones["content"]
+            zone = self.config["zones"]["content"]
             center_x = (
-                int(content_zone["x"])
-                + int(content_zone["width"]) // 2
+                int(zone["x"])
+                + int(zone["width"]) // 2
             )
             slots = {
                 int(item["slot"]): int(item["center_y"])
-                for item in content_zone["slots"]
+                for item in zone["slots"]
             }
+            paste_centered(
+                fade_layer,
+                self.cached_overlay(new_path),
+                center_x=center_x,
+                center_y=slots[slot],
+            )
+            fade_kind = "content"
 
-            for slot in sorted(self.content_by_slot):
-                path = self.content_by_slot[slot]
-                paste_centered(
-                    background,
-                    self.cached_overlay(path),
-                    center_x=center_x,
-                    center_y=slots[slot],
-                )
+            self.current_page = page
+            self.content_by_slot[slot] = new_path
+            return static_layer, fade_layer, fade_kind
+
+        # Non-poem events in content-bearing sessions retain all currently
+        # revealed lines.
+        self._paste_content(
+            static_layer,
+            self.content_by_slot,
+        )
 
         if (
             event.get("kind") == "audio"
             and event.get("audio_type") == "explanation"
             and event.get("explanation_image")
         ):
-            ex, ey = zone_center(zones["explanation"])
-            explanation = repo_path(
+            explanation_path = repo_path(
                 str(event["explanation_image"])
             )
+            require_file(
+                explanation_path,
+                label="explanation overlay",
+            )
+
+            fade_layer = transparent_canvas(
+                width,
+                height,
+            )
+            ex, ey = zone_center(
+                self.config["zones"]["explanation"]
+            )
             paste_centered(
-                background,
-                self.cached_overlay(explanation),
+                fade_layer,
+                self.cached_overlay(explanation_path),
                 center_x=ex,
                 center_y=ey,
             )
+            fade_kind = "explanation"
 
-        return background.convert("RGB")
+        return static_layer, fade_layer, fade_kind
 
 
 def run_command(
@@ -329,6 +384,7 @@ def run_command(
         stderr=None if verbose else subprocess.PIPE,
         text=True,
     )
+
     if process.returncode != 0:
         if not verbose and process.stderr:
             print(process.stderr, file=sys.stderr)
@@ -345,81 +401,452 @@ def event_frame_count(
 ) -> tuple[int, int]:
     target_end = round(event_end_sec * fps)
     count = target_end - previous_end_frame
+
     if count < 1:
         count = 1
         target_end = previous_end_frame + 1
+
     return count, target_end
+
+
+def add_motion_progress(
+    planned: list[dict[str, Any]],
+    motion: dict[str, Any],
+) -> None:
+    """Assign continuous zoom progress across same-background runs."""
+
+    minimum = float(
+        motion["background_motion"]["zoom_min"]
+    )
+    maximum = float(
+        motion["background_motion"]["zoom_max"]
+    )
+
+    index = 0
+    group_no = 0
+
+    while index < len(planned):
+        background = planned[index]["background_image"]
+        end = index + 1
+
+        while (
+            end < len(planned)
+            and planned[end]["background_image"] == background
+        ):
+            end += 1
+
+        group = planned[index:end]
+        total_frames = sum(
+            int(item["frame_count"])
+            for item in group
+        )
+        total_frames = max(1, total_frames)
+
+        zoom_in = (group_no % 2) == 0
+        consumed = 0
+
+        for item in group:
+            count = int(item["frame_count"])
+            p0 = consumed / total_frames
+            p1 = (consumed + count) / total_frames
+
+            if zoom_in:
+                z0 = minimum + (maximum - minimum) * p0
+                z1 = minimum + (maximum - minimum) * p1
+            else:
+                z0 = maximum - (maximum - minimum) * p0
+                z1 = maximum - (maximum - minimum) * p1
+
+            item["zoom_start"] = z0
+            item["zoom_end"] = z1
+            item["motion_group"] = group_no + 1
+            consumed += count
+
+        index = end
+        group_no += 1
+
+
+def clamp_effect(
+    requested: float,
+    *,
+    duration: float,
+    fps: int,
+) -> float:
+    if requested <= 0:
+        return 0.0
+
+    one_frame = 1.0 / fps
+    maximum = max(
+        0.0,
+        duration - one_frame,
+    )
+    return min(requested, maximum)
+
+
+def background_filter(
+    *,
+    input_label: str,
+    output_label: str,
+    width: int,
+    height: int,
+    fps: int,
+    duration: float,
+    frame_count: int,
+    zoom_start: float,
+    zoom_end: float,
+) -> str:
+    denominator = max(1, frame_count - 1)
+    z0 = f"{zoom_start:.8f}"
+    delta = zoom_end - zoom_start
+    dz = f"{delta:.8f}"
+
+    return (
+        f"[{input_label}:v]"
+        f"scale={width}:{height}:"
+        "force_original_aspect_ratio=increase,"
+        f"crop={width}:{height},"
+        "setsar=1,"
+        f"zoompan=z='{z0}+({dz})*on/{denominator}':"
+        "x='iw/2-(iw/zoom/2)':"
+        "y='ih/2-(ih/zoom/2)':"
+        "d=1:"
+        f"s={width}x{height}:fps={fps},"
+        f"trim=duration={duration:.6f},"
+        "setpts=PTS-STARTPTS,"
+        "format=yuv420p"
+        f"[{output_label}]"
+    )
+
+
+def still_background_filter(
+    *,
+    input_label: str,
+    output_label: str,
+    width: int,
+    height: int,
+    fps: int,
+    duration: float,
+) -> str:
+    return (
+        f"[{input_label}:v]"
+        f"scale={width}:{height}:"
+        "force_original_aspect_ratio=increase,"
+        f"crop={width}:{height},"
+        "setsar=1,"
+        f"fps={fps},"
+        f"trim=duration={duration:.6f},"
+        "setpts=PTS-STARTPTS,"
+        "format=yuv420p"
+        f"[{output_label}]"
+    )
 
 
 def render_segment(
     *,
     ffmpeg: str,
-    frame_path: Path,
+    current_background: Path,
+    previous_background: Path | None,
+    static_overlay: Path,
+    fade_overlay: Path | None,
+    fade_kind: str | None,
     segment_path: Path,
     event: dict[str, Any],
     duration_sec: float,
+    frame_count: int,
     fps: int,
+    width: int,
+    height: int,
+    zoom_start: float,
+    zoom_end: float,
+    motion: dict[str, Any],
     verbose: bool,
 ) -> None:
-    common_video = [
+    require_file(
+        current_background,
+        label="current background",
+    )
+    require_file(
+        static_overlay,
+        label="static overlay",
+    )
+
+    command: list[str] = [
+        ffmpeg,
+        "-hide_banner",
+        "-loglevel",
+        "warning" if verbose else "error",
+        "-y",
+    ]
+
+    # Input 0: current background.
+    command += [
         "-loop",
         "1",
         "-framerate",
         str(fps),
         "-i",
-        str(frame_path),
+        str(current_background),
+    ]
+    current_index = 0
+    next_index = 1
+
+    transition_requested = float(
+        motion["scene_transition"]["duration_sec"]
+    )
+    transition_sec = 0.0
+    previous_index: int | None = None
+
+    if (
+        previous_background is not None
+        and previous_background != current_background
+    ):
+        require_file(
+            previous_background,
+            label="previous background",
+        )
+        previous_index = next_index
+        next_index += 1
+        command += [
+            "-loop",
+            "1",
+            "-framerate",
+            str(fps),
+            "-i",
+            str(previous_background),
+        ]
+        transition_sec = clamp_effect(
+            transition_requested,
+            duration=duration_sec,
+            fps=fps,
+        )
+
+    static_index = next_index
+    next_index += 1
+    command += [
+        "-loop",
+        "1",
+        "-framerate",
+        str(fps),
+        "-i",
+        str(static_overlay),
     ]
 
+    fade_index: int | None = None
+    if fade_overlay is not None:
+        require_file(
+            fade_overlay,
+            label="fade overlay",
+        )
+        fade_index = next_index
+        next_index += 1
+        command += [
+            "-loop",
+            "1",
+            "-framerate",
+            str(fps),
+            "-i",
+            str(fade_overlay),
+        ]
+
+    audio_index = next_index
     audio_file = event.get("audio_file")
 
     if audio_file:
         audio_path = repo_path(str(audio_file))
         require_file(audio_path, label="audio")
-        delay_ms = round(
-            float(event.get("pre_roll_sec", 0.0)) * 1000
-        )
-        filter_complex = (
-            f"[1:a]adelay={delay_ms}:all=1,"
-            f"apad,atrim=duration={duration_sec:.6f},"
-            "aresample=48000[a]"
-        )
-        command = [
-            ffmpeg,
-            "-hide_banner",
-            "-loglevel",
-            "warning" if verbose else "error",
-            "-y",
-            *common_video,
+        command += [
             "-i",
             str(audio_path),
-            "-filter_complex",
-            filter_complex,
-            "-map",
-            "0:v:0",
-            "-map",
-            "[a]",
         ]
+        audio_delay_sec = float(
+            event.get("pre_roll_sec", 0.0)
+        )
     else:
-        command = [
-            ffmpeg,
-            "-hide_banner",
-            "-loglevel",
-            "warning" if verbose else "error",
-            "-y",
-            *common_video,
+        command += [
             "-f",
             "lavfi",
             "-i",
             "anullsrc=channel_layout=stereo:sample_rate=48000",
-            "-map",
-            "0:v:0",
-            "-map",
-            "1:a:0",
         ]
+        audio_delay_sec = 0.0
+
+    filters: list[str] = []
+
+    filters.append(
+        background_filter(
+            input_label=str(current_index),
+            output_label="bgcur",
+            width=width,
+            height=height,
+            fps=fps,
+            duration=duration_sec,
+            frame_count=frame_count,
+            zoom_start=zoom_start,
+            zoom_end=zoom_end,
+        )
+    )
+
+    background_label = "bgcur"
+
+    if (
+        previous_index is not None
+        and transition_sec > 0
+    ):
+        filters.append(
+            still_background_filter(
+                input_label=str(previous_index),
+                output_label="bgprev",
+                width=width,
+                height=height,
+                fps=fps,
+                duration=duration_sec,
+            )
+        )
+        filters.append(
+            "[bgprev][bgcur]"
+            "xfade=transition=fade:"
+            f"duration={transition_sec:.6f}:offset=0"
+            "[bg]"
+        )
+        background_label = "bg"
+
+    filters.append(
+        f"[{static_index}:v]"
+        "format=rgba,"
+        f"fps={fps},"
+        f"trim=duration={duration_sec:.6f},"
+        "setpts=PTS-STARTPTS"
+        "[static]"
+    )
+    filters.append(
+        f"[{background_label}][static]"
+        "overlay=0:0:format=auto:shortest=1"
+        "[vbase]"
+    )
+
+    final_video_label = "vbase"
+
+    if (
+        fade_index is not None
+        and fade_kind is not None
+    ):
+        if fade_kind == "content":
+            requested_in = float(
+                motion["content_overlay"][
+                    "fade_in_sec"
+                ]
+            )
+            fade_in = clamp_effect(
+                requested_in,
+                duration=duration_sec,
+                fps=fps,
+            )
+            fade_filter = (
+                f"[{fade_index}:v]"
+                "format=rgba,"
+                f"fps={fps},"
+                f"trim=duration={duration_sec:.6f},"
+                "setpts=PTS-STARTPTS"
+            )
+            if fade_in > 0:
+                fade_filter += (
+                    f",fade=t=in:st=0:"
+                    f"d={fade_in:.6f}:alpha=1"
+                )
+            fade_filter += "[fade]"
+        elif fade_kind == "explanation":
+            requested_in = float(
+                motion["explanation_overlay"][
+                    "fade_in_sec"
+                ]
+            )
+            requested_out = float(
+                motion["explanation_overlay"][
+                    "fade_out_sec"
+                ]
+            )
+
+            fade_in = clamp_effect(
+                requested_in,
+                duration=duration_sec,
+                fps=fps,
+            )
+            fade_out = clamp_effect(
+                requested_out,
+                duration=duration_sec,
+                fps=fps,
+            )
+
+            # Prevent fade windows from crossing each other.
+            maximum_pair = max(
+                0.0,
+                duration_sec - (1.0 / fps),
+            )
+            if fade_in + fade_out > maximum_pair:
+                scale = (
+                    maximum_pair
+                    / max(fade_in + fade_out, 1e-9)
+                )
+                fade_in *= scale
+                fade_out *= scale
+
+            fade_filter = (
+                f"[{fade_index}:v]"
+                "format=rgba,"
+                f"fps={fps},"
+                f"trim=duration={duration_sec:.6f},"
+                "setpts=PTS-STARTPTS"
+            )
+            if fade_in > 0:
+                fade_filter += (
+                    f",fade=t=in:st=0:"
+                    f"d={fade_in:.6f}:alpha=1"
+                )
+            if fade_out > 0:
+                start_out = max(
+                    0.0,
+                    duration_sec - fade_out,
+                )
+                fade_filter += (
+                    f",fade=t=out:"
+                    f"st={start_out:.6f}:"
+                    f"d={fade_out:.6f}:alpha=1"
+                )
+            fade_filter += "[fade]"
+        else:
+            raise ValueError(
+                f"unsupported fade kind: {fade_kind}"
+            )
+
+        filters.append(fade_filter)
+        filters.append(
+            "[vbase][fade]"
+            "overlay=0:0:format=auto:shortest=1"
+            "[vout]"
+        )
+        final_video_label = "vout"
+
+    delay_ms = round(audio_delay_sec * 1000)
+
+    filters.append(
+        f"[{audio_index}:a]"
+        f"adelay={delay_ms}:all=1,"
+        "apad,"
+        f"atrim=duration={duration_sec:.6f},"
+        "aresample=48000,"
+        "aformat=channel_layouts=stereo"
+        "[a]"
+    )
 
     command += [
-        "-t",
-        f"{duration_sec:.6f}",
+        "-filter_complex",
+        ";".join(filters),
+        "-map",
+        f"[{final_video_label}]",
+        "-map",
+        "[a]",
+        "-frames:v",
+        str(frame_count),
         "-r",
         str(fps),
         "-c:v",
@@ -443,7 +870,10 @@ def render_segment(
         str(segment_path),
     ]
 
-    run_command(command, verbose=verbose)
+    run_command(
+        command,
+        verbose=verbose,
+    )
 
 
 def concat_segments(
@@ -491,7 +921,11 @@ def concat_segments(
         "+faststart",
         str(output_path),
     ]
-    run_command(command, verbose=verbose)
+
+    run_command(
+        command,
+        verbose=verbose,
+    )
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -508,7 +942,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--style",
         default="B",
-        help="Output filename label only; timeline owns actual style_id.",
+        help=(
+            "Output filename label only; timeline owns actual style_id."
+        ),
     )
     parser.add_argument(
         "--timeline",
@@ -520,6 +956,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--text-config",
         default=str(DEFAULT_TEXT_CONFIG),
+    )
+    parser.add_argument(
+        "--motion-config",
+        default=str(DEFAULT_MOTION_CONFIG),
     )
     parser.add_argument(
         "--output",
@@ -543,14 +983,17 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--keep-temp",
         action="store_true",
-        help="Keep temporary event frames/segments for debugging.",
+        help=(
+            "Keep temporary overlay frames and event segments "
+            "for debugging."
+        ),
     )
     parser.add_argument(
         "--dry-run",
         action="store_true",
         help=(
-            "Validate timeline/assets and compose event frames in memory "
-            "without invoking FFmpeg."
+            "Validate timeline/assets and overlay state without "
+            "invoking FFmpeg."
         ),
     )
     return parser
@@ -570,17 +1013,25 @@ def main() -> int:
         poem_dir / "text" / "manifest.json"
     )
     text_config_path = Path(args.text_config)
+    motion_config_path = Path(args.motion_config)
 
     for path, label in (
         (timeline_path, "timeline"),
         (text_manifest_path, "text manifest"),
         (text_config_path, "text config"),
+        (motion_config_path, "motion config"),
     ):
         require_file(path, label=label)
 
     timeline = read_json(timeline_path)
     text_manifest = read_json(text_manifest_path)
     text_config = read_json(text_config_path)
+    motion = read_json(motion_config_path)
+
+    if motion.get("version") != "video_motion_v1":
+        raise ValueError(
+            "composer currently requires video_motion_v1"
+        )
 
     if int(timeline["poem_id"]) != pid:
         raise ValueError(
@@ -616,7 +1067,8 @@ def main() -> int:
 
     if output_path.exists() and not args.force:
         print(
-            f"ERROR: output already exists: {output_path.as_posix()}\n"
+            f"ERROR: output already exists: "
+            f"{output_path.as_posix()}\n"
             "Use --force to overwrite it.",
             file=sys.stderr,
         )
@@ -626,21 +1078,8 @@ def main() -> int:
     if not events:
         raise ValueError("timeline contains no events")
 
-    state = VisualState(
-        poem_id=pid,
-        text_config=text_config,
-        text_manifest=text_manifest,
-    )
-
     previous_end_frame = 0
     planned: list[dict[str, Any]] = []
-
-    print(
-        f"p{pid:03d} {timeline['title']} "
-        f"events={len(events)} "
-        f"timeline={timeline['total_duration_sec']:.3f}s "
-        f"{width}x{height}@{fps}"
-    )
 
     for event in events:
         frame_count, target_end_frame = event_frame_count(
@@ -650,39 +1089,93 @@ def main() -> int:
         )
         duration = frame_count / fps
 
-        # This call validates all visual assets and state transitions
-        # even during --dry-run.
-        frame = state.compose(
-            event,
-            width=width,
-            height=height,
-        )
-
         planned.append(
             {
                 "event": event,
-                "frame": frame,
                 "frame_count": frame_count,
                 "duration_sec": duration,
+                "background_image": str(
+                    event["background_image"]
+                ),
             }
         )
         previous_end_frame = target_end_frame
 
+    add_motion_progress(
+        planned,
+        motion,
+    )
+
     rendered_duration = previous_end_frame / fps
+
+    print(
+        f"p{pid:03d} {timeline['title']} "
+        f"events={len(events)} "
+        f"timeline={timeline['total_duration_sec']:.3f}s "
+        f"{width}x{height}@{fps}"
+    )
     print(
         f"frame_snapped_duration={rendered_duration:.3f}s "
         f"frames={previous_end_frame}"
     )
+    print(
+        "motion="
+        f"crossfade {motion['scene_transition']['duration_sec']:.2f}s, "
+        f"content fade {motion['content_overlay']['fade_in_sec']:.2f}s, "
+        f"explanation "
+        f"{motion['explanation_overlay']['fade_in_sec']:.2f}/"
+        f"{motion['explanation_overlay']['fade_out_sec']:.2f}s, "
+        f"zoom "
+        f"{motion['background_motion']['zoom_min']:.3f}"
+        "->"
+        f"{motion['background_motion']['zoom_max']:.3f}"
+    )
+
+    # Always validate overlay state and all referenced visual assets.
+    validate_state = OverlayState(
+        poem_id=pid,
+        text_config=text_config,
+        text_manifest=text_manifest,
+    )
+
+    for item in planned:
+        static_layer, fade_layer, _fade_kind = (
+            validate_state.build_layers(
+                item["event"],
+                width=width,
+                height=height,
+            )
+        )
+        static_layer.close()
+        if fade_layer is not None:
+            fade_layer.close()
+
+        require_file(
+            repo_path(item["background_image"]),
+            label="background",
+        )
+        audio_file = item["event"].get("audio_file")
+        if audio_file:
+            require_file(
+                repo_path(str(audio_file)),
+                label="audio",
+            )
 
     if args.dry_run:
-        print("PASS dry_run=true; FFmpeg was not invoked.")
+        print(
+            "PASS dry_run=true; "
+            "motion/overlay state validated, FFmpeg not invoked."
+        )
         return 0
 
     ffmpeg = ffmpeg_path(args.ffmpeg)
     print(f"ffmpeg={ffmpeg}")
 
     work_parent = poem_dir / "video"
-    work_parent.mkdir(parents=True, exist_ok=True)
+    work_parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
 
     if args.keep_temp:
         work_dir = work_parent / "_render_tmp"
@@ -696,22 +1189,75 @@ def main() -> int:
         )
         work_dir = Path(temp_context.name)
 
+    state = OverlayState(
+        poem_id=pid,
+        text_config=text_config,
+        text_manifest=text_manifest,
+    )
+
     try:
         segment_paths: list[Path] = []
+        previous_background: Path | None = None
 
         for index, item in enumerate(planned, start=1):
             event = item["event"]
-            frame_path = (
-                work_dir / f"event_{index:03d}.png"
+            current_background = repo_path(
+                item["background_image"]
             )
+
+            static_layer, fade_layer, fade_kind = (
+                state.build_layers(
+                    event,
+                    width=width,
+                    height=height,
+                )
+            )
+
+            static_path = (
+                work_dir
+                / f"event_{index:03d}_static.png"
+            )
+            static_layer.save(
+                static_path,
+                "PNG",
+                optimize=True,
+            )
+            static_layer.close()
+
+            fade_path: Path | None = None
+            if fade_layer is not None:
+                fade_path = (
+                    work_dir
+                    / f"event_{index:03d}_fade.png"
+                )
+                fade_layer.save(
+                    fade_path,
+                    "PNG",
+                    optimize=True,
+                )
+                fade_layer.close()
+
             segment_path = (
                 work_dir / f"segment_{index:03d}.mp4"
             )
 
-            item["frame"].save(
-                frame_path,
-                "PNG",
-                optimize=True,
+            has_scene_change = (
+                previous_background is not None
+                and previous_background
+                != current_background
+            )
+
+            effect_parts = []
+            if has_scene_change:
+                effect_parts.append("xfade")
+            if fade_kind:
+                effect_parts.append(
+                    f"{fade_kind}-fade"
+                )
+            effect_parts.append(
+                "zoom-in"
+                if item["zoom_end"] >= item["zoom_start"]
+                else "zoom-out"
             )
 
             print(
@@ -723,21 +1269,43 @@ def main() -> int:
                     if event.get("audio_type")
                     else ""
                 )
-                + f" {item['duration_sec']:.3f}s"
+                + f" {item['duration_sec']:.3f}s "
+                + ",".join(effect_parts)
             )
 
             render_segment(
                 ffmpeg=ffmpeg,
-                frame_path=frame_path,
+                current_background=current_background,
+                previous_background=(
+                    previous_background
+                    if has_scene_change
+                    else None
+                ),
+                static_overlay=static_path,
+                fade_overlay=fade_path,
+                fade_kind=fade_kind,
                 segment_path=segment_path,
                 event=event,
                 duration_sec=float(
                     item["duration_sec"]
                 ),
+                frame_count=int(
+                    item["frame_count"]
+                ),
                 fps=fps,
+                width=width,
+                height=height,
+                zoom_start=float(
+                    item["zoom_start"]
+                ),
+                zoom_end=float(
+                    item["zoom_end"]
+                ),
+                motion=motion,
                 verbose=args.verbose,
             )
             segment_paths.append(segment_path)
+            previous_background = current_background
 
         concat_segments(
             ffmpeg=ffmpeg,
@@ -757,8 +1325,9 @@ def main() -> int:
         f"duration_target={rendered_duration:.3f}s"
     )
     print(
-        "composer_mode=assembly_poc_v1 "
-        "(hard cuts; transition time already reserved)"
+        "composer_mode=motion_v2 "
+        "(background crossfade + background-only slow zoom "
+        "+ content/explanation fades)"
     )
     return 0
 
