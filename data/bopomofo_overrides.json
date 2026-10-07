@@ -1,7 +1,158 @@
 {
   "version": "bopomofo_overrides_v1",
   "spec": "ButTaiwan/bpmfvs",
-  "items": [],
+  "items": [
+    {
+      "poem_id": 219,
+      "field": "content",
+      "line_no": 1,
+      "char_index": 2,
+      "character": "相",
+      "selector": "U+E01E1",
+      "expected_reading": "ㄒㄧㄤ",
+      "note": "山中相送罷；相=互相/相送"
+    },
+    {
+      "poem_id": 220,
+      "field": "title",
+      "line_no": 0,
+      "char_index": 0,
+      "character": "相",
+      "selector": "U+E01E1",
+      "expected_reading": "ㄒㄧㄤ",
+      "note": "相思"
+    },
+    {
+      "poem_id": 220,
+      "field": "content",
+      "line_no": 2,
+      "char_index": 9,
+      "character": "相",
+      "selector": "U+E01E1",
+      "expected_reading": "ㄒㄧㄤ",
+      "note": "此物最相思"
+    },
+    {
+      "poem_id": 225,
+      "field": "content",
+      "line_no": 1,
+      "char_index": 6,
+      "character": "處",
+      "selector": "U+E01E1",
+      "expected_reading": "ㄔㄨˋ",
+      "note": "處處聞啼鳥，第1個處"
+    },
+    {
+      "poem_id": 225,
+      "field": "content",
+      "line_no": 1,
+      "char_index": 7,
+      "character": "處",
+      "selector": "U+E01E1",
+      "expected_reading": "ㄔㄨˋ",
+      "note": "處處聞啼鳥，第2個處"
+    },
+    {
+      "poem_id": 230,
+      "field": "content",
+      "line_no": 2,
+      "char_index": 0,
+      "character": "荷",
+      "selector": "U+E01E1",
+      "expected_reading": "ㄏㄜˋ",
+      "note": "荷笠=背負斗笠"
+    },
+    {
+      "poem_id": 231,
+      "field": "title",
+      "line_no": 0,
+      "char_index": 0,
+      "character": "彈",
+      "selector": "U+E01E1",
+      "expected_reading": "ㄊㄢˊ",
+      "note": "彈琴=彈奏"
+    },
+    {
+      "poem_id": 231,
+      "field": "content",
+      "line_no": 2,
+      "char_index": 10,
+      "character": "彈",
+      "selector": "U+E01E1",
+      "expected_reading": "ㄊㄢˊ",
+      "note": "今人多不彈=彈奏"
+    },
+    {
+      "poem_id": 233,
+      "field": "content",
+      "line_no": 1,
+      "char_index": 2,
+      "character": "屬",
+      "selector": "U+E01E1",
+      "expected_reading": "ㄓㄨˇ",
+      "note": "懷君屬秋夜；屬=適逢/正值"
+    },
+    {
+      "poem_id": 242,
+      "field": "content",
+      "line_no": 2,
+      "char_index": 10,
+      "character": "處",
+      "selector": "U+E01E1",
+      "expected_reading": "ㄔㄨˋ",
+      "note": "雲深不知處；處=地方"
+    },
+    {
+      "poem_id": 254,
+      "field": "content",
+      "line_no": 1,
+      "char_index": 0,
+      "character": "少",
+      "selector": "U+E01E1",
+      "expected_reading": "ㄕㄠˋ",
+      "note": "少小=年少"
+    },
+    {
+      "poem_id": 254,
+      "field": "content",
+      "line_no": 1,
+      "char_index": 14,
+      "character": "衰",
+      "selector": "U+E01E1",
+      "expected_reading": "ㄘㄨㄟ",
+      "note": "鬢毛衰；詩中讀ㄘㄨㄟ"
+    },
+    {
+      "poem_id": 254,
+      "field": "content",
+      "line_no": 2,
+      "char_index": 2,
+      "character": "相",
+      "selector": "U+E01E1",
+      "expected_reading": "ㄒㄧㄤ",
+      "note": "兒童相見"
+    },
+    {
+      "poem_id": 254,
+      "field": "content",
+      "line_no": 2,
+      "char_index": 5,
+      "character": "相",
+      "selector": "U+E01E1",
+      "expected_reading": "ㄒㄧㄤ",
+      "note": "不相識"
+    },
+    {
+      "poem_id": 254,
+      "field": "content",
+      "line_no": 2,
+      "char_index": 13,
+      "character": "處",
+      "selector": "U+E01E1",
+      "expected_reading": "ㄔㄨˋ",
+      "note": "何處來；處=地方"
+    }
+  ],
   "item_schema": {
     "poem_id": "integer",
     "field": "title|content",
