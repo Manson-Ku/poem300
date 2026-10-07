@@ -2,7 +2,7 @@
 
 ## Current scope
 
-第一階段只完成 **recommended_age = 6** 的完整流程。
+第一階段先完成 **recommended_age = 6** 的完整流程。
 
 圖片最小單位：
 
@@ -14,107 +14,119 @@
 
 ## Architecture decision
 
-圖片生成分成三層，彼此解耦：
+正式圖片架構採：
 
 ```text
-Poem visual semantics (SSOT)
-        +
-Style preset
-        +
-Image model / runtime prompt
-        ↓
-Generated image asset
+Poem World
+  ├─ Scene 01 -> independent image request
+  ├─ Scene 02 -> independent image request
+  ├─ Scene 03 -> independent image request
+  └─ ...
 ```
 
-### 1. Poem visual semantics
+舊的 sequential multi-turn image editing 已棄用。
 
-SSOT 位於 `data/poems.csv -> visual_plan_json`。
+不再使用：
 
-它負責保存：
+- `previous_interaction_id` 串接 Scene。
+- 第一張 visual anchor / 後續 Scene 延續修圖。
+- 強制要求人物姿勢、房間細節、鏡位、物件位置跨 Scene 完全一致。
+- 為了 continuity 而犧牲本句詩意的表達。
 
-- 整首詩共同世界設定。
-- 穩定人物 / 動物 / 場景 / 物件 ID。
-- 每個 Scene 使用哪些 entity。
-- entity 在該 Scene 的狀態、動作、位置關係。
-- Scene 與 Scene 之間需要延續的 continuity。
+## Product priority
 
-它不保存：
+圖片是唐詩學習影片的輔助，不是漫畫分鏡產品。
 
-- 畫風。
-- image model。
-- prompt wording。
-- 字幕 / 注音 / overlay。
-- 後製版面。
+成功標準依序是：
 
-因此跨工作階段、換模型、換 prompt 時，仍然可以重建同一首詩的視覺世界。
+1. 幼童第一眼能理解目前這一句詩。
+2. 詩意沒有明顯誤讀。
+3. 同一首詩維持大致相同的時代、空間與氣氛。
+4. A/B 畫風穩定。
+5. 可批量生產、成本可控、容易抽查。
 
-### 2. Style preset
+跨 Scene 的細節一致性不是主要 KPI。
+
+## Semantic layers
+
+### 1. Poem World
+
+SSOT：
+
+```text
+data/poems.csv -> visual_plan_json
+```
+
+其中 poem-level world 只負責：
+
+- 時代感。
+- 共通空間。
+- 整體氣氛。
+- 詩中主要人物 / 場景 / 物件的語意定義。
+
+Poem World 是 soft context，不是構圖模板。
+
+### 2. Scene semantics
+
+每個 Scene 的最高優先來源：
+
+```text
+data/scenes.csv
+  original_line
+  child_explanation_line
+```
+
+以及對應的 `visual_plan_json.scenes[]`：
+
+- setting
+- time
+- weather
+- mood
+- focus / visual_focus
+- action / actions
+- note
+- current-scene entities
+
+規則：
+
+```text
+original_line > child_explanation_line > poem world
+```
+
+`child_explanation_line` 只輔助理解，不得擴寫原詩。
+
+Scene 不主動讀取前一幕或下一幕的主要事件。
+
+### 3. Style preset
 
 畫風獨立存在 `config/`。
 
-同一份 `visual_plan_json` 可以套不同 style 做 A/B test。
-
-### 3. Runtime prompt
-
-Prompt 不是 SSOT。
-
-之後由：
-
-```text
-poem content
-+ child explanation
-+ visual_plan_json
-+ selected style preset
-```
-
-在執行時組裝。
-
-目前暫停 prompt v1，不再使用字幕安全區等後製需求干擾圖片模型。
-
-## Age-6 A/B styles
-
-Registry:
+Registry：
 
 ```text
 config/image_styles_age6.json
 ```
 
-### Style A — 東方淡彩水彩繪本
+Style A：
 
 ```text
 style_id = age6_a_watercolor_ink_v1
 config   = config/image_style_age6_A_watercolor_v1.json
 ```
 
-特性：
-
-- 透明水彩 + 淡墨線稿。
-- 柔和、詩意、輕盈。
-- 較強的自然光與季節氣氛。
-- 細節中等，整體偏東方古典。
-
-### Style B — 厚粉彩童書插畫
+Style B：
 
 ```text
 style_id = age6_b_gouache_storybook_v1
 config   = config/image_style_age6_B_gouache_v1.json
 ```
 
-特性：
-
-- 厚粉彩 / 不透明水粉。
-- 色塊與物件輪廓較清楚。
-- 角色辨識與場景穩定性優先。
-- 明快但不走動漫或 3D 公仔風。
-
-## A/B contract
-
 A/B test 必須固定：
 
-- 同一首詩。
-- 同一份 `visual_plan_json`。
+- 同一 Poem World。
 - 同一 Scene semantics。
-- 同一 image model 與生成參數。
+- 同一 image model。
+- 同一 generation parameters。
 
 唯一變因：
 
@@ -122,24 +134,58 @@ A/B test 必須固定：
 style preset
 ```
 
-這樣才能判斷差異真正來自畫風。
+## Image model
 
-## Asset path
-
-A/B 圖片不能互相覆蓋，因此 style_id 是路徑的一部分：
+正式預設：
 
 ```text
-assets/pXXX/sYY/image/{style_id}/background.webp
+gemini-3.1-flash-lite-image
 ```
 
-例如：
+每個 Scene 都是獨立 request。
+
+不傳：
 
 ```text
-assets/p225/s01/image/age6_a_watercolor_ink_v1/background.webp
-assets/p225/s01/image/age6_b_gouache_storybook_v1/background.webp
+previous_interaction_id
 ```
 
-後續選定正式畫風後仍保留 style_id，以便可重現歷史版本。
+## Runtime prompt contract
+
+Prompt 不是 SSOT。
+
+每張圖只組合：
+
+```text
+Poem World
++ current original_line
++ current child_explanation_line
++ current Scene plan
++ current Scene entities
++ selected style preset
++ global image exclusions
+```
+
+不注入：
+
+- 整首詩全文。
+- 前一 Scene prompt。
+- 下一 Scene prompt。
+- future-event exclusions。
+- continuity delta。
+- multi-turn edit instructions。
+
+### Prompt priority
+
+模型需遵守：
+
+1. 目前這一個實際換行詩句。
+2. 本幕 focus / action / note。
+3. 兒童解釋。
+4. 整首詩 Poem World。
+5. Style preset。
+
+即使模型知道整首詩，也不得主動把其他句子的主要事件加入本幕。
 
 ## Text / bopomofo
 
@@ -148,45 +194,120 @@ assets/p225/s01/image/age6_b_gouache_storybook_v1/background.webp
 原則：
 
 ```text
-image generation = 只產適合詩意的完整圖片
-text / bopomofo   = 後製處理
+image generation = 完整背景插畫
+text / bopomofo   = 後製
 ```
 
-不再要求：
+禁止要求：
 
-- 下方 25% 留白。
 - subtitle safe area。
 - bopomofo area。
-- overlay area。
+- 下方留白。
+- 白色字幕條。
+- UI / card layout。
 
-第一輪 POC 已證明這類描述容易讓模型誤產字幕底板、白色橫條甚至直接生成文字。
+圖片需完整滿版。
 
-## Generation behavior
+## Asset path
 
-正式 image generator 仍需遵守：
+正式圖片：
 
-- 已有同 style 的圖片 → SKIP。
-- 不呼叫 API。
-- 只有 `--force` 可覆蓋。
-- 支援 `--style A|B` 或完整 style_id。
-- 支援 `--age`。
-- 支援 `--poem-id`。
-- 支援 `--start-poem-id`。
-- 支援 `--limit`。
-- 支援 `--dry-run`。
-- 每次 API request 保存 usage / cost / model / style_id / latency / status。
-- forced regeneration 不破壞歷史 usage ledger。
+```text
+assets/pXXX/sYY/image/{style_id}/background.webp
+```
 
-## Current gate
+meta：
 
-下一步不是批次生 54 張。
+```text
+assets/pXXX/sYY/image/{style_id}/meta.json
+```
 
-先完成一首詩的 `visual_plan_json`，再對同一首完整 Scene 集做 A/B test。
+POC 快速檢視：
 
-PASS 時檢查：
+```text
+assets/poc/{poem_id}_{style_key}_sXX.webp
+```
 
-1. 同一首詩的人物 / 場景 / 物件是否跨 Scene 一致。
-2. Scene 語意是否符合原詩與兒童解釋。
-3. A / B 是否只改變畫風，而沒有改變故事內容。
-4. 圖片本身完整自然，不出現字幕版面或文字。
-5. 選定後才進 6 歲組 25 首 / 54 Scenes 批次。
+例如：
+
+```text
+assets/poc/226_A_s01.webp
+assets/poc/226_A_s02.webp
+assets/poc/226_B_s01.webp
+assets/poc/226_B_s02.webp
+```
+
+每次成功重跑會覆蓋 POC 同名檔，正式 asset path 不變。
+
+## Usage ledger
+
+所有 API request 持續寫入：
+
+```text
+data/image_usage.csv
+```
+
+至少保存：
+
+- scene_id
+- poem_id
+- model
+- style_key / style_id
+- interaction_id
+- previous_interaction_id
+- token usage
+- latency
+- estimated cost
+- output path
+- POC path
+- status / error
+
+在 independent-scene 模式下：
+
+```text
+previous_interaction_id = empty
+```
+
+欄位保留只是為了歷史 ledger 相容。
+
+## Main command
+
+測試一首詩：
+
+```powershell
+py scripts\generate_images.py --poem-id 226 --dry-run
+```
+
+正式生成 A/B：
+
+```powershell
+py scripts\generate_images.py --poem-id 226 --force
+```
+
+只生成 Style A：
+
+```powershell
+py scripts\generate_images.py --poem-id 226 --styles A --force
+```
+
+只測指定 Scene：
+
+```powershell
+py scripts\generate_images.py --poem-id 226 --scene-ids p226_s03 --force
+```
+
+## Gate
+
+目前不做新舊架構比較。
+
+舊 multi-turn 模式視為已淘汰。
+
+新模式的驗證只看：
+
+1. 每個實際換行是否只生成一張圖。
+2. 該圖是否優先表達自己的詩句。
+3. 兒童解釋是否只作輔助。
+4. Poem World 是否提供足夠的大方向一致性。
+5. A/B 是否只改畫風。
+6. 圖片是否無文字、字幕、注音、Logo、UI、卡片框。
+7. 成本與人工抽查負擔是否適合批量生產。
