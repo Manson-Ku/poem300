@@ -3,7 +3,7 @@
 
 Composer v2 adds low-distraction motion while preserving the exact
 audio-driven timeline:
-- background-only slow zoom
+- alternating centered zoom-in / zoom-out on backgrounds
 - 0.30s scene crossfade when background_image changes
 - fade-in for each newly revealed content line
 - fade-in/out for explanation overlays
@@ -494,46 +494,36 @@ def background_filter(
     frame_count: int,
     zoom_start: float,
     zoom_end: float,
+    oversample: int,
 ) -> str:
+    """Centered zoom only; oversampling suppresses zoompan jitter.
+
+    FFmpeg zoompan rounds crop coordinates to integer pixels. At native
+    1920x1080 this can look like tiny left/right or up/down motion even
+    when x/y are mathematically centered. We therefore zoom on a larger
+    intermediate canvas and downsample only at zoompan output.
+    """
+
     denominator = max(1, frame_count - 1)
     z0 = f"{zoom_start:.8f}"
     delta = zoom_end - zoom_start
     dz = f"{delta:.8f}"
 
+    sample = max(1, int(oversample))
+    sample_width = width * sample
+    sample_height = height * sample
+
     return (
         f"[{input_label}:v]"
-        f"scale={width}:{height}:"
+        f"scale={sample_width}:{sample_height}:"
         "force_original_aspect_ratio=increase,"
-        f"crop={width}:{height},"
+        f"crop={sample_width}:{sample_height},"
         "setsar=1,"
         f"zoompan=z='{z0}+({dz})*on/{denominator}':"
-        "x='iw/2-(iw/zoom/2)':"
-        "y='ih/2-(ih/zoom/2)':"
+        "x='(iw-iw/zoom)/2':"
+        "y='(ih-ih/zoom)/2':"
         "d=1:"
         f"s={width}x{height}:fps={fps},"
-        f"trim=duration={duration:.6f},"
-        "setpts=PTS-STARTPTS,"
-        "format=yuv420p"
-        f"[{output_label}]"
-    )
-
-
-def still_background_filter(
-    *,
-    input_label: str,
-    output_label: str,
-    width: int,
-    height: int,
-    fps: int,
-    duration: float,
-) -> str:
-    return (
-        f"[{input_label}:v]"
-        f"scale={width}:{height}:"
-        "force_original_aspect_ratio=increase,"
-        f"crop={width}:{height},"
-        "setsar=1,"
-        f"fps={fps},"
         f"trim=duration={duration:.6f},"
         "setpts=PTS-STARTPTS,"
         "format=yuv420p"
@@ -546,6 +536,7 @@ def render_segment(
     ffmpeg: str,
     current_background: Path,
     previous_background: Path | None,
+    previous_zoom_end: float | None,
     static_overlay: Path,
     fade_overlay: Path | None,
     fade_kind: str | None,
@@ -671,6 +662,15 @@ def render_segment(
         audio_delay_sec = 0.0
 
     filters: list[str] = []
+    oversample = max(
+        1,
+        int(
+            motion["background_motion"].get(
+                "oversample",
+                1,
+            )
+        ),
+    )
 
     filters.append(
         background_filter(
@@ -683,6 +683,7 @@ def render_segment(
             frame_count=frame_count,
             zoom_start=zoom_start,
             zoom_end=zoom_end,
+            oversample=oversample,
         )
     )
 
@@ -692,14 +693,26 @@ def render_segment(
         previous_index is not None
         and transition_sec > 0
     ):
+        # Keep the outgoing image at the exact zoom reached by the
+        # preceding segment. Using an unzoomed previous image here makes
+        # the first crossfade frame visibly snap before the fade begins.
+        previous_zoom = (
+            float(previous_zoom_end)
+            if previous_zoom_end is not None
+            else 1.0
+        )
         filters.append(
-            still_background_filter(
+            background_filter(
                 input_label=str(previous_index),
                 output_label="bgprev",
                 width=width,
                 height=height,
                 fps=fps,
                 duration=duration_sec,
+                frame_count=frame_count,
+                zoom_start=previous_zoom,
+                zoom_end=previous_zoom,
+                oversample=oversample,
             )
         )
         filters.append(
@@ -1125,10 +1138,11 @@ def main() -> int:
         f"explanation "
         f"{motion['explanation_overlay']['fade_in_sec']:.2f}/"
         f"{motion['explanation_overlay']['fade_out_sec']:.2f}s, "
-        f"zoom "
+        f"center zoom "
         f"{motion['background_motion']['zoom_min']:.3f}"
-        "->"
+        "<->"
         f"{motion['background_motion']['zoom_max']:.3f}"
+        f" @ {motion['background_motion'].get('oversample', 1)}x"
     )
 
     # Always validate overlay state and all referenced visual assets.
@@ -1198,6 +1212,7 @@ def main() -> int:
     try:
         segment_paths: list[Path] = []
         previous_background: Path | None = None
+        previous_zoom_end: float | None = None
 
         for index, item in enumerate(planned, start=1):
             event = item["event"]
@@ -1281,6 +1296,11 @@ def main() -> int:
                     if has_scene_change
                     else None
                 ),
+                previous_zoom_end=(
+                    previous_zoom_end
+                    if has_scene_change
+                    else None
+                ),
                 static_overlay=static_path,
                 fade_overlay=fade_path,
                 fade_kind=fade_kind,
@@ -1306,6 +1326,7 @@ def main() -> int:
             )
             segment_paths.append(segment_path)
             previous_background = current_background
+            previous_zoom_end = float(item["zoom_end"])
 
         concat_segments(
             ffmpeg=ffmpeg,
@@ -1326,7 +1347,7 @@ def main() -> int:
     )
     print(
         "composer_mode=motion_v2 "
-        "(background crossfade + background-only slow zoom "
+        "(background crossfade + alternating centered zoom "
         "+ content/explanation fades)"
     )
     return 0
