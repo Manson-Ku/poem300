@@ -1,0 +1,11 @@
+{
+  "version": "youtube_v1",
+  "oauth_client_env": "YTB_KEY_JSON",
+  "expected_handle": "@KidMoreTW",
+  "token_path": "credentials/youtube_token.json",
+  "scopes": [
+    "https://www.googleapis.com/auth/youtube.readonly",
+    "https://www.googleapis.com/auth/youtube.upload"
+  ],
+  "note": "OAuth Desktop-app client JSON stays in .env. User token stays under credentials/ and is gitignored."
+}
