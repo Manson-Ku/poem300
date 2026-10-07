@@ -24,7 +24,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 DEFAULT_CONFIG = Path("config/text_overlay_1080p_v2.json")
 DEFAULT_OVERRIDES = Path("data/bopomofo_overrides.json")
-DEFAULT_FONT = Path("fonts/BpmfHuninn-Regular.ttf")
+DEFAULT_FONT = Path("fonts/BpmfHuninn-Poem300-Regular.ttf")
 
 
 def normalize_newlines(value: str) -> str:
