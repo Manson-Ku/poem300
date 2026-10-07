@@ -4,12 +4,9 @@
 This is a data/contract QA step. It does not inspect audio acoustically.
 It verifies:
 - bopomofo IVS override source positions
-- reviewed font-gap source positions
+- project-font IVS extensions
 - TTS pronunciation override source text
 - no duplicate override keys
-
-Exit code is non-zero when unresolved font gaps remain unless
---allow-font-gaps is supplied.
 """
 
 from __future__ import annotations
@@ -20,6 +17,14 @@ import json
 from pathlib import Path
 from typing import Any
 
+try:
+    from fontTools.ttLib import TTFont
+except ImportError as exc:
+    raise SystemExit(
+        "fonttools is required. Run: "
+        "py -m pip install -r requirements.txt"
+    ) from exc
+
 
 def read_poems(path: Path) -> dict[int, dict[str, str]]:
     with path.open("r", encoding="utf-8-sig", newline="") as f:
@@ -29,6 +34,13 @@ def read_poems(path: Path) -> dict[int, dict[str, str]]:
 
 def read_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def parse_uplus(value: str) -> int:
+    text = value.strip().upper()
+    if not text.startswith("U+"):
+        raise ValueError(f"expected U+XXXX value, got {value!r}")
+    return int(text[2:], 16)
 
 
 def source_text(
@@ -124,6 +136,95 @@ def expected_tts_text(
     return lines[scene_no - 1]
 
 
+def find_uvs_table(font: TTFont) -> Any | None:
+    for table in font["cmap"].tables:
+        if table.format == 14:
+            return table
+    return None
+
+
+def validate_font_extensions(
+    *,
+    font_path: Path,
+    spec: dict[str, Any],
+) -> tuple[int, list[str]]:
+    errors: list[str] = []
+
+    if not font_path.exists():
+        return 0, [
+            f"project font not found: {font_path.as_posix()}; "
+            "run py scripts\\patch_bpmf_font.py"
+        ]
+
+    font = TTFont(str(font_path))
+    verified = 0
+
+    try:
+        uvs = find_uvs_table(font)
+        if uvs is None:
+            return 0, [
+                f"project font has no cmap format 14 IVS table: "
+                f"{font_path.as_posix()}"
+            ]
+
+        for item in spec.get("extensions", []):
+            char = str(item["character"])
+            codepoint = parse_uplus(str(item["codepoint"]))
+            selector = parse_uplus(str(item["selector"]))
+            expected_component = str(item["component_glyph"])
+
+            mappings = {
+                uv: glyph_name
+                for uv, glyph_name in uvs.uvsDict.get(
+                    selector,
+                    [],
+                )
+            }
+            glyph_name = mappings.get(codepoint)
+
+            if not glyph_name:
+                errors.append(
+                    f"font extension missing: {char} "
+                    f"{item['selector']} -> "
+                    f"{item['added_reading']}"
+                )
+                continue
+
+            if glyph_name not in font["glyf"]:
+                errors.append(
+                    f"font extension glyph not found: "
+                    f"{glyph_name!r}"
+                )
+                continue
+
+            glyph = font["glyf"][glyph_name]
+            if not glyph.isComposite():
+                errors.append(
+                    f"font extension glyph is not composite: "
+                    f"{glyph_name!r}"
+                )
+                continue
+
+            components = [
+                component.glyphName
+                for component in glyph.components
+            ]
+            if expected_component not in components:
+                errors.append(
+                    f"font extension wrong pronunciation component: "
+                    f"{char} expected={expected_component!r} "
+                    f"actual={components}"
+                )
+                continue
+
+            verified += 1
+
+    finally:
+        font.close()
+
+    return verified, errors
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Validate pronunciation QA data."
@@ -145,8 +246,19 @@ def main() -> int:
         default="data/tts_pronunciation_overrides.json",
     )
     parser.add_argument(
+        "--font-extensions",
+        default="data/bpmf_font_extensions.json",
+    )
+    parser.add_argument(
+        "--font-path",
+        default="fonts/BpmfHuninn-Poem300-Regular.ttf",
+    )
+    # Retained so old command lines do not break. It no longer turns
+    # unresolved project-font extensions into PASS.
+    parser.add_argument(
         "--allow-font-gaps",
         action="store_true",
+        help=argparse.SUPPRESS,
     )
     args = parser.parse_args()
 
@@ -154,6 +266,7 @@ def main() -> int:
     bop = read_json(Path(args.bopomofo_overrides))
     qa = read_json(Path(args.qa))
     tts = read_json(Path(args.tts_overrides))
+    font_spec = read_json(Path(args.font_extensions))
 
     errors: list[str] = []
 
@@ -179,15 +292,29 @@ def main() -> int:
         if error:
             errors.append(error)
 
-    font_gaps = qa.get("font_gaps", [])
-    for item in font_gaps:
+    required_extensions = qa.get(
+        "font_extensions_required",
+        [],
+    )
+    for item in required_extensions:
         error = validate_char_item(
             poems=poems,
             item=item,
-            label="font_gap",
+            label="font_extension",
         )
         if error:
             errors.append(error)
+
+    extension_count = len(
+        font_spec.get("extensions", [])
+    )
+    verified_extensions, font_errors = (
+        validate_font_extensions(
+            font_path=Path(args.font_path),
+            spec=font_spec,
+        )
+    )
+    errors.extend(font_errors)
 
     seen_tts: set[tuple[int, str, int]] = set()
     for item in tts.get("items", []):
@@ -242,43 +369,33 @@ def main() -> int:
                     "not present in source_text"
                 )
 
+    legacy_font_gaps = qa.get("font_gaps", [])
+    if legacy_font_gaps:
+        errors.append(
+            "legacy unresolved font_gaps remain in QA data"
+        )
+
     print("Pronunciation QA")
     print(
         f"bopomofo_overrides={len(bop.get('items', []))}"
     )
     print(f"tts_override_assets={len(tts.get('items', []))}")
-    print(f"font_gaps={len(font_gaps)}")
+    print(f"font_extensions_required={extension_count}")
+    print(f"font_extensions_verified={verified_extensions}")
+    print(f"font_gaps={len(legacy_font_gaps)}")
     print(f"errors={len(errors)}")
-
-    if font_gaps:
-        print("\nUnresolved font gaps")
-        for item in font_gaps:
-            print(
-                "  "
-                f"p{int(item['poem_id']):03d} "
-                f"{item['field']} "
-                f"line={item['line_no']} "
-                f"{item['character']} -> "
-                f"{item['expected_reading']} "
-                f"({item['note']})"
-            )
 
     if errors:
         print("\nErrors")
         for error in errors:
             print(f"  {error}")
-
-    if errors:
+        print("\nBLOCKED")
         return 1
 
-    if font_gaps and not args.allow_font_gaps:
-        print(
-            "\nBLOCKED: unresolved font gaps remain. "
-            "Use --allow-font-gaps only for diagnostics."
-        )
-        return 1
-
-    print("\nPASS")
+    print(
+        "\nPASS "
+        f"font={Path(args.font_path).as_posix()}"
+    )
     return 0
 
 
