@@ -104,6 +104,42 @@ assets/
 - TTS API 使用與成本紀錄集中於 `data/tts_usage.csv`。
 
 
+## Text overlay assets
+
+1080p 文字圖層規格：
+
+```text
+config/text_overlay_1080p_v1.json
+docs/TEXT_OVERLAY_PIPELINE.md
+```
+
+注音多音字 IVS 校正：
+
+```text
+data/bopomofo_overrides.json
+```
+
+資產：
+
+```text
+assets/pXXX/text/title_bpmf.png
+assets/pXXX/text/author.png
+assets/pXXX/text/poem_type.png
+assets/pXXX/text/manifest.json
+assets/pXXX/sYY/text/content_bpmf.png
+assets/pXXX/sYY/text/explanation.png
+```
+
+規則：
+
+- title + content 使用 bpmfvs-compatible 注音字型。
+- author / poem_type / explanation 不加注音。
+- font binaries 只存在 local，不進 Git。
+- 每個 content physical line = 一張 content_bpmf.png。
+- blank Scene 不產文字 PNG，但 manifest 保留 separator。
+- 超過 8 行的詩採 content page 分頁，不允許一路縮小到不可讀。
+- child_explanation 只顯示 active Scene 一行，作為輔助文字。
+
 ## visual_plan_json
 
 `visual_plan_json` 是 poem-level 的視覺語意 SSOT。核心概念：
