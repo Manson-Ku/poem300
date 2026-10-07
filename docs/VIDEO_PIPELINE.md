@@ -230,6 +230,78 @@ assets/pXXX/video/timeline.json
 This stage validates all required image/text/audio assets and calculates timestamps but does **not** render MP4. FFmpeg composition starts only after pronunciation QA and timeline preflight pass.
 
 
+## Assembly POC composer v1
+
+After pronunciation QA passes and `timeline.json` has `preflight.status=PASS`, the first MP4 assembly test is rendered by:
+
+```text
+scripts/render_video.py
+```
+
+The v1 composer is intentionally a contract-validation build before adding motion polish.
+
+It implements:
+
+```text
+1920x1080
+30 fps
+H.264 / yuv420p
+AAC 48 kHz stereo
+timeline-driven audio padding
+title + author persistent overlays
+poem_type in intro/end
+progressive content slots
+content page reset
+active explanation overlay
+session reset behavior
+```
+
+The transparent text PNGs are stored at 2x raster resolution, so the composer scales them back to display-space dimensions before placing them in the 1920x1080 zones.
+
+### First p226 test
+
+Validate visual state without invoking FFmpeg:
+
+```powershell
+py scripts\render_video.py --poem-id 226 --style B --dry-run
+```
+
+Render:
+
+```powershell
+py scripts\render_video.py --poem-id 226 --style B
+```
+
+Output:
+
+```text
+assets/p226/video/p226_B_1080p.mp4
+```
+
+Re-render:
+
+```powershell
+py scripts\render_video.py --poem-id 226 --style B --force
+```
+
+FFmpeg must be available in `PATH`. A custom executable can be supplied with `--ffmpeg`.
+
+### Transition status
+
+Assembly POC v1 uses hard visual cuts.
+
+This is intentional: first validate layout, reveal state, audio timing and the complete six-session sequence.
+
+The timing contract already reserves:
+
+```text
+poem pre-roll / scene transition budget = 0.30s
+page turn pause = 0.45s
+```
+
+Therefore slow zoom / pan / scene crossfade can be added in the next composer revision without redesigning the session or audio timeline.
+
+
 ## Motion
 
 靜態圖預設使用低干擾運鏡：
