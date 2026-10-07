@@ -47,8 +47,7 @@ def read_json(path: Path) -> dict[str, Any]:
 def find_uvs_table(font: TTFont) -> Any:
     for table in font["cmap"].tables:
         if table.format == 14:
-            if not hasattr(table, "uvsDict"):
-                table.decompile(None, None)
+            table.ensureDecompiled()
             return table
 
     table = CmapSubtable.newSubtable(14)
