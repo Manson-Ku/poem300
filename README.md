@@ -193,11 +193,38 @@ py scripts\tts_cost_report.py
 
 - 25 poems
 - 54 scenes
-- 1 physical line = 1 background image
+- 1 physical line = 1 Scene = 1 background image
 - poem-level visual SSOT: `data/poems.csv.visual_plan_json`
-- 圖片與後續注音/文字 overlay 完全解耦
+- 圖片與後續注音 / 文字 overlay 完全解耦
 
-目前先固定兩套 A/B style：
+### Current architecture: poem-world + independent-scene
+
+圖片不再使用 multi-turn image editing，也不追求逐幕強連貫。
+
+正式原則：
+
+```text
+Poem World
+  ├─ Scene 01 -> independent image request
+  ├─ Scene 02 -> independent image request
+  ├─ Scene 03 -> independent image request
+  └─ Scene 04 -> independent image request
+```
+
+- 每首詩有一個共用世界觀，負責時代、空間與整體氣氛。
+- 每張圖優先表達自己的實際換行詩句。
+- `child_explanation_line` 只作理解輔助。
+- Scene 之間不傳 `previous_interaction_id`。
+- 不要求人物姿勢、房間細節、鏡位或物件位置完全一致。
+- 成功標準是「幼童一眼能理解目前這句詩」，而不是漫畫式連續分鏡。
+
+模型預設：
+
+```text
+gemini-3.1-flash-lite-image
+```
+
+A/B style：
 
 ```text
 A = age6_a_watercolor_ink_v1
@@ -213,76 +240,48 @@ Registry：
 config/image_styles_age6.json
 ```
 
-同一 Scene 可同時保存兩種 style：
+A/B 固定同一份 poem world、Scene semantics、模型與 generation parameters，唯一變因是 style preset。
 
-```text
-assets/p225/s01/image/age6_a_watercolor_ink_v1/background.webp
-assets/p225/s01/image/age6_b_gouache_storybook_v1/background.webp
-```
+### Run
 
-A/B 測試固定同一份 `visual_plan_json` 與 Scene semantics，只改 style preset。
-
-目前舊的 prompt v1 POC 已停止；下一步先完成單一首詩的 scene/object visual plan，再做完整詩 A/B 測試。
-
-完整規格見 `docs/IMAGE_PIPELINE.md`。
-
-
-## Multi-turn image test
-
-同一首詩內改用 Gemini Interactions API 串接 Scene：
-
-```text
-Style A: s01 -> s02 -> s03 -> ...
-Style B: s01 -> s02 -> s03 -> ...
-```
-
-模型預設：
-
-```text
-gemini-3.1-flash-image
-```
-
-第一張建立 visual anchor，後續 Scene 使用 `previous_interaction_id` 延續前一輪圖像上下文。
-
-測試〈春曉〉：
+例如測試〈夜思〉：
 
 ```powershell
 git pull
-py scripts\generate_images_multiturn.py --poem-id 225 --dry-run
-py scripts\generate_images_multiturn.py --poem-id 225
+py scripts\generate_images.py --poem-id 226 --dry-run
+py scripts\generate_images.py --poem-id 226 --force
 ```
 
 只測 Style A：
 
 ```powershell
-py scripts\generate_images_multiturn.py --poem-id 225 --styles A
+py scripts\generate_images.py --poem-id 226 --styles A --force
 ```
 
-強制重跑 A/B 整條 chain：
-
-```powershell
-py scripts\generate_images_multiturn.py --poem-id 225 --force
-```
-
-輸出：
+正式輸出：
 
 ```text
-assets/p225/s01/image/{style_id}/background.webp
-assets/p225/s01/image/{style_id}/meta.json
-assets/p225/s02/image/{style_id}/background.webp
-assets/p225/s02/image/{style_id}/meta.json
+assets/p226/s01/image/{style_id}/background.webp
+assets/p226/s01/image/{style_id}/meta.json
+...
 ```
 
-`meta.json` 只用於本機續跑 chain，不進 Git。API usage / interaction chain / estimated cost 會寫入：
+每次成功生成也會覆蓋一份最新 POC 快照：
+
+```text
+assets/poc/226_A_s01.webp
+assets/poc/226_A_s02.webp
+assets/poc/226_B_s01.webp
+assets/poc/226_B_s02.webp
+...
+```
+
+API usage / token / latency / estimated cost / interaction_id 仍寫入：
 
 ```text
 data/image_usage.csv
 ```
 
-目前 Gemini 3.1 Flash Image Standard paid tier 記帳基準（2026-10-07）：
+`previous_interaction_id` 欄位保留，但在 independent-scene 架構下固定為空。
 
-```text
-input                 = USD 0.50 / 1M tokens
-non-image output      = USD 3.00 / 1M tokens
-image output          = USD 60.00 / 1M tokens
-```
+完整規格見 `docs/IMAGE_PIPELINE.md`.
