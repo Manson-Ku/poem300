@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Upload a rendered poem video to YouTube using poem300 metadata rules.
 
-Default behavior is intentionally safe for the first production test:
-- privacyStatus=private
+Default production behavior:
+- privacyStatus=public
 - notifySubscribers=False
 - selfDeclaredMadeForKids=True
+- add the uploaded video to the recommended_age playlist
+- leave thumbnail selection to YouTube
 
 Metadata is generated from data/poems.csv and config/youtube_v1.json.
 """
@@ -68,6 +70,33 @@ def load_credentials(
         raise FileNotFoundError(
             f"YouTube OAuth token not found: {token_path.as_posix()}\n"
             "Run: py scripts\\youtube_auth.py"
+        )
+
+    token_info = read_json(token_path)
+    stored_scopes_raw = token_info.get("scopes", [])
+    if isinstance(stored_scopes_raw, str):
+        stored_scopes = set(
+            stored_scopes_raw.split()
+        )
+    else:
+        stored_scopes = {
+            str(value)
+            for value in stored_scopes_raw
+        }
+
+    missing_scopes = [
+        scope
+        for scope in scopes
+        if scope not in stored_scopes
+    ]
+    if missing_scopes:
+        raise RuntimeError(
+            "Saved YouTube OAuth token is missing newly required scopes:\n"
+            + "\n".join(
+                f"  - {scope}"
+                for scope in missing_scopes
+            )
+            + "\nRun: py scripts\\youtube_auth.py --force-reauth"
         )
 
     credentials = Credentials.from_authorized_user_file(
@@ -201,6 +230,167 @@ def build_metadata(
     }
 
 
+def recommended_age_playlist_title(
+    *,
+    poem: dict[str, str],
+    config: dict[str, Any],
+) -> str:
+    raw = poem.get(
+        "recommended_age",
+        "",
+    ).strip()
+    if not raw:
+        raise ValueError(
+            "recommended_age is required for YouTube playlist routing"
+        )
+
+    try:
+        age_number = float(raw)
+    except ValueError as exc:
+        raise ValueError(
+            f"invalid recommended_age for playlist routing: {raw!r}"
+        ) from exc
+
+    if not age_number.is_integer():
+        raise ValueError(
+            f"recommended_age must be a whole number; got {raw!r}"
+        )
+
+    age = int(age_number)
+    return str(
+        config["playlist"]["title_template"]
+    ).format(
+        recommended_age=age,
+    )
+
+
+def find_owned_playlist(
+    *,
+    youtube: Any,
+    title: str,
+) -> dict[str, Any] | None:
+    page_token: str | None = None
+
+    while True:
+        response = youtube.playlists().list(
+            part="id,snippet,status",
+            mine=True,
+            maxResults=50,
+            pageToken=page_token,
+        ).execute()
+
+        for item in response.get("items", []):
+            if (
+                str(
+                    item.get(
+                        "snippet",
+                        {},
+                    ).get(
+                        "title",
+                        "",
+                    )
+                ).strip()
+                == title
+            ):
+                return item
+
+        page_token = response.get(
+            "nextPageToken"
+        )
+        if not page_token:
+            return None
+
+
+def ensure_playlist(
+    *,
+    youtube: Any,
+    title: str,
+    config: dict[str, Any],
+) -> tuple[str, bool]:
+    existing = find_owned_playlist(
+        youtube=youtube,
+        title=title,
+    )
+    if existing is not None:
+        playlist_id = str(
+            existing.get("id", "")
+        )
+        if not playlist_id:
+            raise RuntimeError(
+                f"playlist {title!r} returned without an ID"
+            )
+        return playlist_id, False
+
+    if not bool(
+        config["playlist"].get(
+            "create_if_missing",
+            True,
+        )
+    ):
+        raise RuntimeError(
+            f"required playlist not found: {title}"
+        )
+
+    response = youtube.playlists().insert(
+        part="snippet,status",
+        body={
+            "snippet": {
+                "title": title,
+            },
+            "status": {
+                "privacyStatus": str(
+                    config["playlist"].get(
+                        "default_privacy",
+                        "public",
+                    )
+                )
+            },
+        },
+    ).execute()
+
+    playlist_id = str(
+        response.get("id", "")
+    )
+    if not playlist_id:
+        raise RuntimeError(
+            f"playlist creation returned no ID: {title}"
+        )
+
+    return playlist_id, True
+
+
+def add_video_to_playlist(
+    *,
+    youtube: Any,
+    playlist_id: str,
+    video_id: str,
+) -> bool:
+    existing = youtube.playlistItems().list(
+        part="id",
+        playlistId=playlist_id,
+        videoId=video_id,
+        maxResults=1,
+    ).execute()
+
+    if existing.get("items"):
+        return False
+
+    youtube.playlistItems().insert(
+        part="snippet",
+        body={
+            "snippet": {
+                "playlistId": playlist_id,
+                "resourceId": {
+                    "kind": "youtube#video",
+                    "videoId": video_id,
+                },
+            }
+        },
+    ).execute()
+
+    return True
+
+
 def default_video_path(
     *,
     poem_id: int,
@@ -220,6 +410,7 @@ def print_preview(
     video_path: Path,
     body: dict[str, Any],
     notify_subscribers: bool,
+    playlist_title: str,
 ) -> None:
     print(f"poem_id={poem_id}")
     print(f"video={video_path.as_posix()}")
@@ -244,6 +435,11 @@ def print_preview(
         "notify_subscribers="
         + str(notify_subscribers).lower()
     )
+    print(
+        "playlist="
+        + playlist_title
+    )
+    print("thumbnail=youtube_auto")
 
 
 def resumable_upload(
@@ -341,7 +537,7 @@ def main() -> int:
         choices=("private", "unlisted", "public"),
         help=(
             "Override privacy status. Default comes from config and is "
-            "private for the initial test workflow."
+            "public."
         ),
     )
     parser.add_argument(
@@ -400,12 +596,17 @@ def main() -> int:
         config=config,
         privacy=privacy,
     )
+    playlist_title = recommended_age_playlist_title(
+        poem=poem,
+        config=config,
+    )
 
     print_preview(
         poem_id=args.poem_id,
         video_path=video_path,
         body=body,
         notify_subscribers=args.notify_subscribers,
+        playlist_title=playlist_title,
     )
 
     if args.dry_run:
@@ -468,6 +669,17 @@ def main() -> int:
             "YouTube upload returned no video ID"
         )
 
+    requested_privacy = privacy
+    actual_privacy = str(
+        response.get(
+            "status",
+            {},
+        ).get(
+            "privacyStatus",
+            requested_privacy,
+        )
+    )
+
     print("YouTube upload PASS")
     print(f"video_id={video_id}")
     print(
@@ -475,17 +687,68 @@ def main() -> int:
     )
     print(
         "privacy="
-        + str(
-            response.get(
-                "status",
-                {},
-            ).get(
-                "privacyStatus",
-                privacy,
-            )
-        )
+        + actual_privacy
     )
     print("made_for_kids=true")
+
+    if actual_privacy != requested_privacy:
+        print(
+            "WARNING: YouTube returned privacy="
+            f"{actual_privacy} although requested="
+            f"{requested_privacy}. This can occur when the API "
+            "project is subject to YouTube upload visibility restrictions."
+        )
+
+    playlist_enabled = bool(
+        config.get(
+            "playlist",
+            {},
+        ).get(
+            "enabled",
+            True,
+        )
+    )
+
+    if playlist_enabled:
+        playlist_id, playlist_created = (
+            ensure_playlist(
+                youtube=youtube,
+                title=playlist_title,
+                config=config,
+            )
+        )
+
+        playlist_item_added = False
+        if bool(
+            config["playlist"].get(
+                "add_uploaded_video",
+                True,
+            )
+        ):
+            playlist_item_added = (
+                add_video_to_playlist(
+                    youtube=youtube,
+                    playlist_id=playlist_id,
+                    video_id=video_id,
+                )
+            )
+
+        print(
+            f"playlist_title={playlist_title}"
+        )
+        print(
+            f"playlist_id={playlist_id}"
+        )
+        print(
+            "playlist_created="
+            + str(playlist_created).lower()
+        )
+        print(
+            "playlist_item_added="
+            + str(playlist_item_added).lower()
+        )
+
+    print("thumbnail=youtube_auto")
 
     return 0
 
