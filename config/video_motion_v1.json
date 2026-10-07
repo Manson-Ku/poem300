@@ -8,15 +8,16 @@
     "apply_when": "background_image changes between consecutive timeline events"
   },
   "background_motion": {
-    "mode": "alternating_center_zoom",
-    "zoom_min": 1,
-    "zoom_max": 1.015,
-    "oversample": 2,
-    "continuity_scope": "consecutive events sharing the same background_image",
-    "direction_policy": "alternate zoom_in / zoom_out by background run",
+    "mode": "alternating_background_run_crop_zoom",
+    "level": "consecutive_background_run",
+    "crop_window_a_pct": 100,
+    "crop_window_b_pct": 80,
+    "direction_policy": "run 1: 100% -> 80%; next background run: 80% -> 100%; alternate thereafter",
     "center": "image_center_fixed",
     "pan": false,
-    "note": "Background uses centered zoom only. No pan/drift. 2x oversampling reduces zoompan integer-rounding jitter."
+    "implementation": "render each complete background run once, then slice that run for timeline events",
+    "oversample": 2,
+    "note": "Percent means centered crop-window size, not image scale. 100% -> 80% is a centered zoom-in equivalent to scale 1.00 -> 1.25; 80% -> 100% is the reverse. Rendering once per background run prevents per-event zoom resets/jitter."
   },
   "content_overlay": {
     "reveal": "fade_in",
