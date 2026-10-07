@@ -213,8 +213,28 @@ def style_text(style: dict[str, Any]) -> str:
         parts.append("色彩：" + color["palette"])
 
     rendering = style.get("environment_rendering") or {}
+    if rendering.get("priority"):
+        parts.append("場景：" + rendering["priority"])
     if rendering.get("texture"):
         parts.append("質感：" + rendering["texture"])
+
+    character = style.get("character_rendering") or {}
+    if character.get("proportion"):
+        parts.append("人物：" + character["proportion"])
+    if character.get("face"):
+        parts.append("表情：" + character["face"])
+
+    lighting = style.get("lighting_language") or {}
+    if isinstance(lighting, dict) and lighting.get("description"):
+        parts.append("光線：" + lighting["description"])
+    elif isinstance(lighting, str) and lighting.strip():
+        parts.append("光線：" + lighting.strip())
+
+    camera = style.get("camera_language") or {}
+    if isinstance(camera, dict) and camera.get("description"):
+        parts.append("鏡頭：" + camera["description"])
+    elif isinstance(camera, str) and camera.strip():
+        parts.append("鏡頭：" + camera.strip())
 
     return "；".join(part for part in parts if part)
 
