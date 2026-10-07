@@ -18,6 +18,7 @@ The motion layer never changes event durations or audio start times.
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import math
 import shutil
@@ -32,6 +33,7 @@ from PIL import Image
 
 DEFAULT_TEXT_CONFIG = Path("config/text_overlay_1080p_v2.json")
 DEFAULT_MOTION_CONFIG = Path("config/video_motion_v1.json")
+DEFAULT_BGM_CONFIG = Path("config/bgm_mix_v1.json")
 
 CONTENT_SESSIONS = {
     "session_content",
@@ -47,6 +49,176 @@ POEM_TYPE_SESSIONS = {
 
 def read_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def read_csv(path: Path) -> list[dict[str, str]]:
+    if not path.exists():
+        return []
+
+    with path.open(
+        "r",
+        encoding="utf-8-sig",
+        newline="",
+    ) as handle:
+        return list(csv.DictReader(handle))
+
+
+def resolve_bgm_track(
+    *,
+    bgm_dir: Path,
+    value: str,
+    supported_extensions: set[str],
+) -> Path:
+    requested = Path(value)
+
+    if requested.is_absolute():
+        if requested.exists() and requested.is_file():
+            return requested
+        raise FileNotFoundError(
+            f"BGM not found: {requested}"
+        )
+
+    direct = bgm_dir / requested
+    if direct.exists() and direct.is_file():
+        return direct
+
+    if not bgm_dir.exists():
+        raise FileNotFoundError(
+            f"BGM directory not found: {bgm_dir.as_posix()}"
+        )
+
+    candidates = [
+        path
+        for path in bgm_dir.iterdir()
+        if path.is_file()
+        and path.suffix.lower() in supported_extensions
+    ]
+
+    key = value.casefold()
+
+    exact_name = [
+        path
+        for path in candidates
+        if path.name.casefold() == key
+    ]
+    if len(exact_name) == 1:
+        return exact_name[0]
+
+    exact_stem = [
+        path
+        for path in candidates
+        if path.stem.casefold() == key
+    ]
+    if len(exact_stem) == 1:
+        return exact_stem[0]
+
+    if len(exact_stem) > 1:
+        names = ", ".join(
+            sorted(path.name for path in exact_stem)
+        )
+        raise ValueError(
+            f"ambiguous BGM stem {value!r}: {names}"
+        )
+
+    raise FileNotFoundError(
+        f"BGM not found under {bgm_dir.as_posix()}: {value}"
+    )
+
+
+def select_bgm(
+    *,
+    poem_id: int,
+    config: dict[str, Any],
+    cli_bgm: str | None,
+    cli_gain_db: float | None,
+) -> dict[str, Any] | None:
+    bgm_dir = Path(
+        str(config.get("bgm_dir", "bgm"))
+    )
+    map_path = Path(
+        str(
+            config.get(
+                "poem_map",
+                "data/poem_bgm.csv",
+            )
+        )
+    )
+    supported = {
+        str(value).lower()
+        for value in config.get(
+            "supported_extensions",
+            [".mp3", ".wav", ".m4a", ".aac", ".flac", ".ogg"],
+        )
+    }
+
+    source = "none"
+    selected_value: str | None = None
+    mapped_gain: float | None = None
+
+    if cli_bgm is not None:
+        if cli_bgm.strip().casefold() in {
+            "none",
+            "off",
+            "no",
+        }:
+            return None
+        source = "cli"
+        selected_value = cli_bgm.strip()
+    else:
+        for row in read_csv(map_path):
+            raw_pid = row.get("poem_id", "").strip()
+            if not raw_pid:
+                continue
+            if int(raw_pid) != poem_id:
+                continue
+
+            candidate = row.get(
+                "bgm_file",
+                "",
+            ).strip()
+            if candidate:
+                source = "poem_map"
+                selected_value = candidate
+
+                raw_gain = row.get(
+                    "gain_db",
+                    "",
+                ).strip()
+                if raw_gain:
+                    mapped_gain = float(raw_gain)
+            break
+
+    if not selected_value:
+        return None
+
+    track = resolve_bgm_track(
+        bgm_dir=bgm_dir,
+        value=selected_value,
+        supported_extensions=supported,
+    )
+
+    default_gain = float(
+        config["mix"].get(
+            "default_gain_db",
+            0.0,
+        )
+    )
+
+    gain_db = (
+        float(cli_gain_db)
+        if cli_gain_db is not None
+        else mapped_gain
+        if mapped_gain is not None
+        else default_gain
+    )
+
+    return {
+        "source": source,
+        "path": track,
+        "filename": track.name,
+        "gain_db": gain_db,
+        "map_path": map_path,
+    }
 
 
 def repo_path(value: str) -> Path:
@@ -1031,6 +1203,171 @@ def concat_segments(
     )
 
 
+def mix_bgm(
+    *,
+    ffmpeg: str,
+    narration_video: Path,
+    bgm_path: Path,
+    output_path: Path,
+    duration_sec: float,
+    gain_db: float,
+    config: dict[str, Any],
+    verbose: bool,
+) -> None:
+    """Mix a low, normalized BGM bed under the untouched narration."""
+
+    require_file(
+        narration_video,
+        label="narration video",
+    )
+    require_file(
+        bgm_path,
+        label="BGM",
+    )
+
+    mix = config["mix"]
+
+    narration_gain = float(
+        mix.get(
+            "narration_gain_db",
+            0.0,
+        )
+    )
+    target_i = float(
+        mix["bgm_target_i_lufs"]
+    )
+    target_tp = float(
+        mix["bgm_target_tp_db"]
+    )
+    target_lra = float(
+        mix["bgm_target_lra"]
+    )
+    fade_in = min(
+        max(
+            0.0,
+            float(mix["fade_in_sec"]),
+        ),
+        duration_sec,
+    )
+    fade_out = min(
+        max(
+            0.0,
+            float(mix["fade_out_sec"]),
+        ),
+        duration_sec,
+    )
+    fade_out_start = max(
+        0.0,
+        duration_sec - fade_out,
+    )
+    limiter_peak = float(
+        mix.get(
+            "limiter_peak",
+            0.95,
+        )
+    )
+
+    bgm_filters = [
+        f"atrim=duration={duration_sec:.6f}",
+        "asetpts=PTS-STARTPTS",
+        (
+            "loudnorm="
+            f"I={target_i:g}:"
+            f"TP={target_tp:g}:"
+            f"LRA={target_lra:g}"
+        ),
+        f"volume={gain_db:g}dB",
+    ]
+
+    if fade_in > 0:
+        bgm_filters.append(
+            f"afade=t=in:st=0:d={fade_in:.6f}"
+        )
+
+    if fade_out > 0:
+        bgm_filters.append(
+            "afade=t=out:"
+            f"st={fade_out_start:.6f}:"
+            f"d={fade_out:.6f}"
+        )
+
+    bgm_filters.extend(
+        [
+            "aresample=48000",
+            "aformat=channel_layouts=stereo",
+        ]
+    )
+
+    filter_complex = ";".join(
+        [
+            (
+                "[0:a]"
+                f"volume={narration_gain:g}dB,"
+                "aresample=48000,"
+                "aformat=channel_layouts=stereo"
+                "[narr]"
+            ),
+            (
+                "[1:a]"
+                + ",".join(bgm_filters)
+                + "[bgm]"
+            ),
+            (
+                "[narr][bgm]"
+                "amix=inputs=2:"
+                "duration=first:"
+                "dropout_transition=0:"
+                "normalize=0,"
+                f"alimiter=limit={limiter_peak:g}"
+                "[aout]"
+            ),
+        ]
+    )
+
+    output_path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    command = [
+        ffmpeg,
+        "-hide_banner",
+        "-loglevel",
+        "warning" if verbose else "error",
+        "-y",
+        "-i",
+        str(narration_video),
+        "-stream_loop",
+        "-1",
+        "-i",
+        str(bgm_path),
+        "-filter_complex",
+        filter_complex,
+        "-map",
+        "0:v:0",
+        "-map",
+        "[aout]",
+        "-c:v",
+        "copy",
+        "-c:a",
+        "aac",
+        "-b:a",
+        "192k",
+        "-ar",
+        "48000",
+        "-ac",
+        "2",
+        "-movflags",
+        "+faststart",
+        str(output_path),
+    ]
+
+    run_command(
+        command,
+        verbose=verbose,
+    )
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
@@ -1063,6 +1400,25 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--motion-config",
         default=str(DEFAULT_MOTION_CONFIG),
+    )
+    parser.add_argument(
+        "--bgm-config",
+        default=str(DEFAULT_BGM_CONFIG),
+    )
+    parser.add_argument(
+        "--bgm",
+        help=(
+            "Override poem BGM with a filename or unique stem under "
+            "bgm/. Use --bgm none to disable a mapped BGM."
+        ),
+    )
+    parser.add_argument(
+        "--bgm-gain-db",
+        type=float,
+        help=(
+            "Optional per-render BGM trim in dB after loudness "
+            "normalization. Overrides the poem map value."
+        ),
     )
     parser.add_argument(
         "--output",
@@ -1117,12 +1473,14 @@ def main() -> int:
     )
     text_config_path = Path(args.text_config)
     motion_config_path = Path(args.motion_config)
+    bgm_config_path = Path(args.bgm_config)
 
     for path, label in (
         (timeline_path, "timeline"),
         (text_manifest_path, "text manifest"),
         (text_config_path, "text config"),
         (motion_config_path, "motion config"),
+        (bgm_config_path, "BGM config"),
     ):
         require_file(path, label=label)
 
@@ -1130,10 +1488,16 @@ def main() -> int:
     text_manifest = read_json(text_manifest_path)
     text_config = read_json(text_config_path)
     motion = read_json(motion_config_path)
+    bgm_config = read_json(bgm_config_path)
 
     if motion.get("version") != "video_motion_v1":
         raise ValueError(
             "composer currently requires video_motion_v1"
+        )
+
+    if bgm_config.get("version") != "bgm_mix_v1":
+        raise ValueError(
+            "composer currently requires bgm_mix_v1"
         )
 
     if int(timeline["poem_id"]) != pid:
@@ -1212,6 +1576,13 @@ def main() -> int:
 
     rendered_duration = previous_end_frame / fps
 
+    bgm_selection = select_bgm(
+        poem_id=pid,
+        config=bgm_config,
+        cli_bgm=args.bgm,
+        cli_gain_db=args.bgm_gain_db,
+    )
+
     print(
         f"p{pid:03d} {timeline['title']} "
         f"events={len(events)} "
@@ -1235,6 +1606,19 @@ def main() -> int:
         f"{motion['background_motion']['crop_window_b_pct']:.0f}% "
         f"runs={len(background_runs)}"
     )
+
+    if bgm_selection is None:
+        print("bgm=none")
+    else:
+        mix = bgm_config["mix"]
+        print(
+            "bgm="
+            f"{bgm_selection['filename']} "
+            f"source={bgm_selection['source']} "
+            f"target={float(mix['bgm_target_i_lufs']):g}LUFS "
+            f"gain={float(bgm_selection['gain_db']):g}dB "
+            "(narration unchanged)"
+        )
 
     # Always validate overlay state and all referenced visual assets.
     validate_state = OverlayState(
@@ -1468,13 +1852,42 @@ def main() -> int:
             segment_paths.append(segment_path)
             previous_run_no = run_no
 
-        concat_segments(
-            ffmpeg=ffmpeg,
-            segment_paths=segment_paths,
-            output_path=output_path,
-            work_dir=work_dir,
-            verbose=args.verbose,
-        )
+        if bgm_selection is None:
+            concat_segments(
+                ffmpeg=ffmpeg,
+                segment_paths=segment_paths,
+                output_path=output_path,
+                work_dir=work_dir,
+                verbose=args.verbose,
+            )
+        else:
+            narration_video = (
+                work_dir / "narration_only.mp4"
+            )
+            concat_segments(
+                ffmpeg=ffmpeg,
+                segment_paths=segment_paths,
+                output_path=narration_video,
+                work_dir=work_dir,
+                verbose=args.verbose,
+            )
+            print(
+                "mix_bgm="
+                f"{bgm_selection['filename']} "
+                f"gain={float(bgm_selection['gain_db']):g}dB"
+            )
+            mix_bgm(
+                ffmpeg=ffmpeg,
+                narration_video=narration_video,
+                bgm_path=bgm_selection["path"],
+                output_path=output_path,
+                duration_sec=rendered_duration,
+                gain_db=float(
+                    bgm_selection["gain_db"]
+                ),
+                config=bgm_config,
+                verbose=args.verbose,
+            )
 
     finally:
         if temp_context is not None:
@@ -1486,10 +1899,17 @@ def main() -> int:
         f"duration_target={rendered_duration:.3f}s"
     )
     print(
-        "composer_mode=motion_v3 "
-        "(run-level 100%/80% perspective zoom "
-        "+ crossfade + content/explanation fades)"
+        "composer_mode=motion_v3_bgm_v1 "
+        "(run-level perspective zoom + crossfade "
+        "+ overlay fades + optional poem-level BGM)"
     )
+    if bgm_selection is not None:
+        print(
+            "bgm_mix="
+            f"{bgm_selection['filename']} @ "
+            f"{float(bgm_config['mix']['bgm_target_i_lufs']):g}LUFS "
+            f"{float(bgm_selection['gain_db']):+g}dB trim"
+        )
     return 0
 
 
