@@ -230,8 +230,8 @@ A/B style：
 A = age6_a_watercolor_ink_v1
     東方淡彩水彩繪本
 
-B = age6_b_gouache_storybook_v1
-    厚粉彩童書插畫
+B = age6_b_3d_fairytale_cinematic_v1
+    3D電影童話插畫
 ```
 
 Registry：
