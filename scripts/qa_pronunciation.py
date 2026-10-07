@@ -172,7 +172,40 @@ def validate_font_extensions(
             char = str(item["character"])
             codepoint = parse_uplus(str(item["codepoint"]))
             selector = parse_uplus(str(item["selector"]))
-            expected_component = str(item["component_glyph"])
+
+            prototype_codepoint = parse_uplus(
+                str(item["prototype_codepoint"])
+            )
+
+            best_cmap = font.getBestCmap() or {}
+            prototype_name = best_cmap.get(
+                prototype_codepoint
+            )
+            if not prototype_name:
+                errors.append(
+                    f"prototype glyph missing for "
+                    f"{item['prototype_character']}"
+                )
+                continue
+
+            prototype_glyph = font["glyf"][
+                prototype_name
+            ]
+            if not prototype_glyph.isComposite():
+                errors.append(
+                    f"prototype glyph is not composite: "
+                    f"{prototype_name!r}"
+                )
+                continue
+
+            expected_phonetic = [
+                component.glyphName
+                for component in prototype_glyph.components
+                if (
+                    component.glyphName.startswith("zy")
+                    or component.glyphName.startswith("tone")
+                )
+            ]
 
             mappings = {
                 uv: glyph_name
@@ -206,15 +239,20 @@ def validate_font_extensions(
                 )
                 continue
 
-            components = [
+            actual_phonetic = [
                 component.glyphName
                 for component in glyph.components
+                if (
+                    component.glyphName.startswith("zy")
+                    or component.glyphName.startswith("tone")
+                )
             ]
-            if expected_component not in components:
+
+            if actual_phonetic != expected_phonetic:
                 errors.append(
-                    f"font extension wrong pronunciation component: "
-                    f"{char} expected={expected_component!r} "
-                    f"actual={components}"
+                    f"font extension wrong pronunciation layout: "
+                    f"{char} expected={expected_phonetic} "
+                    f"actual={actual_phonetic}"
                 )
                 continue
 
