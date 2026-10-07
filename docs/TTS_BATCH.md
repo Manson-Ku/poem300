@@ -14,14 +14,21 @@ Voice:
 Kore
 ```
 
-Scene contract:
+Asset contract:
 
 ```text
+Poem level:
+- title.wav
+- author.wav
+
+Scene level:
 1 physical poem line
 = 1 Scene
-= 1 poem TTS
-= 1 explanation TTS
+= 1 poem.wav
+= 1 explanation.wav
 ```
+
+Title / Author use the same production model, Kore voice, narration style, retry policy and usage ledger as the existing Scene content TTS.
 
 ## Asset layout
 
@@ -30,6 +37,9 @@ Example for `poem_id=225`:
 ```text
 assets/p225/
   poem.json
+  audio/
+    title.wav
+    author.wav
   s01/
     scene.json
     audio/
@@ -79,6 +89,30 @@ Generate one poem:
 ```powershell
 py scripts\generate_tts_assets.py --poem-id 225
 ```
+
+Generate only missing poem-level title / author audio:
+
+```powershell
+py scripts\generate_tts_assets.py --age 6 --types title author --dry-run
+py scripts\generate_tts_assets.py --age 6 --types title author
+```
+
+Generate title / author for one poem only:
+
+```powershell
+py scripts\generate_tts_assets.py --poem-id 225 --types title author
+```
+
+`--types` accepts:
+
+```text
+title
+author
+poem
+explanation
+```
+
+For backward compatibility, omitting `--types` still defaults to `poem explanation`.
 
 Resume from a poem ID:
 
