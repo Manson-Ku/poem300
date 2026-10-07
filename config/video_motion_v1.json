@@ -1,0 +1,36 @@
+{
+  "version": "video_motion_v1",
+  "principle": "Motion and transitions are presentation-layer effects only. They must not change the audio-driven timeline duration.",
+  "scene_transition": {
+    "type": "crossfade",
+    "duration_sec": 0.3,
+    "budget_source": "video_timing_v1.transition.scene_crossfade_sec",
+    "apply_when": "background_image changes between consecutive timeline events"
+  },
+  "background_motion": {
+    "mode": "alternating_slow_zoom",
+    "zoom_min": 1,
+    "zoom_max": 1.03,
+    "continuity_scope": "consecutive events sharing the same background_image",
+    "center": "image_center",
+    "note": "Motion is applied to the background only; text overlays remain fixed in display space."
+  },
+  "content_overlay": {
+    "reveal": "fade_in",
+    "fade_in_sec": 0.15,
+    "note": "Only the newly revealed content line fades in; previously revealed lines remain fully visible."
+  },
+  "explanation_overlay": {
+    "reveal": "fade_in_out",
+    "fade_in_sec": 0.2,
+    "fade_out_sec": 0.2,
+    "note": "Explanation fades in at the explanation event start and fades out before that event ends."
+  },
+  "constraints": {
+    "preserve_timeline_duration": true,
+    "preserve_audio_start_times": true,
+    "preserve_overlay_coordinates": true,
+    "no_motion_on_text": true,
+    "clamp_effect_to_event_duration": true
+  }
+}
