@@ -434,3 +434,32 @@ py scripts\youtube_upload.py --poem-id 225 --style B
 ```
 
 The uploader generates title / description / UTM / tags from the poem record, sets `selfDeclaredMadeForKids=true`, and defaults to private with subscriber notifications disabled.
+
+
+### YouTube production defaults
+
+After the private upload POC, normal uploads now default to public and automatically route each poem into its `recommended_age` playlist:
+
+```text
+6 -> 6歲建議
+7 -> 7歲建議
+8 -> 8歲建議
+9 -> 9歲建議
+```
+
+Thumbnail selection is left to YouTube.
+
+Because playlist insertion requires an additional OAuth scope, reauthorize once after pulling this version:
+
+```powershell
+py scripts\youtube_auth.py --force-reauth
+```
+
+Then preview or upload normally:
+
+```powershell
+py scripts\youtube_upload.py --poem-id 225 --style B --dry-run
+py scripts\youtube_upload.py --poem-id 225 --style B
+```
+
+Expected preview includes `privacy=public`, `made_for_kids=true`, `playlist=6歲建議`, and `thumbnail=youtube_auto`.
