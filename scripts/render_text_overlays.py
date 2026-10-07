@@ -2,7 +2,9 @@
 """Render transparent title/content/explanation PNG overlays for poem300.
 
 Rules:
-- title + content use the local bpmfvs-compatible font directly.
+- title + content use the local poem300 Bpmf Huninn derivative.
+- pronunciation overrides use raster-safe PUA aliases from the derived font;
+  canonical IVS metadata remains in data/bopomofo_overrides.json.
 - author / poem_type / explanation use the same font without IVS overrides.
 - one physical content line == one Scene == one content PNG.
 - blank Scenes remain in the manifest but do not render text PNGs.
@@ -90,15 +92,19 @@ def scene_rows_for_poem(
     return rows
 
 
-def selector_char(selector: str) -> str:
-    text = selector.strip().upper()
+def codepoint_char(value: str) -> str:
+    text = value.strip().upper()
     if text.startswith("U+"):
         return chr(int(text[2:], 16))
     if text.startswith("0X"):
         return chr(int(text[2:], 16))
     if len(text) == 1:
         return text
-    raise ValueError(f"Unsupported IVS selector: {selector}")
+    raise ValueError(f"Unsupported codepoint value: {value}")
+
+
+def selector_char(selector: str) -> str:
+    return codepoint_char(selector)
 
 
 def apply_overrides(
@@ -139,8 +145,20 @@ def apply_overrides(
                 f"found {chars[index]!r}"
             )
 
-        ivs = selector_char(str(item["selector"]))
-        chars.insert(index + 1, ivs)
+        render_codepoint = item.get("render_codepoint")
+        if render_codepoint:
+            # Pillow/FreeType does not reliably consume the bpmfvs
+            # Han+IVS sequence during rasterization. The local derived
+            # font exposes the exact selected annotated glyph through
+            # a stable PUA alias, so replace only the render-time codepoint.
+            chars[index] = codepoint_char(
+                str(render_codepoint)
+            )
+        else:
+            # Backward-compatible fallback for older override data.
+            ivs = selector_char(str(item["selector"]))
+            chars.insert(index + 1, ivs)
+
         applied.append(item)
 
     applied.reverse()
