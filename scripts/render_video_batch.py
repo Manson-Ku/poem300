@@ -318,7 +318,7 @@ def main() -> int:
                 poem_id=pid,
                 style=args.style,
                 dry_run=True,
-                force=False,
+                force=args.force,
                 ffmpeg=args.ffmpeg,
             )
         )
