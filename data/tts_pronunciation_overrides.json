@@ -1,0 +1,263 @@
+{
+  "version": "tts_pronunciation_overrides_v1",
+  "instruction_template": "Pronounce the specified character in this exact source text with the requested Taiwan Mandarin reading. Speak only the original source text; do not say the pronunciation instruction or add any words.",
+  "items": [
+    {
+      "poem_id": 217,
+      "audio_type": "title",
+      "scene_no": 0,
+      "source_text": "鹿柴",
+      "pronunciations": [
+        {
+          "character": "柴",
+          "reading": "ㄓㄞˋ",
+          "context": "鹿柴"
+        }
+      ]
+    },
+    {
+      "poem_id": 217,
+      "audio_type": "poem",
+      "scene_no": 2,
+      "source_text": "返景入深林，復照青苔上。",
+      "pronunciations": [
+        {
+          "character": "景",
+          "reading": "ㄧㄥˇ",
+          "context": "返景"
+        }
+      ]
+    },
+    {
+      "poem_id": 219,
+      "audio_type": "poem",
+      "scene_no": 1,
+      "source_text": "山中相送罷，日暮掩柴扉。",
+      "pronunciations": [
+        {
+          "character": "相",
+          "reading": "ㄒㄧㄤ",
+          "context": "相送"
+        }
+      ]
+    },
+    {
+      "poem_id": 220,
+      "audio_type": "title",
+      "scene_no": 0,
+      "source_text": "相思",
+      "pronunciations": [
+        {
+          "character": "相",
+          "reading": "ㄒㄧㄤ",
+          "context": "相思"
+        }
+      ]
+    },
+    {
+      "poem_id": 220,
+      "audio_type": "poem",
+      "scene_no": 2,
+      "source_text": "願君多采擷，此物最相思。",
+      "pronunciations": [
+        {
+          "character": "相",
+          "reading": "ㄒㄧㄤ",
+          "context": "相思"
+        }
+      ]
+    },
+    {
+      "poem_id": 225,
+      "audio_type": "poem",
+      "scene_no": 1,
+      "source_text": "春眠不覺曉，處處聞啼鳥。",
+      "pronunciations": [
+        {
+          "character": "處",
+          "reading": "ㄔㄨˋ",
+          "context": "處處"
+        }
+      ]
+    },
+    {
+      "poem_id": 230,
+      "audio_type": "author",
+      "scene_no": 0,
+      "source_text": "劉長卿",
+      "pronunciations": [
+        {
+          "character": "長",
+          "reading": "ㄔㄤˊ",
+          "context": "劉長卿"
+        }
+      ]
+    },
+    {
+      "poem_id": 230,
+      "audio_type": "poem",
+      "scene_no": 2,
+      "source_text": "荷笠帶夕陽，青山獨歸遠。",
+      "pronunciations": [
+        {
+          "character": "荷",
+          "reading": "ㄏㄜˋ",
+          "context": "荷笠"
+        }
+      ]
+    },
+    {
+      "poem_id": 231,
+      "audio_type": "author",
+      "scene_no": 0,
+      "source_text": "劉長卿",
+      "pronunciations": [
+        {
+          "character": "長",
+          "reading": "ㄔㄤˊ",
+          "context": "劉長卿"
+        }
+      ]
+    },
+    {
+      "poem_id": 231,
+      "audio_type": "title",
+      "scene_no": 0,
+      "source_text": "彈琴",
+      "pronunciations": [
+        {
+          "character": "彈",
+          "reading": "ㄊㄢˊ",
+          "context": "彈琴"
+        }
+      ]
+    },
+    {
+      "poem_id": 231,
+      "audio_type": "poem",
+      "scene_no": 2,
+      "source_text": "古調雖自愛，今人多不彈。",
+      "pronunciations": [
+        {
+          "character": "彈",
+          "reading": "ㄊㄢˊ",
+          "context": "彈奏"
+        }
+      ]
+    },
+    {
+      "poem_id": 232,
+      "audio_type": "author",
+      "scene_no": 0,
+      "source_text": "劉長卿",
+      "pronunciations": [
+        {
+          "character": "長",
+          "reading": "ㄔㄤˊ",
+          "context": "劉長卿"
+        }
+      ]
+    },
+    {
+      "poem_id": 233,
+      "audio_type": "poem",
+      "scene_no": 1,
+      "source_text": "懷君屬秋夜，散步詠涼天。",
+      "pronunciations": [
+        {
+          "character": "屬",
+          "reading": "ㄓㄨˇ",
+          "context": "屬秋夜"
+        }
+      ]
+    },
+    {
+      "poem_id": 238,
+      "audio_type": "title",
+      "scene_no": 0,
+      "source_text": "行宮",
+      "pronunciations": [
+        {
+          "character": "行",
+          "reading": "ㄒㄧㄥˊ",
+          "context": "行宮"
+        }
+      ]
+    },
+    {
+      "poem_id": 241,
+      "audio_type": "title",
+      "scene_no": 0,
+      "source_text": "登樂遊原",
+      "pronunciations": [
+        {
+          "character": "樂",
+          "reading": "ㄌㄜˋ",
+          "context": "樂遊原"
+        }
+      ]
+    },
+    {
+      "poem_id": 242,
+      "audio_type": "poem",
+      "scene_no": 2,
+      "source_text": "只在此山中，雲深不知處。",
+      "pronunciations": [
+        {
+          "character": "處",
+          "reading": "ㄔㄨˋ",
+          "context": "不知處"
+        }
+      ]
+    },
+    {
+      "poem_id": 244,
+      "audio_type": "poem",
+      "scene_no": 1,
+      "source_text": "打起黃鶯兒，莫教枝上啼。",
+      "pronunciations": [
+        {
+          "character": "教",
+          "reading": "ㄐㄧㄠˋ",
+          "context": "莫教"
+        }
+      ]
+    },
+    {
+      "poem_id": 254,
+      "audio_type": "poem",
+      "scene_no": 1,
+      "source_text": "少小離家老大回，鄉音無改鬢毛衰，",
+      "pronunciations": [
+        {
+          "character": "少",
+          "reading": "ㄕㄠˋ",
+          "context": "少小"
+        },
+        {
+          "character": "衰",
+          "reading": "ㄘㄨㄟ",
+          "context": "鬢毛衰"
+        }
+      ]
+    },
+    {
+      "poem_id": 254,
+      "audio_type": "poem",
+      "scene_no": 2,
+      "source_text": "兒童相見不相識，笑問客從何處來。",
+      "pronunciations": [
+        {
+          "character": "相",
+          "reading": "ㄒㄧㄤ",
+          "context": "相見/相識"
+        },
+        {
+          "character": "處",
+          "reading": "ㄔㄨˋ",
+          "context": "何處"
+        }
+      ]
+    }
+  ]
+}
