@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Build reviewable image prompt manifests from poem300 scene SSOT."""
+"""Build style-specific image prompt manifests from poem-level visual SSOT.
+
+The semantic source is data/poems.csv -> visual_plan_json.
+Style A/B may change rendering language only; they must not change scene
+entities, actions, locations, or continuity.
+"""
 
 from __future__ import annotations
 
@@ -9,7 +14,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-PROMPT_FIELDS = [
+FIELDS = [
     "scene_id",
     "poem_id",
     "title",
@@ -18,10 +23,12 @@ PROMPT_FIELDS = [
     "scene_no",
     "original_line",
     "child_explanation_line",
+    "visual_plan_version",
+    "visual_plan_status",
     "style_id",
     "aspect_ratio",
-    "character_consistency_key",
     "output_image",
+    "scene_plan_json",
     "image_prompt",
 ]
 
@@ -31,49 +38,158 @@ def read_csv(path: Path) -> list[dict[str, str]]:
         return list(csv.DictReader(f))
 
 
-def read_style(path: Path) -> dict[str, Any]:
+def read_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def resolve_style(selector: str, registry_path: Path) -> dict[str, Any]:
+    registry = read_json(registry_path)
+    normalized = selector.strip()
+
+    if normalized.upper() in registry["styles"]:
+        item = registry["styles"][normalized.upper()]
+        return read_json(Path(item["config"]))
+
+    for item in registry["styles"].values():
+        if item["style_id"] == normalized:
+            return read_json(Path(item["config"]))
+
+    raise ValueError(
+        f"Unknown style {selector!r}. Use A, B, or a registered style_id."
+    )
+
+
+def find_scene_plan(
+    visual_plan: dict[str, Any],
+    scene_id: str,
+) -> dict[str, Any]:
+    for scene in visual_plan.get("scenes", []):
+        if scene.get("id") == scene_id or scene.get("scene_id") == scene_id:
+            return scene
+    raise ValueError(f"{scene_id}: missing from visual_plan_json")
+
+
+def entity_details(
+    visual_plan: dict[str, Any],
+    scene_plan: dict[str, Any],
+) -> list[dict[str, Any]]:
+    by_id = {
+        item["id"]: item
+        for item in visual_plan.get("entities", [])
+        if item.get("id")
+    }
+
+    refs = (
+        scene_plan.get("entities")
+        or scene_plan.get("entity_states")
+        or []
+    )
+
+    ids: list[str] = []
+    if isinstance(refs, list):
+        for ref in refs:
+            if isinstance(ref, str):
+                ids.append(ref)
+            elif isinstance(ref, dict) and ref.get("id"):
+                ids.append(ref["id"])
+
+    return [by_id[item_id] for item_id in ids if item_id in by_id]
+
+
+def style_description(style: dict[str, Any]) -> str:
+    parts: list[str] = []
+
+    label = style.get("label_zh_tw")
+    if label:
+        parts.append(label)
+
+    for key in ("medium", "visual_character"):
+        values = style.get(key) or []
+        if values:
+            parts.append("、".join(values))
+
+    color = style.get("color_language") or {}
+    if color.get("palette"):
+        parts.append(f"色彩：{color['palette']}")
+
+    shapes = style.get("shape_language") or {}
+    if shapes.get("silhouette"):
+        parts.append(f"造型：{shapes['silhouette']}")
+    if shapes.get("detail_level"):
+        parts.append(f"細節量：{shapes['detail_level']}")
+
+    return "；".join(parts)
 
 
 def build_prompt(
     poem: dict[str, str],
-    scene: dict[str, str],
+    visual_plan: dict[str, Any],
+    scene_plan: dict[str, Any],
+    source_scene: dict[str, str],
     style: dict[str, Any],
 ) -> str:
-    visual_style = ", ".join(style["visual_style"])
-    negative_rules = ", ".join(style["negative_rules"])
+    world = visual_plan.get("world", "")
+    entities = entity_details(visual_plan, scene_plan)
+    continuity = visual_plan.get("continuity_rules") or []
+    exclusions = style.get("global_exclusions") or []
 
-    return (
-        "Create one 16:9 children's picture-book background illustration "
-        "for a Tang-poetry learning video.\n\n"
-        f"Poem: {poem['title']}\n"
-        f"Author: {poem['author']}\n"
-        f"Scene: {scene['scene_no']}\n"
-        f"Original poem line: {scene['original_line']}\n"
-        "Child-friendly meaning: "
-        f"{scene['child_explanation_line']}\n\n"
-        "Visualize the meaning of this whole physical poem line as ONE "
-        "coherent scene. Do not split the image into panels or separate "
-        "shots based on commas or punctuation.\n\n"
-        f"Style: {visual_style}.\n\n"
-        "Composition: place the important subject and narrative action "
-        "mainly in the upper and middle area. Keep the lower 25 percent "
-        "visually calm and relatively low-detail as a safe area for a "
-        "later bopomofo Chinese text overlay. Do not place important "
-        "faces, hands, animals, key props, or narrative action in that "
-        "lower text-safe area.\n\n"
-        "Continuity: all scenes with the same character consistency key "
-        "must look like pages from the same picture book. Keep recurring "
-        "character appearance, clothing, hairstyle, architecture, "
-        "season, palette, and time-of-day logic consistent.\n\n"
-        "Forbidden: "
-        f"{negative_rules}."
-    )
+    entity_lines = []
+    for item in entities:
+        detail = item.get("detail")
+        text = f"- {item.get('label', item.get('id'))}"
+        if detail:
+            text += f"：{detail}"
+        entity_lines.append(text)
+
+    prompt_parts = [
+        "請產生一張完整、自然的唐詩兒童繪本插畫。",
+        "",
+        f"詩名：{poem['title']}",
+        f"作者：{poem['author']}",
+        f"原詩本段：{source_scene['original_line']}",
+        f"兒童理解：{source_scene['child_explanation_line']}",
+        "",
+        f"整首詩的共同世界設定：{world}",
+        f"本幕場景：{scene_plan.get('setting', '依 visual plan')}",
+        f"本幕時間：{scene_plan.get('time', '未限定')}",
+        f"本幕視覺核心：{scene_plan.get('focus') or scene_plan.get('visual_focus', '')}",
+        f"本幕動作：{scene_plan.get('action') or '依詩意自然呈現'}",
+    ]
+
+    note = scene_plan.get("note")
+    if note:
+        prompt_parts.append(f"本幕特別注意：{note}")
+
+    if entity_lines:
+        prompt_parts += ["", "本幕必須沿用的既定人物／場景／物件：", *entity_lines]
+
+    if continuity:
+        prompt_parts += ["", "跨幕連貫規則："] + [
+            f"- {rule}" for rule in continuity
+        ]
+
+    prompt_parts += [
+        "",
+        f"畫風：{style_description(style)}",
+        "",
+        "請把這個換行段落視為一個完整場景，不依逗號或句號拆成拼貼、分鏡格或多張畫面。",
+        "畫面本身就是完整插畫，不需要替後續字幕、注音或排版預留任何區域。",
+    ]
+
+    if exclusions:
+        prompt_parts += ["", "禁止出現："] + [
+            f"- {item}" for item in exclusions
+        ]
+
+    return "\n".join(prompt_parts)
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Build image prompt manifest without calling an image API."
+        description=(
+            "Build image prompt manifest from poems.csv visual_plan_json. "
+            "No image API is called."
+        )
     )
     parser.add_argument(
         "--age",
@@ -81,7 +197,6 @@ def main() -> int:
         nargs="+",
         choices=(6, 7, 8, 9),
         default=[6],
-        help="Exact recommended-age groups. Default: 6.",
     )
     parser.add_argument("--poem-id", type=int)
     parser.add_argument("--start-poem-id", type=int)
@@ -89,106 +204,146 @@ def main() -> int:
     parser.add_argument("--poems", default="data/poems.csv")
     parser.add_argument("--scenes", default="data/scenes.csv")
     parser.add_argument(
-        "--style",
-        default="config/image_style_age6_v1.json",
+        "--registry",
+        default="config/image_styles_age6.json",
     )
     parser.add_argument(
-        "--output",
-        default=None,
-        help="Output CSV. Default derives from age filter.",
+        "--style",
+        default="A",
+        help="A, B, or a registered style_id.",
     )
+    parser.add_argument("--output")
     args = parser.parse_args()
 
     poems = read_csv(Path(args.poems))
     scenes = read_csv(Path(args.scenes))
-    style = read_style(Path(args.style))
+    style = resolve_style(args.style, Path(args.registry))
+    style_id = style["style_id"]
 
-    age_set = set(args.age)
-    selected_poems = [
+    ages = set(args.age)
+    selected = [
         row for row in poems
-        if int(row["recommended_age"]) in age_set
+        if int(row["recommended_age"]) in ages
     ]
 
     if args.poem_id is not None:
-        selected_poems = [
-            row for row in selected_poems
+        selected = [
+            row for row in selected
             if int(row["poem_id"]) == args.poem_id
         ]
 
     if args.start_poem_id is not None:
-        selected_poems = [
-            row for row in selected_poems
+        selected = [
+            row for row in selected
             if int(row["poem_id"]) >= args.start_poem_id
         ]
 
-    selected_poems.sort(key=lambda row: int(row["poem_id"]))
+    selected.sort(key=lambda row: int(row["poem_id"]))
 
     if args.limit is not None:
         if args.limit <= 0:
             parser.error("--limit must be > 0")
-        selected_poems = selected_poems[: args.limit]
+        selected = selected[: args.limit]
 
-    poem_by_id = {
-        row["poem_id"]: row
-        for row in selected_poems
+    selected_by_id = {row["poem_id"]: row for row in selected}
+    source_by_scene = {
+        row["scene_id"]: row for row in scenes
+        if row["poem_id"] in selected_by_id
     }
 
     output_rows: list[dict[str, Any]] = []
 
-    for scene in scenes:
-        poem = poem_by_id.get(scene["poem_id"])
-        if poem is None:
-            continue
+    for poem in selected:
+        raw_plan = (poem.get("visual_plan_json") or "").strip()
+        if not raw_plan:
+            raise ValueError(
+                f"poem_id={poem['poem_id']} has no visual_plan_json"
+            )
 
-        pid = int(poem["poem_id"])
-        scene_no = int(scene["scene_no"])
-        output_image = (
-            f"assets/p{pid:03d}/s{scene_no:02d}/image/background.webp"
-        )
+        visual_plan = json.loads(raw_plan)
+        expected_ids = [
+            row["scene_id"]
+            for row in scenes
+            if row["poem_id"] == poem["poem_id"]
+        ]
+        actual_ids = [
+            item.get("id") or item.get("scene_id")
+            for item in visual_plan.get("scenes", [])
+        ]
+        if actual_ids != expected_ids:
+            raise ValueError(
+                f"poem_id={poem['poem_id']}: visual plan Scene IDs "
+                "do not match scenes.csv"
+            )
 
-        output_rows.append(
-            {
-                "scene_id": scene["scene_id"],
-                "poem_id": pid,
-                "title": poem["title"],
-                "author": poem["author"],
-                "recommended_age": int(poem["recommended_age"]),
-                "scene_no": scene_no,
-                "original_line": scene["original_line"],
-                "child_explanation_line": scene[
-                    "child_explanation_line"
-                ],
-                "style_id": style["style_id"],
-                "aspect_ratio": style["aspect_ratio"],
-                "character_consistency_key": scene[
-                    "character_consistency_key"
-                ],
-                "output_image": output_image,
-                "image_prompt": build_prompt(poem, scene, style),
-            }
-        )
+        for scene_id in expected_ids:
+            source_scene = source_by_scene[scene_id]
+            scene_plan = find_scene_plan(visual_plan, scene_id)
+            pid = int(poem["poem_id"])
+            scene_no = int(source_scene["scene_no"])
+            output_image = (
+                f"assets/p{pid:03d}/s{scene_no:02d}/image/"
+                f"{style_id}/background.webp"
+            )
+
+            output_rows.append(
+                {
+                    "scene_id": scene_id,
+                    "poem_id": pid,
+                    "title": poem["title"],
+                    "author": poem["author"],
+                    "recommended_age": int(poem["recommended_age"]),
+                    "scene_no": scene_no,
+                    "original_line": source_scene["original_line"],
+                    "child_explanation_line": source_scene[
+                        "child_explanation_line"
+                    ],
+                    "visual_plan_version": poem[
+                        "visual_plan_version"
+                    ],
+                    "visual_plan_status": poem[
+                        "visual_plan_status"
+                    ],
+                    "style_id": style_id,
+                    "aspect_ratio": "16:9",
+                    "output_image": output_image,
+                    "scene_plan_json": json.dumps(
+                        scene_plan,
+                        ensure_ascii=False,
+                        separators=(",", ":"),
+                    ),
+                    "image_prompt": build_prompt(
+                        poem,
+                        visual_plan,
+                        scene_plan,
+                        source_scene,
+                        style,
+                    ),
+                }
+            )
 
     if args.output:
         output_path = Path(args.output)
-    elif len(age_set) == 1:
-        age = next(iter(age_set))
-        output_path = Path(f"data/image_prompts_age{age}.csv")
     else:
-        ages = "_".join(str(age) for age in sorted(age_set))
-        output_path = Path(f"data/image_prompts_age{ages}.csv")
+        age_label = "_".join(str(x) for x in sorted(ages))
+        slot = (style.get("ab_slot") or style_id).lower()
+        output_path = Path(
+            f"data/image_prompts_age{age_label}_{slot}.csv"
+        )
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    with output_path.open("w", encoding="utf-8-sig", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=PROMPT_FIELDS)
+    with output_path.open(
+        "w",
+        encoding="utf-8-sig",
+        newline="",
+    ) as f:
+        writer = csv.DictWriter(f, fieldnames=FIELDS)
         writer.writeheader()
         writer.writerows(output_rows)
 
-    poem_count = len(
-        {row["poem_id"] for row in output_rows}
-    )
     print(
-        f"poems={poem_count} scenes={len(output_rows)} "
-        f"style={style['style_id']}"
+        f"poems={len(selected)} scenes={len(output_rows)} "
+        f"style={style_id}"
     )
     print(f"output={output_path.as_posix()}")
     return 0
