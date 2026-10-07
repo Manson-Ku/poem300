@@ -158,100 +158,152 @@ SSOT：
 config/text_overlay_1080p_v1.json
 ```
 
-座標均為 final display space，不是 2x raster space。
+### 核心顯示模型
 
-### Header
+不是「一句換掉上一句」，而是 **content 區內逐段累積**。
 
-整體 header：
+每個 Scene 仍然擁有一張單行透明 PNG，但影片合成時：
 
 ```text
-x=120
-y=48
-w=1680
-h=188
+S01 -> slot 1 出現，播放 S01 poem.wav
+S02 -> slot 2 出現，S01 保留，播放 S02 poem.wav
+S03 -> slot 3 出現，S01/S02 保留，播放 S03 poem.wav
+S04 -> slot 4 出現，S01/S02/S03 保留，播放 S04 poem.wav
+S05 -> content 區換頁，清空舊四行，slot 1 出現 S05
 ```
+
+Title / Author 不跟著 content page 清除，而是整支影片常駐。
+
+這樣「換頁」只發生在 content zone，不是整個 1920×1080 畫面換版。
+
+### 為什麼固定 4 slots
+
+掃描主檔後，不採用「整首詩越長，所有字就越小」：
+
+- 313 首中有 60 行、45 行、33 行等長詩。
+- 6 歲與 7 歲組本身最多 4 行。
+- 8/9 歲長詩可自然切成多個 content page。
+- 幼童影片應優先維持可讀字級，而不是把十幾行硬塞在同一頁。
+
+所以 v2 固定：
+
+```text
+content_page_capacity = 4
+```
+
+超過 4 行只做 content-zone page turn。
+
+### Header：整支影片固定
 
 Title：
 
 ```text
 x=120
-y=48
+y=44
 w=1680
-h=120
+h=118
 align=center
-font max=108 px
-font min=36 px
 bopomofo=yes
+persistence=whole_video
+font candidates=108,96,84,72,60,48,36
 ```
 
-Meta row：
+Author：
 
 ```text
 x=120
-y=174
+y=164
 w=1680
-h=62
+h=58
 align=center
-author + poem_type
-gap=48 px
-font max=42 px
-font min=32 px
 bopomofo=no
+persistence=whole_video
+font candidates=48,44,40,36,32
 ```
 
-## Content zone
+Poem type：
+
+```text
+x=120
+y=218
+w=1680
+h=42
+align=center
+bopomofo=no
+persistence=intro_end_only
+font candidates=34,30,28,26
+```
+
+### Content zone
 
 ```text
 x=160
-y=260
+y=286
 w=1600
-h=560
+h=500
 align=center
 bopomofo=yes
 ```
 
-每一個實際 content line 都是獨立透明 PNG。
-
-同一頁的 line PNG 在 content zone 內垂直置中堆疊。
-
-Font tier：
+固定 4 個位置：
 
 ```text
-1–4 lines : target 96 px / min 72 / gap 18
-5–6 lines : target 78 px / min 60 / gap 14
-7–8 lines : target 60 px / min 50 / gap 10
->8 lines  : paginate, max 8 lines per page
+slot 1 center_y = 340
+slot 2 center_y = 462
+slot 3 center_y = 584
+slot 4 center_y = 706
 ```
 
-實際 font size 不用字數猜測，必須載入使用者提供的 bpmfvs font 後以真實 glyph bbox 量測，再 shrink-to-fit。
+重要：slot 一開始就固定，所以新一句出現時，舊句**不能因重新置中而移動**。
 
-每行保持 single-line，不自動改變 poems.csv 的換行語意。
+每個 content page 使用同一個 font size。不是每行各自縮放。
 
-如果一行在 tier minimum 仍超過 1600 px：
+Font size 只從固定候選值中選：
 
 ```text
-QA FAIL: content_line_overflow
+96, 92, 88, 84, 80, 76, 72 px
 ```
 
-不可靜默壓到不可讀的小字。
+選法：
 
-## Explanation zone
+1. 先用實際 `BpmfHuninn-Regular.ttf` glyph bbox 量測該 page 最寬的一行。
+2. 從 96 px 往下選第一個可完整放進 1600 px 的固定字級。
+3. 同一 page 所有行使用相同字級。
+4. **整首詩有幾行，不參與 font-size 計算。**
+5. 72 px 仍放不下 -> `QA FAIL: content_line_overflow`。
 
-Explanation 是配角，只顯示當前 Scene 的一行解釋：
+也就是「字級由該頁實際最長一行決定；長詩靠區內換頁解決」。
+
+### Blank physical line
+
+主檔有 6 首包含空白 Scene，常見於序文與正文間。
+
+規則：
+
+- blank Scene 不產文字 PNG。
+- manifest 仍保留。
+- 若當前 content page 已有內容，blank Scene 強制結束該頁。
+- 下一個非空 Scene 從新 page 的 slot 1 開始。
+- blank Scene 本身不播放 poem / explanation TTS。
+
+### Explanation zone
+
+Explanation 是配角：
 
 ```text
 x=180
-y=870
+y=844
 w=1560
-h=120
+h=128
 align=center
-font max=42 px
-font min=24 px
 bopomofo=no
-mode=active_scene_only
+persistence=active_scene_only
+font candidates=42,38,34,30,28,26,24
 ```
 
-不把整首 explanation 疊在畫面上。
+只在 `session_explain` 的該 Scene explanation audio 播放期間顯示。
+
+不取代 content；content page 已出現的詩句仍保留。
 
 ## Transparent PNG assets
 
