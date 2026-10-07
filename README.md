@@ -300,7 +300,7 @@ data/image_usage.csv
 1920×1080 注音文字圖層已定義：
 
 ```text
-config/text_overlay_1080p_v1.json
+config/text_overlay_1080p_v2.json
 docs/TEXT_OVERLAY_PIPELINE.md
 data/bopomofo_overrides.json
 ```
