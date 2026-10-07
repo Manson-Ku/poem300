@@ -96,7 +96,7 @@ intro/end only
 
 ```text
 page capacity = 4 nonblank Scenes
-slot positions = config/text_overlay_1080p_v1.json
+slot positions = config/text_overlay_1080p_v2.json
 ```
 
 Blank Scene 是 separator：
@@ -166,6 +166,69 @@ YouTube CC 仍可另外生成，但不作為注音排版 SSOT。
 - Existing WAV assets are skipped by default so the batch is resumable.
 - `--force` is the only normal path that overwrites existing audio.
 - `--age 6 7 8 9` can restrict generation to exact recommended-age groups.
+
+## Audio-driven timing
+
+Timing SSOT:
+
+```text
+config/video_timing_v1.json
+```
+
+The timeline is not based on a fixed Scene duration. Every spoken event uses:
+
+```text
+event duration
+= pre-roll
++ measured WAV duration
++ post-roll
+```
+
+v1 padding:
+
+```text
+title       0.45s + audio + 0.50s
+author      0.25s + audio + 0.60s
+poem        0.30s + audio + 0.45s
+explanation 0.25s + audio + 0.55s
+```
+
+The poem pre-roll is also the reserved scene-transition budget. Current scene crossfade target is 0.30s, so it fits inside the 0.30s poem pre-roll and is not added twice.
+
+Additional timing:
+
+```text
+content-zone page turn  0.45s
+between sessions        0.80s
+session lead/tail       session-specific fixed holds
+```
+
+Content is revealed at the start of the poem pre-roll, so the child sees the new line shortly before narration begins.
+
+Explanation overlay is revealed at the start of the explanation pre-roll and remains through the explanation post-roll.
+
+Timeline/preflight builder:
+
+```powershell
+py scripts\build_video_timeline.py --poem-id 226 --style B --dry-run
+py scripts\build_video_timeline.py --poem-id 226 --style B
+```
+
+For all age-6 poems:
+
+```powershell
+py scripts\build_video_timeline.py --age 6 --style B --dry-run
+py scripts\build_video_timeline.py --age 6 --style B
+```
+
+Output:
+
+```text
+assets/pXXX/video/timeline.json
+```
+
+This stage validates all required image/text/audio assets and calculates timestamps but does **not** render MP4. FFmpeg composition starts only after pronunciation QA and timeline preflight pass.
+
 
 ## Motion
 
