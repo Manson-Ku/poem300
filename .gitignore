@@ -40,3 +40,6 @@ credentials/
 Thumbs.db
 .vscode/
 .idea/
+
+# Runtime image interaction metadata
+assets/**/image/**/meta.json
