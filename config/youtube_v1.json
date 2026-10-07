@@ -47,6 +47,8 @@
     "multiple_match_policy": "stop_before_upload",
     "missing_local_policy": "skip_and_report",
     "error_policy": "fail_fast",
-    "child_uploader": "scripts/youtube_upload.py"
+    "child_uploader": "scripts/youtube_upload.py",
+    "existing_match_policy": "skip_video_upload_and_run_idempotent_playlist_postcheck",
+    "existing_private_policy": "preserve_existing_privacy_and_report_it"
   }
 }
