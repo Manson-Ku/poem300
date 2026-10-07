@@ -8,12 +8,15 @@
     "apply_when": "background_image changes between consecutive timeline events"
   },
   "background_motion": {
-    "mode": "alternating_slow_zoom",
+    "mode": "alternating_center_zoom",
     "zoom_min": 1,
-    "zoom_max": 1.03,
+    "zoom_max": 1.015,
+    "oversample": 2,
     "continuity_scope": "consecutive events sharing the same background_image",
-    "center": "image_center",
-    "note": "Motion is applied to the background only; text overlays remain fixed in display space."
+    "direction_policy": "alternate zoom_in / zoom_out by background run",
+    "center": "image_center_fixed",
+    "pan": false,
+    "note": "Background uses centered zoom only. No pan/drift. 2x oversampling reduces zoompan integer-rounding jitter."
   },
   "content_overlay": {
     "reveal": "fade_in",
