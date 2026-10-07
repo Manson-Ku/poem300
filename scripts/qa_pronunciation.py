@@ -139,6 +139,7 @@ def expected_tts_text(
 def find_uvs_table(font: TTFont) -> Any | None:
     for table in font["cmap"].tables:
         if table.format == 14:
+            table.ensureDecompiled()
             return table
     return None
 
