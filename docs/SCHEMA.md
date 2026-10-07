@@ -85,7 +85,7 @@ assets/
       image/
         age6_a_watercolor_ink_v1/
           background.webp
-        age6_b_gouache_storybook_v1/
+        age6_b_3d_fairytale_cinematic_v1/
           background.webp
       text/
         poem_bpmf.png
