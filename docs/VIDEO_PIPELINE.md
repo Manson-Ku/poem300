@@ -350,6 +350,8 @@ Important contract:
 - Event rendering only trims exact frame ranges from that clip.
 - No pan or drift is allowed.
 - The center point is fixed.
+- FFmpeg `zoompan` is not used. Slow centered zoom exposed integer crop-coordinate jitter in visual QA.
+- The run renderer now uses `perspective` with `eval=frame`, `sense=source`, and cubic interpolation so source-corner coordinates can move at subpixel precision.
 - A scene change still uses the existing 0.30s crossfade.
 - The crossfade freezes the exact final frame of the outgoing run, so the outgoing image does not reset before fading.
 - Title, author, poem content and explanation remain fixed in display-space coordinates.
