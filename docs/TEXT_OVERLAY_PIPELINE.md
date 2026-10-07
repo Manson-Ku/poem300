@@ -391,3 +391,31 @@ py scripts\render_text_overlays.py --age 6 --font-path fonts\<font>.ttf
 - author TTS
 - title TTS
 - final timeline / composition script
+
+## Pronunciation override raster contract
+
+For pronunciation overrides, canonical text and render text are intentionally different representations.
+
+Canonical layer:
+
+```text
+character + bpmfvs IVS selector
+```
+
+Raster layer:
+
+```text
+project-font PUA alias for the exact annotated glyph
+```
+
+Reason: Pillow/FreeType did not reliably consume the IVS selector and could render the selector itself as a visible fallback rectangle.
+
+Rules:
+
+- `data/bopomofo_overrides.json.selector` remains the semantic pronunciation selection.
+- `render_codepoint` is local raster-only data.
+- `scripts/patch_bpmf_font.py` maps each `render_codepoint` directly to the selected annotated glyph.
+- `scripts/render_text_overlays.py` replaces the target Han only in the render string.
+- manifests preserve the original source text.
+- no manual glyph or bopomofo composition is performed in the renderer.
+
