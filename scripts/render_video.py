@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Render one poem MP4 from an existing timeline.json.
 
-Composer v2 adds low-distraction motion while preserving the exact
+Composer v3 adds run-level background motion while preserving the exact
 audio-driven timeline:
-- alternating centered zoom-in / zoom-out on backgrounds
+- each consecutive background run is rendered once as one motion clip
+- crop-window zoom alternates 100% -> 80%, then 80% -> 100%
 - 0.30s scene crossfade when background_image changes
 - fade-in for each newly revealed content line
 - fade-in/out for explanation overlays
@@ -409,21 +410,37 @@ def event_frame_count(
     return count, target_end
 
 
-def add_motion_progress(
+def plan_background_runs(
     planned: list[dict[str, Any]],
     motion: dict[str, Any],
-) -> None:
-    """Assign continuous zoom progress across same-background runs."""
+) -> list[dict[str, Any]]:
+    """Plan one continuous zoom clip per consecutive background run.
 
-    minimum = float(
-        motion["background_motion"]["zoom_min"]
+    This is deliberately different from event-level zoom. Timeline events
+    may split one scene into poem/explanation/pause pieces, but the
+    background motion is rendered once across the full consecutive run.
+    Event segments later slice that already-rendered motion clip.
+    """
+
+    background_motion = motion["background_motion"]
+    crop_a = float(
+        background_motion["crop_window_a_pct"]
     )
-    maximum = float(
-        motion["background_motion"]["zoom_max"]
+    crop_b = float(
+        background_motion["crop_window_b_pct"]
     )
 
+    for value, label in (
+        (crop_a, "crop_window_a_pct"),
+        (crop_b, "crop_window_b_pct"),
+    ):
+        if value <= 0 or value > 100:
+            raise ValueError(
+                f"{label} must be > 0 and <= 100; got {value}"
+            )
+
+    runs: list[dict[str, Any]] = []
     index = 0
-    group_no = 0
 
     while index < len(planned):
         background = planned[index]["background_image"]
@@ -436,34 +453,58 @@ def add_motion_progress(
             end += 1
 
         group = planned[index:end]
+        run_no = len(runs) + 1
         total_frames = sum(
             int(item["frame_count"])
             for item in group
         )
         total_frames = max(1, total_frames)
 
-        zoom_in = (group_no % 2) == 0
-        consumed = 0
+        # "100% -> 80%" means the centered crop window shrinks from
+        # full-frame to 80% of the frame. In zoom-factor terms this is
+        # 1.00 -> 1.25. The next background run reverses it.
+        if run_no % 2 == 1:
+            crop_start = crop_a
+            crop_end = crop_b
+        else:
+            crop_start = crop_b
+            crop_end = crop_a
 
+        zoom_start = 100.0 / crop_start
+        zoom_end = 100.0 / crop_end
+
+        consumed = 0
         for item in group:
             count = int(item["frame_count"])
-            p0 = consumed / total_frames
-            p1 = (consumed + count) / total_frames
-
-            if zoom_in:
-                z0 = minimum + (maximum - minimum) * p0
-                z1 = minimum + (maximum - minimum) * p1
-            else:
-                z0 = maximum - (maximum - minimum) * p0
-                z1 = maximum - (maximum - minimum) * p1
-
-            item["zoom_start"] = z0
-            item["zoom_end"] = z1
-            item["motion_group"] = group_no + 1
+            item["background_run_no"] = run_no
+            item["background_run_start_frame"] = consumed
+            item["background_run_end_frame"] = (
+                consumed + count
+            )
+            item["background_run_total_frames"] = total_frames
+            item["background_run_crop_start_pct"] = crop_start
+            item["background_run_crop_end_pct"] = crop_end
+            item["background_run_zoom_start"] = zoom_start
+            item["background_run_zoom_end"] = zoom_end
             consumed += count
 
+        runs.append(
+            {
+                "run_no": run_no,
+                "background_image": background,
+                "total_frames": total_frames,
+                "duration_sec": total_frames
+                / int(planned[0]["fps"]),
+                "crop_start_pct": crop_start,
+                "crop_end_pct": crop_end,
+                "zoom_start": zoom_start,
+                "zoom_end": zoom_end,
+            }
+        )
+
         index = end
-        group_no += 1
+
+    return runs
 
 
 def clamp_effect(
@@ -490,24 +531,17 @@ def background_filter(
     width: int,
     height: int,
     fps: int,
-    duration: float,
     frame_count: int,
     zoom_start: float,
     zoom_end: float,
     oversample: int,
 ) -> str:
-    """Centered zoom only; oversampling suppresses zoompan jitter.
-
-    FFmpeg zoompan rounds crop coordinates to integer pixels. At native
-    1920x1080 this can look like tiny left/right or up/down motion even
-    when x/y are mathematically centered. We therefore zoom on a larger
-    intermediate canvas and downsample only at zoompan output.
-    """
+    """Build one continuous centered zoom for a whole background run."""
 
     denominator = max(1, frame_count - 1)
-    z0 = f"{zoom_start:.8f}"
+    z0 = f"{zoom_start:.10f}"
     delta = zoom_end - zoom_start
-    dz = f"{delta:.8f}"
+    dz = f"{delta:.10f}"
 
     sample = max(1, int(oversample))
     sample_width = width * sample
@@ -524,19 +558,90 @@ def background_filter(
         "y='(ih-ih/zoom)/2':"
         "d=1:"
         f"s={width}x{height}:fps={fps},"
-        f"trim=duration={duration:.6f},"
+        f"trim=end_frame={frame_count},"
         "setpts=PTS-STARTPTS,"
         "format=yuv420p"
         f"[{output_label}]"
     )
 
 
+def render_background_run(
+    *,
+    ffmpeg: str,
+    background_image: Path,
+    output_path: Path,
+    width: int,
+    height: int,
+    fps: int,
+    frame_count: int,
+    zoom_start: float,
+    zoom_end: float,
+    oversample: int,
+    verbose: bool,
+) -> None:
+    """Render a background run once, before timeline-event slicing."""
+
+    require_file(
+        background_image,
+        label="background",
+    )
+
+    filters = background_filter(
+        input_label="0",
+        output_label="v",
+        width=width,
+        height=height,
+        fps=fps,
+        frame_count=frame_count,
+        zoom_start=zoom_start,
+        zoom_end=zoom_end,
+        oversample=oversample,
+    )
+
+    command = [
+        ffmpeg,
+        "-hide_banner",
+        "-loglevel",
+        "warning" if verbose else "error",
+        "-y",
+        "-loop",
+        "1",
+        "-framerate",
+        str(fps),
+        "-i",
+        str(background_image),
+        "-filter_complex",
+        filters,
+        "-map",
+        "[v]",
+        "-frames:v",
+        str(frame_count),
+        "-an",
+        "-c:v",
+        "libx264",
+        "-preset",
+        "ultrafast",
+        "-crf",
+        "0",
+        "-pix_fmt",
+        "yuv420p",
+        str(output_path),
+    ]
+
+    run_command(
+        command,
+        verbose=verbose,
+    )
+
+
 def render_segment(
     *,
     ffmpeg: str,
-    current_background: Path,
-    previous_background: Path | None,
-    previous_zoom_end: float | None,
+    background_run_file: Path,
+    background_start_frame: int,
+    background_end_frame: int,
+    previous_background_run_file: Path | None,
+    previous_background_run_frames: int | None,
     static_overlay: Path,
     fade_overlay: Path | None,
     fade_kind: str | None,
@@ -545,16 +650,12 @@ def render_segment(
     duration_sec: float,
     frame_count: int,
     fps: int,
-    width: int,
-    height: int,
-    zoom_start: float,
-    zoom_end: float,
     motion: dict[str, Any],
     verbose: bool,
 ) -> None:
     require_file(
-        current_background,
-        label="current background",
+        background_run_file,
+        label="background run clip",
     )
     require_file(
         static_overlay,
@@ -567,17 +668,10 @@ def render_segment(
         "-loglevel",
         "warning" if verbose else "error",
         "-y",
+        "-i",
+        str(background_run_file),
     ]
 
-    # Input 0: current background.
-    command += [
-        "-loop",
-        "1",
-        "-framerate",
-        str(fps),
-        "-i",
-        str(current_background),
-    ]
     current_index = 0
     next_index = 1
 
@@ -587,23 +681,22 @@ def render_segment(
     transition_sec = 0.0
     previous_index: int | None = None
 
-    if (
-        previous_background is not None
-        and previous_background != current_background
-    ):
+    if previous_background_run_file is not None:
         require_file(
-            previous_background,
-            label="previous background",
+            previous_background_run_file,
+            label="previous background run clip",
         )
+        if not previous_background_run_frames:
+            raise ValueError(
+                "previous_background_run_frames is required "
+                "when previous_background_run_file is provided"
+            )
+
         previous_index = next_index
         next_index += 1
         command += [
-            "-loop",
-            "1",
-            "-framerate",
-            str(fps),
             "-i",
-            str(previous_background),
+            str(previous_background_run_file),
         ]
         transition_sec = clamp_effect(
             transition_requested,
@@ -662,29 +755,15 @@ def render_segment(
         audio_delay_sec = 0.0
 
     filters: list[str] = []
-    oversample = max(
-        1,
-        int(
-            motion["background_motion"].get(
-                "oversample",
-                1,
-            )
-        ),
-    )
 
+    # Slice the already-rendered run. No zoom is recalculated here, so
+    # poem/explanation/pause event boundaries cannot reset the camera.
     filters.append(
-        background_filter(
-            input_label=str(current_index),
-            output_label="bgcur",
-            width=width,
-            height=height,
-            fps=fps,
-            duration=duration_sec,
-            frame_count=frame_count,
-            zoom_start=zoom_start,
-            zoom_end=zoom_end,
-            oversample=oversample,
-        )
+        f"[{current_index}:v]"
+        f"trim=start_frame={background_start_frame}:"
+        f"end_frame={background_end_frame},"
+        "setpts=PTS-STARTPTS"
+        "[bgcur]"
     )
 
     background_label = "bgcur"
@@ -693,27 +772,20 @@ def render_segment(
         previous_index is not None
         and transition_sec > 0
     ):
-        # Keep the outgoing image at the exact zoom reached by the
-        # preceding segment. Using an unzoomed previous image here makes
-        # the first crossfade frame visibly snap before the fade begins.
-        previous_zoom = (
-            float(previous_zoom_end)
-            if previous_zoom_end is not None
-            else 1.0
-        )
+        last_frame = int(
+            previous_background_run_frames
+        ) - 1
+
+        # Freeze the exact last frame of the outgoing run through the
+        # short crossfade. This preserves its true final zoom position.
         filters.append(
-            background_filter(
-                input_label=str(previous_index),
-                output_label="bgprev",
-                width=width,
-                height=height,
-                fps=fps,
-                duration=duration_sec,
-                frame_count=frame_count,
-                zoom_start=previous_zoom,
-                zoom_end=previous_zoom,
-                oversample=oversample,
-            )
+            f"[{previous_index}:v]"
+            f"trim=start_frame={last_frame}:"
+            f"end_frame={last_frame + 1},"
+            "setpts=PTS-STARTPTS,"
+            f"tpad=stop_mode=clone:"
+            f"stop_duration={duration_sec:.6f}"
+            "[bgprev]"
         )
         filters.append(
             "[bgprev][bgcur]"
@@ -790,7 +862,6 @@ def render_segment(
                 fps=fps,
             )
 
-            # Prevent fade windows from crossing each other.
             maximum_pair = max(
                 0.0,
                 duration_sec - (1.0 / fps),
@@ -1107,6 +1178,7 @@ def main() -> int:
                 "event": event,
                 "frame_count": frame_count,
                 "duration_sec": duration,
+                "fps": fps,
                 "background_image": str(
                     event["background_image"]
                 ),
@@ -1114,7 +1186,7 @@ def main() -> int:
         )
         previous_end_frame = target_end_frame
 
-    add_motion_progress(
+    background_runs = plan_background_runs(
         planned,
         motion,
     )
@@ -1138,11 +1210,11 @@ def main() -> int:
         f"explanation "
         f"{motion['explanation_overlay']['fade_in_sec']:.2f}/"
         f"{motion['explanation_overlay']['fade_out_sec']:.2f}s, "
-        f"center zoom "
-        f"{motion['background_motion']['zoom_min']:.3f}"
+        f"background-run crop "
+        f"{motion['background_motion']['crop_window_a_pct']:.0f}%"
         "<->"
-        f"{motion['background_motion']['zoom_max']:.3f}"
-        f" @ {motion['background_motion'].get('oversample', 1)}x"
+        f"{motion['background_motion']['crop_window_b_pct']:.0f}% "
+        f"runs={len(background_runs)}"
     )
 
     # Always validate overlay state and all referenced visual assets.
@@ -1203,6 +1275,54 @@ def main() -> int:
         )
         work_dir = Path(temp_context.name)
 
+    oversample = max(
+        1,
+        int(
+            motion["background_motion"].get(
+                "oversample",
+                1,
+            )
+        ),
+    )
+
+    background_run_files: dict[int, Path] = {}
+
+    print(
+        f"background_runs={len(background_runs)} "
+        "(render once per consecutive background segment)"
+    )
+
+    for run in background_runs:
+        run_no = int(run["run_no"])
+        run_file = (
+            work_dir
+            / f"background_run_{run_no:03d}.mp4"
+        )
+        print(
+            f"  run {run_no:02d}: "
+            f"{run['crop_start_pct']:.0f}%"
+            "->"
+            f"{run['crop_end_pct']:.0f}% "
+            f"frames={run['total_frames']} "
+            f"bg={run['background_image']}"
+        )
+        render_background_run(
+            ffmpeg=ffmpeg,
+            background_image=repo_path(
+                str(run["background_image"])
+            ),
+            output_path=run_file,
+            width=width,
+            height=height,
+            fps=fps,
+            frame_count=int(run["total_frames"]),
+            zoom_start=float(run["zoom_start"]),
+            zoom_end=float(run["zoom_end"]),
+            oversample=oversample,
+            verbose=args.verbose,
+        )
+        background_run_files[run_no] = run_file
+
     state = OverlayState(
         poem_id=pid,
         text_config=text_config,
@@ -1211,11 +1331,11 @@ def main() -> int:
 
     try:
         segment_paths: list[Path] = []
-        previous_background: Path | None = None
-        previous_zoom_end: float | None = None
+        previous_run_no: int | None = None
 
         for index, item in enumerate(planned, start=1):
             event = item["event"]
+            run_no = int(item["background_run_no"])
             current_background = repo_path(
                 item["background_image"]
             )
@@ -1257,9 +1377,8 @@ def main() -> int:
             )
 
             has_scene_change = (
-                previous_background is not None
-                and previous_background
-                != current_background
+                previous_run_no is not None
+                and previous_run_no != run_no
             )
 
             effect_parts = []
@@ -1270,9 +1389,14 @@ def main() -> int:
                     f"{fade_kind}-fade"
                 )
             effect_parts.append(
-                "zoom-in"
-                if item["zoom_end"] >= item["zoom_start"]
-                else "zoom-out"
+                "run-zoom-in"
+                if float(
+                    item["background_run_crop_end_pct"]
+                )
+                < float(
+                    item["background_run_crop_start_pct"]
+                )
+                else "run-zoom-out"
             )
 
             print(
@@ -1288,18 +1412,35 @@ def main() -> int:
                 + ",".join(effect_parts)
             )
 
+            previous_run_file: Path | None = None
+            previous_run_frames: int | None = None
+
+            if has_scene_change:
+                previous_run_file = background_run_files[
+                    int(previous_run_no)
+                ]
+                previous_run_frames = int(
+                    background_runs[
+                        int(previous_run_no) - 1
+                    ]["total_frames"]
+                )
+
             render_segment(
                 ffmpeg=ffmpeg,
-                current_background=current_background,
-                previous_background=(
-                    previous_background
-                    if has_scene_change
-                    else None
+                background_run_file=background_run_files[
+                    run_no
+                ],
+                background_start_frame=int(
+                    item["background_run_start_frame"]
                 ),
-                previous_zoom_end=(
-                    previous_zoom_end
-                    if has_scene_change
-                    else None
+                background_end_frame=int(
+                    item["background_run_end_frame"]
+                ),
+                previous_background_run_file=(
+                    previous_run_file
+                ),
+                previous_background_run_frames=(
+                    previous_run_frames
                 ),
                 static_overlay=static_path,
                 fade_overlay=fade_path,
@@ -1313,20 +1454,11 @@ def main() -> int:
                     item["frame_count"]
                 ),
                 fps=fps,
-                width=width,
-                height=height,
-                zoom_start=float(
-                    item["zoom_start"]
-                ),
-                zoom_end=float(
-                    item["zoom_end"]
-                ),
                 motion=motion,
                 verbose=args.verbose,
             )
             segment_paths.append(segment_path)
-            previous_background = current_background
-            previous_zoom_end = float(item["zoom_end"])
+            previous_run_no = run_no
 
         concat_segments(
             ffmpeg=ffmpeg,
@@ -1346,9 +1478,9 @@ def main() -> int:
         f"duration_target={rendered_duration:.3f}s"
     )
     print(
-        "composer_mode=motion_v2 "
-        "(background crossfade + alternating centered zoom "
-        "+ content/explanation fades)"
+        "composer_mode=motion_v3 "
+        "(run-level alternating 100%/80% centered crop zoom "
+        "+ crossfade + content/explanation fades)"
     )
     return 0
 
