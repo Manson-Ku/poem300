@@ -68,25 +68,43 @@ This includes sensitive author/title/place-name readings such as:
 
 TTS QA is still auditory QA: after regeneration, the affected WAV files should be spot-checked by listening. The registry guarantees the intended reading instruction was supplied; it does not perform speech recognition on the output.
 
-## Known font gaps
+## Project font extensions
 
-The current bpmfvs reading table does not expose two required historical/literary readings used by p217:
+The upstream bpmfvs font does not expose two literary readings required by p217:
 
-1. 鹿柴：柴 must be ㄓㄞˋ, but bpmfvs currently exposes only ㄔㄞˊ for 柴.
-2. 返景：景 must be ㄧㄥˇ, but bpmfvs currently exposes only ㄐㄧㄥˇ for 景.
+1. 鹿柴：柴 ㄓㄞˋ
+2. 返景：景 ㄧㄥˇ
 
-These are recorded as `font_gap` in:
+The project resolves these without manual bopomofo composition by creating a local OFL derivative font.
+
+Spec:
 
 ```text
-data/pronunciation_qa_age6.json
+data/bpmf_font_extensions.json
 ```
 
-Because the project policy is currently "font renders Han + bopomofo as one glyph; no manual bopomofo composition", the validator intentionally blocks a full pronunciation PASS until these two font gaps have an explicit product decision.
-
-Use only for diagnostics:
+Build:
 
 ```powershell
-py scripts\qa_pronunciation.py --allow-font-gaps
+py scripts\patch_bpmf_font.py
 ```
 
-Do not treat that flag as production approval.
+Output:
+
+```text
+fonts/BpmfHuninn-Poem300-Regular.ttf
+```
+
+The derived font adds IVS U+E01E1 for the two missing readings while preserving the original default glyphs.
+
+After building it, rerender only p217:
+
+```powershell
+py scripts\render_text_overlays.py --poem-id 217 --force
+```
+
+Then the normal validator verifies the actual local font file and requires both extensions to exist:
+
+```powershell
+py scripts\qa_pronunciation.py
+```
