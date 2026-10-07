@@ -197,3 +197,39 @@ Then the normal validator verifies the actual local font file and requires both 
 ```powershell
 py scripts\qa_pronunciation.py
 ```
+
+## p226 疑是地上霜 TTS correction
+
+Human listening QA found that Gemini TTS pronounced `疑` as ㄧˇ in:
+
+```text
+疑是地上霜。
+```
+
+The required reading is:
+
+```text
+疑 ㄧˊ
+```
+
+The TTS registry now uses a pronunciation-only homophonic synthesis proxy:
+
+```text
+source_text    = 疑是地上霜。
+synthesis_text = 宜是地上霜。
+```
+
+Regenerate only this pronunciation-sensitive p226 poem asset:
+
+```powershell
+py scripts\generate_tts_assets.py --poem-id 226 --types poem --pronunciation-qa-only --dry-run
+py scripts\generate_tts_assets.py --poem-id 226 --types poem --pronunciation-qa-only --force
+```
+
+Because the WAV duration may change, rebuild the timeline before re-rendering the MP4:
+
+```powershell
+py scripts\build_video_timeline.py --poem-id 226 --style B
+py scripts\render_video.py --poem-id 226 --style B --force
+```
+
