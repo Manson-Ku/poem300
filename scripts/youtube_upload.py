@@ -7,6 +7,7 @@ Default production behavior:
 - selfDeclaredMadeForKids=True
 - add the uploaded video to the recommended_age playlist
 - leave thumbnail selection to YouTube
+- support idempotent post-upload repair without re-uploading the MP4
 
 Metadata is generated from data/poems.csv and config/youtube_v1.json.
 """
@@ -38,6 +39,7 @@ DEFAULT_TOKEN = Path("credentials/youtube_token.json")
 
 RETRIABLE_STATUS_CODES = {500, 502, 503, 504}
 MAX_RETRIES = 10
+PLAYLIST_POST_MAX_RETRIES = 6
 
 
 def read_json(path: Path) -> dict[str, Any]:
@@ -230,6 +232,38 @@ def build_metadata(
     }
 
 
+def youtube_error_reason(exc: HttpError) -> str:
+    try:
+        payload = json.loads(
+            exc.content.decode("utf-8")
+            if isinstance(exc.content, bytes)
+            else str(exc.content)
+        )
+        errors = payload.get(
+            "error",
+            {},
+        ).get(
+            "errors",
+            [],
+        )
+        if errors:
+            return str(
+                errors[0].get(
+                    "reason",
+                    "",
+                )
+            )
+    except (
+        json.JSONDecodeError,
+        UnicodeDecodeError,
+        AttributeError,
+        TypeError,
+    ):
+        pass
+
+    return ""
+
+
 def recommended_age_playlist_title(
     *,
     poem: dict[str, str],
@@ -365,30 +399,90 @@ def add_video_to_playlist(
     playlist_id: str,
     video_id: str,
 ) -> bool:
-    existing = youtube.playlistItems().list(
-        part="id",
-        playlistId=playlist_id,
-        videoId=video_id,
+    """Insert one video, tolerating YouTube propagation delay.
+
+    Newly created playlists and newly uploaded public videos can briefly
+    return 404 playlistNotFound/videoNotFound to playlistItems calls.
+    Avoid a pre-insert list request and retry the write instead.
+
+    If YouTube reports videoAlreadyInPlaylist, treat the operation as
+    already complete so repair commands are idempotent.
+    """
+
+    for attempt in range(
+        1,
+        PLAYLIST_POST_MAX_RETRIES + 1,
+    ):
+        try:
+            youtube.playlistItems().insert(
+                part="snippet",
+                body={
+                    "snippet": {
+                        "playlistId": playlist_id,
+                        "resourceId": {
+                            "kind": "youtube#video",
+                            "videoId": video_id,
+                        },
+                    }
+                },
+            ).execute()
+            return True
+
+        except HttpError as exc:
+            reason = youtube_error_reason(exc)
+
+            if reason == "videoAlreadyInPlaylist":
+                return False
+
+            retriable = (
+                exc.resp.status == 404
+                and reason
+                in {
+                    "playlistNotFound",
+                    "videoNotFound",
+                }
+            )
+
+            if (
+                not retriable
+                or attempt >= PLAYLIST_POST_MAX_RETRIES
+            ):
+                raise
+
+            delay = min(
+                2 ** (attempt - 1),
+                16,
+            )
+            print(
+                "playlist_post_retry="
+                f"{attempt}/"
+                f"{PLAYLIST_POST_MAX_RETRIES} "
+                f"reason={reason} "
+                f"sleep={delay}s"
+            )
+            time.sleep(delay)
+
+    return False
+
+
+def verify_existing_video(
+    *,
+    youtube: Any,
+    video_id: str,
+) -> dict[str, Any]:
+    response = youtube.videos().list(
+        part="id,snippet,status",
+        id=video_id,
         maxResults=1,
     ).execute()
 
-    if existing.get("items"):
-        return False
+    items = response.get("items", [])
+    if not items:
+        raise RuntimeError(
+            f"YouTube video not found: {video_id}"
+        )
 
-    youtube.playlistItems().insert(
-        part="snippet",
-        body={
-            "snippet": {
-                "playlistId": playlist_id,
-                "resourceId": {
-                    "kind": "youtube#video",
-                    "videoId": video_id,
-                },
-            }
-        },
-    ).execute()
-
-    return True
+    return items[0]
 
 
 def default_video_path(
@@ -521,6 +615,13 @@ def main() -> int:
         ),
     )
     parser.add_argument(
+        "--existing-video-id",
+        help=(
+            "Skip video upload and only repair/complete post-upload "
+            "steps for an existing YouTube video ID."
+        ),
+    )
+    parser.add_argument(
         "--config",
         default=str(DEFAULT_CONFIG),
     )
@@ -613,11 +714,6 @@ def main() -> int:
         print("DRY RUN: no YouTube API request was made.")
         return 0
 
-    if not video_path.exists():
-        raise FileNotFoundError(
-            f"video not found: {video_path.as_posix()}"
-        )
-
     scopes = [
         str(value)
         for value in config["scopes"]
@@ -634,40 +730,69 @@ def main() -> int:
         cache_discovery=False,
     )
 
-    mime_type = (
-        mimetypes.guess_type(
-            video_path.name
-        )[0]
-        or "video/mp4"
-    )
-
-    media = MediaFileUpload(
-        str(video_path),
-        mimetype=mime_type,
-        chunksize=8 * 1024 * 1024,
-        resumable=True,
-    )
-
-    api_body = {
-        "snippet": body["snippet"],
-        "status": body["status"],
-    }
-
-    request = youtube.videos().insert(
-        part="snippet,status",
-        body=api_body,
-        media_body=media,
-        notifySubscribers=args.notify_subscribers,
-    )
-
-    print("upload_start=true")
-    response = resumable_upload(request)
-
-    video_id = str(response.get("id", ""))
-    if not video_id:
-        raise RuntimeError(
-            "YouTube upload returned no video ID"
+    if args.existing_video_id:
+        video_id = args.existing_video_id.strip()
+        existing = verify_existing_video(
+            youtube=youtube,
+            video_id=video_id,
         )
+        response = existing
+        print(
+            "existing_video_mode=true "
+            f"video_id={video_id}"
+        )
+        print(
+            "existing_video_title="
+            + str(
+                existing.get(
+                    "snippet",
+                    {},
+                ).get(
+                    "title",
+                    "",
+                )
+            )
+        )
+    else:
+        if not video_path.exists():
+            raise FileNotFoundError(
+                f"video not found: {video_path.as_posix()}"
+            )
+
+        mime_type = (
+            mimetypes.guess_type(
+                video_path.name
+            )[0]
+            or "video/mp4"
+        )
+
+        media = MediaFileUpload(
+            str(video_path),
+            mimetype=mime_type,
+            chunksize=8 * 1024 * 1024,
+            resumable=True,
+        )
+
+        api_body = {
+            "snippet": body["snippet"],
+            "status": body["status"],
+        }
+
+        request = youtube.videos().insert(
+            part="snippet,status",
+            body=api_body,
+            media_body=media,
+            notifySubscribers=args.notify_subscribers,
+        )
+
+        print("upload_start=true")
+        response = resumable_upload(request)
+
+        video_id = str(response.get("id", ""))
+        if not video_id:
+            raise RuntimeError(
+                "YouTube upload returned no video ID"
+            )
 
     requested_privacy = privacy
     actual_privacy = str(
@@ -680,7 +805,11 @@ def main() -> int:
         )
     )
 
-    print("YouTube upload PASS")
+    print(
+        "YouTube post-upload PASS"
+        if args.existing_video_id
+        else "YouTube upload PASS"
+    )
     print(f"video_id={video_id}")
     print(
         f"url=https://www.youtube.com/watch?v={video_id}"
@@ -691,7 +820,10 @@ def main() -> int:
     )
     print("made_for_kids=true")
 
-    if actual_privacy != requested_privacy:
+    if (
+        not args.existing_video_id
+        and actual_privacy != requested_privacy
+    ):
         print(
             "WARNING: YouTube returned privacy="
             f"{actual_privacy} although requested="
