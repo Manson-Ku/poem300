@@ -127,13 +127,17 @@
         84,
         80,
         76,
-        72
+        72,
+        68,
+        64,
+        60,
+        56
       ],
       "single_line_per_asset": true,
       "size_scope": "one_content_page",
       "size_rule": "choose_one_size_for_all_nonblank_lines_on_page_using_longest_measured_glyph_bbox",
       "fit": "largest_discrete_size_that_fits_width",
-      "overflow_policy": "qa_fail_if_page_lines_cannot_fit_at_72px",
+      "overflow_policy": "qa_fail_if_page_lines_cannot_fit_at_56px",
       "total_poem_line_count_must_not_reduce_font_size": true
     },
     "explanation": {
