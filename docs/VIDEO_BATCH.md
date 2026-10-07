@@ -109,3 +109,37 @@ assets/pXXX/video/pXXX_B_1080p.mp4
 ```
 
 Generated MP4 binaries remain local and are gitignored.
+
+
+## Age 6 production result
+
+Age 6 is now COMPLETE at the video stage.
+
+Validated state:
+
+~~~text
+selected poems    25
+approved poems    25
+local MP4 ready   25
+YouTube WAIT_LOCAL 0
+~~~
+
+The 25 local videos were subsequently consumed by the channel-aware YouTube batch uploader without any local-file gaps.
+
+Therefore the Age 6 video batch is no longer a POC; it is the production baseline for later age groups.
+
+## Reuse for Age 7 / 8 / 9
+
+The same batch runner is intended to be reused after each later age group reaches resource completeness and visual-plan approval.
+
+Examples:
+
+~~~powershell
+py scripts\render_video_batch.py --age 7 --style B --preflight-only
+py scripts\render_video_batch.py --age 7 --style B
+
+py scripts\render_video_batch.py --age 8 --style B
+py scripts\render_video_batch.py --age 9 --style B
+~~~
+
+Do not start a later-age batch while its visual plans are still draft unless there is an explicit decision to bypass the approved-only production gate.
