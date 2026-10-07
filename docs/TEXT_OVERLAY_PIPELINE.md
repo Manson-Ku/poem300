@@ -268,7 +268,7 @@ Font size 只從固定候選值中選：
 
 選法：
 
-1. 先用實際 `BpmfHuninn-Regular.ttf` glyph bbox 量測該 page 最寬的一行。
+1. 先用實際 `BpmfHuninn-Poem300-Regular.ttf` glyph bbox 量測該 page 最寬的一行。
 2. 從 96 px 往下選第一個可完整放進 1600 px 的固定字級；七言句搭配右側注音時可降到 56–68 px，但仍是離散固定級距。
 3. 同一 page 所有行使用相同字級。
 4. **整首詩有幾行，不參與 font-size 計算。**
