@@ -5,6 +5,7 @@ Composer v3 adds run-level background motion while preserving the exact
 audio-driven timeline:
 - each consecutive background run is rendered once as one motion clip
 - crop-window zoom alternates 100% -> 80%, then 80% -> 100%
+- FFmpeg perspective/cubic performs subpixel-centered sampling; zoompan is not used
 - 0.30s scene crossfade when background_image changes
 - fade-in for each newly revealed content line
 - fade-in/out for explanation overlays
@@ -532,32 +533,52 @@ def background_filter(
     height: int,
     fps: int,
     frame_count: int,
-    zoom_start: float,
-    zoom_end: float,
-    oversample: int,
+    crop_start_pct: float,
+    crop_end_pct: float,
 ) -> str:
-    """Build one continuous centered zoom for a whole background run."""
+    """Build one continuous centered zoom with subpixel sampling.
+
+    Do not use FFmpeg zoompan here. zoompan quantizes its crop origin to
+    integer source pixels, which produces visible frame-to-frame center
+    jitter during a slow centered zoom.
+
+    perspective with eval=frame accepts floating-point source corner
+    coordinates. That lets the centered crop window move continuously
+    from crop_start_pct to crop_end_pct without left/right or up/down
+    integer-pixel hopping.
+    """
 
     denominator = max(1, frame_count - 1)
-    z0 = f"{zoom_start:.10f}"
-    delta = zoom_end - zoom_start
-    dz = f"{delta:.10f}"
 
-    sample = max(1, int(oversample))
-    sample_width = width * sample
-    sample_height = height * sample
+    start_fraction = crop_start_pct / 100.0
+    end_fraction = crop_end_pct / 100.0
+
+    start_margin = (1.0 - start_fraction) / 2.0
+    end_margin = (1.0 - end_fraction) / 2.0
+    delta_margin = end_margin - start_margin
+
+    margin_expr = (
+        f"({start_margin:.12f}"
+        f"+({delta_margin:.12f})*in/{denominator})"
+    )
+    mx = f"W*{margin_expr}"
+    my = f"H*{margin_expr}"
 
     return (
         f"[{input_label}:v]"
-        f"scale={sample_width}:{sample_height}:"
+        f"scale={width}:{height}:"
         "force_original_aspect_ratio=increase,"
-        f"crop={sample_width}:{sample_height},"
+        f"crop={width}:{height},"
         "setsar=1,"
-        f"zoompan=z='{z0}+({dz})*on/{denominator}':"
-        "x='(iw-iw/zoom)/2':"
-        "y='(ih-ih/zoom)/2':"
-        "d=1:"
-        f"s={width}x{height}:fps={fps},"
+        "perspective="
+        f"x0='{mx}':y0='{my}':"
+        f"x1='W-{mx}':y1='{my}':"
+        f"x2='{mx}':y2='H-{my}':"
+        f"x3='W-{mx}':y3='H-{my}':"
+        "sense=source:"
+        "interpolation=cubic:"
+        "eval=frame,"
+        f"fps={fps},"
         f"trim=end_frame={frame_count},"
         "setpts=PTS-STARTPTS,"
         "format=yuv420p"
@@ -574,9 +595,8 @@ def render_background_run(
     height: int,
     fps: int,
     frame_count: int,
-    zoom_start: float,
-    zoom_end: float,
-    oversample: int,
+    crop_start_pct: float,
+    crop_end_pct: float,
     verbose: bool,
 ) -> None:
     """Render a background run once, before timeline-event slicing."""
@@ -593,9 +613,8 @@ def render_background_run(
         height=height,
         fps=fps,
         frame_count=frame_count,
-        zoom_start=zoom_start,
-        zoom_end=zoom_end,
-        oversample=oversample,
+        crop_start_pct=crop_start_pct,
+        crop_end_pct=crop_end_pct,
     )
 
     command = [
@@ -1275,16 +1294,6 @@ def main() -> int:
         )
         work_dir = Path(temp_context.name)
 
-    oversample = max(
-        1,
-        int(
-            motion["background_motion"].get(
-                "oversample",
-                1,
-            )
-        ),
-    )
-
     background_run_files: dict[int, Path] = {}
 
     print(
@@ -1316,9 +1325,8 @@ def main() -> int:
             height=height,
             fps=fps,
             frame_count=int(run["total_frames"]),
-            zoom_start=float(run["zoom_start"]),
-            zoom_end=float(run["zoom_end"]),
-            oversample=oversample,
+            crop_start_pct=float(run["crop_start_pct"]),
+            crop_end_pct=float(run["crop_end_pct"]),
             verbose=args.verbose,
         )
         background_run_files[run_no] = run_file
@@ -1479,7 +1487,7 @@ def main() -> int:
     )
     print(
         "composer_mode=motion_v3 "
-        "(run-level alternating 100%/80% centered crop zoom "
+        "(run-level 100%/80% perspective zoom "
         "+ crossfade + content/explanation fades)"
     )
     return 0
