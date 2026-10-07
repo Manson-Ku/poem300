@@ -18,12 +18,13 @@
       "default_reading": "ㄔㄞˊ",
       "added_reading": "ㄓㄞˋ",
       "selector": "U+E01E1",
-      "component_glyph": "z_zhai4",
-      "glyph_suffix": "zhai4",
       "contexts": [
         "鹿柴"
       ],
-      "evidence_note": "唐詩〈鹿柴〉之柴讀ㄓㄞˋ"
+      "evidence_note": "唐詩〈鹿柴〉之柴讀ㄓㄞˋ",
+      "prototype_character": "債",
+      "prototype_codepoint": "U+50B5",
+      "prototype_reading": "ㄓㄞˋ"
     },
     {
       "character": "景",
@@ -31,12 +32,13 @@
       "default_reading": "ㄐㄧㄥˇ",
       "added_reading": "ㄧㄥˇ",
       "selector": "U+E01E1",
-      "component_glyph": "z_ying3",
-      "glyph_suffix": "ying3",
       "contexts": [
         "返景"
       ],
-      "evidence_note": "返景之景讀ㄧㄥˇ"
+      "evidence_note": "返景之景讀ㄧㄥˇ",
+      "prototype_character": "影",
+      "prototype_codepoint": "U+5F71",
+      "prototype_reading": "ㄧㄥˇ"
     }
   ]
 }
