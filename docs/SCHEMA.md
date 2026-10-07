@@ -109,7 +109,7 @@ assets/
 1080p 文字圖層規格：
 
 ```text
-config/text_overlay_1080p_v1.json
+config/text_overlay_1080p_v2.json
 docs/TEXT_OVERLAY_PIPELINE.md
 ```
 
