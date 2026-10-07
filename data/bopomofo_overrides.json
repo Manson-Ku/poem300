@@ -1,0 +1,15 @@
+{
+  "version": "bopomofo_overrides_v1",
+  "spec": "ButTaiwan/bpmfvs",
+  "items": [],
+  "item_schema": {
+    "poem_id": "integer",
+    "field": "title|content",
+    "line_no": "0 for title; 1-based for content",
+    "char_index": "0-based Unicode character index within source_text",
+    "character": "expected Han character at char_index",
+    "selector": "explicit IVS selector, e.g. U+E01E1",
+    "expected_reading": "human-readable bopomofo for QA",
+    "note": "optional"
+  }
+}
