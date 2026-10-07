@@ -161,22 +161,19 @@
       "note": "何處來；處=地方"
     }
   ],
-  "font_gaps": [
+  "font_gaps": [],
+  "qa_status": "requires_local_project_font_verification",
+  "font_extensions_required": [
     {
       "poem_id": 217,
       "field": "title",
       "line_no": 0,
       "char_index": 1,
       "character": "柴",
-      "source_text": "鹿柴",
       "expected_reading": "ㄓㄞˋ",
-      "bpmfvs_supported_readings": [
-        "ㄔㄞˊ"
-      ],
-      "status": "font_gap",
-      "evidence": "教育部《重編國語辭典修訂本》：鹿柴 ㄌㄨˋ ㄓㄞˋ",
-      "evidence_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=66107&la=0&powerMode=0",
-      "note": "Current bpmfvs tables do not include ㄓㄞˋ for 柴, so IVS alone cannot render the required reading."
+      "selector": "U+E01E1",
+      "extension_spec": "data/bpmf_font_extensions.json",
+      "expected_font": "fonts/BpmfHuninn-Poem300-Regular.ttf"
     },
     {
       "poem_id": 217,
@@ -184,16 +181,10 @@
       "line_no": 2,
       "char_index": 1,
       "character": "景",
-      "source_text": "返景入深林，復照青苔上。",
       "expected_reading": "ㄧㄥˇ",
-      "bpmfvs_supported_readings": [
-        "ㄐㄧㄥˇ"
-      ],
-      "status": "font_gap",
-      "evidence": "教育部《重編國語辭典修訂本》：返景 ㄈㄢˇ ㄧㄥˇ",
-      "evidence_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=35251&la=0&powerMode=0",
-      "note": "Current bpmfvs tables do not include ㄧㄥˇ for 景, so IVS alone cannot render the required reading."
+      "selector": "U+E01E1",
+      "extension_spec": "data/bpmf_font_extensions.json",
+      "expected_font": "fonts/BpmfHuninn-Poem300-Regular.ttf"
     }
-  ],
-  "qa_status": "blocked_by_2_font_gaps"
+  ]
 }
