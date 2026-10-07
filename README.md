@@ -356,4 +356,4 @@ Output:
 assets/p226/video/p226_B_1080p.mp4
 ```
 
-The first composer validates the full six-session layout/audio contract using hard cuts. Motion and crossfade are the next refinement layer.
+The first hard-cut assembly POC has passed. The current composer uses `config/video_motion_v1.json` for 0.30s scene crossfades, background-only slow zoom, new-line fade-in, and explanation fade-in/out while preserving the same six-session audio timeline.
