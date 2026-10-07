@@ -417,3 +417,20 @@ py scripts\youtube_auth.py
 The local refreshable user token is stored under `credentials/youtube_token.json`, which is gitignored. The expected channel is `@KidMoreTW`.
 
 Full workflow: `docs/YOUTUBE_UPLOAD.md`.
+
+
+### First YouTube upload test
+
+Preview p225 metadata without uploading:
+
+```powershell
+py scripts\youtube_upload.py --poem-id 225 --style B --dry-run
+```
+
+Private upload test:
+
+```powershell
+py scripts\youtube_upload.py --poem-id 225 --style B
+```
+
+The uploader generates title / description / UTM / tags from the poem record, sets `selfDeclaredMadeForKids=true`, and defaults to private with subscriber notifications disabled.
