@@ -11,6 +11,8 @@ Default behavior:
 - one recommended_age group at a time
 - exact generated title OR canonical tracking URL counts as uploaded
 - existing videos are never re-uploaded
+- existing matches are passed through idempotent post-upload repair so
+  age-playlist routing is complete without uploading the MP4 again
 - missing local MP4s are reported and skipped
 - upload failures stop the batch by default
 - each actual upload delegates to youtube_upload.py, which owns public
@@ -280,8 +282,9 @@ def upload_command(
     config: Path,
     poems: Path,
     token: Path,
+    existing_video_id: str | None = None,
 ) -> list[str]:
-    return [
+    command = [
         sys.executable,
         str(UPLOAD_SCRIPT),
         "--poem-id",
@@ -295,6 +298,16 @@ def upload_command(
         "--token",
         str(token),
     ]
+
+    if existing_video_id:
+        command.extend(
+            [
+                "--existing-video-id",
+                existing_video_id,
+            ]
+        )
+
+    return command
 
 
 def main() -> int:
@@ -339,6 +352,14 @@ def main() -> int:
         help=(
             "Inventory channel/local state and print the upload plan "
             "without uploading."
+        ),
+    )
+    parser.add_argument(
+        "--skip-existing-postcheck",
+        action="store_true",
+        help=(
+            "Do not run idempotent playlist repair for videos already "
+            "found on the channel."
         ),
     )
     parser.add_argument(
@@ -550,6 +571,75 @@ def main() -> int:
         print("DRY RUN: no videos uploaded.")
         return 0
 
+    existing_postchecked: list[int] = []
+    existing_post_failed: list[
+        tuple[int, int]
+    ] = []
+
+    if (
+        already_uploaded
+        and not args.skip_existing_postcheck
+    ):
+        print("")
+        print(
+            "=== EXISTING VIDEO POST-UPLOAD CHECK "
+            f"count={len(already_uploaded)} ==="
+        )
+
+        for index, (
+            poem,
+            match,
+        ) in enumerate(
+            already_uploaded,
+            start=1,
+        ):
+            pid = int(poem["poem_id"])
+            video_id = str(
+                match["video_id"]
+            )
+            print("")
+            print(
+                f"[postcheck {index:02d}/{len(already_uploaded):02d}] "
+                f"p{pid:03d} {poem['title']} "
+                f"video_id={video_id}"
+            )
+
+            completed = subprocess.run(
+                upload_command(
+                    poem_id=pid,
+                    style=args.style,
+                    config=config_path,
+                    poems=poems_path,
+                    token=token_path,
+                    existing_video_id=video_id,
+                ),
+                check=False,
+            )
+
+            if completed.returncode == 0:
+                existing_postchecked.append(
+                    pid
+                )
+                continue
+
+            existing_post_failed.append(
+                (
+                    pid,
+                    int(completed.returncode),
+                )
+            )
+            print(
+                f"POSTCHECK_FAIL p{pid:03d} "
+                f"rc={completed.returncode}"
+            )
+
+            if not args.continue_on_error:
+                print(
+                    "STOP: fail-fast is enabled. "
+                    "No new video upload was started."
+                )
+                return 1
+
     queue = ready_to_upload
     if args.limit is not None:
         queue = queue[
@@ -625,6 +715,12 @@ def main() -> int:
     print("=== SUMMARY ===")
     print(
         f"already_uploaded={len(already_uploaded)}"
+    )
+    print(
+        f"existing_postchecked={len(existing_postchecked)}"
+    )
+    print(
+        f"existing_post_failed={len(existing_post_failed)}"
     )
     print(
         f"uploaded_now={len(succeeded)}"
