@@ -255,6 +255,77 @@ def write_json(path: Path, payload: dict[str, Any]) -> None:
     )
 
 
+def load_pronunciation_overrides(
+    path: Path,
+) -> dict[tuple[int, str, int], dict[str, Any]]:
+    if not path.exists():
+        return {}
+
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    index: dict[tuple[int, str, int], dict[str, Any]] = {}
+
+    for item in payload.get("items", []):
+        key = (
+            int(item["poem_id"]),
+            str(item["audio_type"]),
+            int(item.get("scene_no", 0)),
+        )
+        if key in index:
+            raise ValueError(
+                f"duplicate TTS pronunciation override: {key}"
+            )
+        index[key] = item
+
+    return index
+
+
+def style_with_pronunciation(
+    base_style: str,
+    *,
+    text: str,
+    override: dict[str, Any] | None,
+) -> str:
+    if not override:
+        return base_style
+
+    expected_text = str(override.get("source_text", ""))
+    if expected_text != text:
+        raise ValueError(
+            "TTS pronunciation override source_text mismatch: "
+            f"expected={expected_text!r} actual={text!r}"
+        )
+
+    rules = []
+    for item in override.get("pronunciations", []):
+        character = str(item["character"])
+        reading = str(item["reading"])
+        context = str(item.get("context", "")).strip()
+        if character not in text:
+            raise ValueError(
+                "TTS pronunciation override character missing "
+                f"from source text: {character!r}"
+            )
+        if context:
+            rules.append(
+                f"{character} in {context} must be pronounced {reading}"
+            )
+        else:
+            rules.append(
+                f"{character} must be pronounced {reading}"
+            )
+
+    if not rules:
+        return base_style
+
+    return (
+        base_style.rstrip()
+        + " Pronunciation requirements for this exact asset: "
+        + "; ".join(rules)
+        + ". Speak only the original source text. "
+        + "Do not say these pronunciation instructions aloud."
+    )
+
+
 def is_retryable(exc: Exception) -> bool:
     message = f"{type(exc).__name__}: {exc}".upper()
     retry_markers = (
@@ -645,6 +716,21 @@ def main() -> int:
         default="data/tts_usage.csv",
     )
     parser.add_argument(
+        "--pronunciation-overrides",
+        default="data/tts_pronunciation_overrides.json",
+        help=(
+            "JSON pronunciation hints for title/author/poem assets."
+        ),
+    )
+    parser.add_argument(
+        "--pronunciation-qa-only",
+        action="store_true",
+        help=(
+            "Process only assets listed in the pronunciation override "
+            "registry. Use with --force to regenerate reviewed audio."
+        ),
+    )
+    parser.add_argument(
         "--max-retries",
         type=int,
         default=5,
@@ -672,6 +758,9 @@ def main() -> int:
         parser.error("--request-delay-ms must be >= 0")
 
     requested_types = set(args.types)
+    pronunciation_overrides = load_pronunciation_overrides(
+        Path(args.pronunciation_overrides)
+    )
 
     poems = read_poems(Path(args.poems))
     ages = set(args.age) if args.age else None
@@ -801,6 +890,18 @@ def main() -> int:
             )
 
         for audio_type, text, output_path in poem_level_jobs:
+            override = pronunciation_overrides.get(
+                (pid, audio_type, 0)
+            )
+            if args.pronunciation_qa_only and not override:
+                continue
+
+            effective_style = style_with_pronunciation(
+                args.style,
+                text=text,
+                override=override,
+            )
+
             if output_path.exists() and not args.force:
                 skipped += 1
                 print(
@@ -843,7 +944,7 @@ def main() -> int:
                     audio_type=audio_type,
                     text=text,
                     voice=args.voice,
-                    style=args.style,
+                    style=effective_style,
                     output_path=output_path,
                     ledger_path=ledger_path,
                     max_retries=args.max_retries,
@@ -917,6 +1018,22 @@ def main() -> int:
                 )
 
             for audio_type, text, output_path in jobs:
+                override = pronunciation_overrides.get(
+                    (
+                        pid,
+                        audio_type,
+                        int(scene["scene_no"]),
+                    )
+                )
+                if args.pronunciation_qa_only and not override:
+                    continue
+
+                effective_style = style_with_pronunciation(
+                    args.style,
+                    text=text,
+                    override=override,
+                )
+
                 if output_path.exists() and not args.force:
                     skipped += 1
                     print(
@@ -949,7 +1066,7 @@ def main() -> int:
                         audio_type=audio_type,
                         text=text,
                         voice=args.voice,
-                        style=args.style,
+                        style=effective_style,
                         output_path=output_path,
                         ledger_path=ledger_path,
                         max_retries=args.max_retries,
