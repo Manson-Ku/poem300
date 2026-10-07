@@ -233,3 +233,34 @@ py scripts\youtube_upload.py --poem-id 225 --style B --privacy public
 ```
 
 Subscriber notifications remain off unless `--notify-subscribers` is supplied.
+
+
+## First private upload verification
+
+p225 <春曉> completed the first real YouTube Data API v3 resumable upload successfully.
+
+Verified result:
+
+```text
+poem_id=225
+video_id=g8daVN7W2bg
+privacy=private
+made_for_kids=true
+notify_subscribers=false
+upload=PASS
+```
+
+The resumable upload progressed through multiple 8 MiB chunks and completed without retry failure.
+
+This verifies the full path:
+
+```text
+local rendered MP4
+  -> saved OAuth user token
+  -> videos.insert resumable upload
+  -> generated poem metadata
+  -> made-for-kids status
+  -> private YouTube video
+```
+
+The first-upload POC is therefore accepted as the baseline for later batch/publication workflow work.
