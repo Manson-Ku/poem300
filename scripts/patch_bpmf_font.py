@@ -1,9 +1,17 @@
 #!/usr/bin/env python3
 """Patch a local Bpmf Huninn font with poem300-only IVS readings.
 
+The released Bpmf Huninn font does not necessarily retain the upstream
+intermediate z_<reading> composite glyphs. Instead, annotated Han glyphs
+may directly reference primitive bopomofo components such as zyzh, zyai,
+tone4, plus the base Han glyph.
+
+To stay compatible with the released font, this patcher copies the
+phonetic component layout from an existing prototype Han character that
+already has the desired reading, then combines it with the target Han
+glyph and assigns the requested IVS selector.
+
 The source and derived TTF binaries stay local and are ignored by Git.
-This script clones the existing annotated Han glyph, swaps only its
-bopomofo component, then maps Han + IVS selector to the new glyph.
 
 Requires:
     fonttools>=4.0
@@ -14,13 +22,13 @@ from __future__ import annotations
 import argparse
 import copy
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any
 
 try:
     from fontTools.ttLib import TTFont
-    from fontTools.ttLib.tables._c_m_a_p import CmapSubtable
 except ImportError as exc:
     raise SystemExit(
         "fonttools is required. Run: "
@@ -50,15 +58,9 @@ def find_uvs_table(font: TTFont) -> Any:
             table.ensureDecompiled()
             return table
 
-    table = CmapSubtable.newSubtable(14)
-    table.platformID = 0
-    table.platEncID = 5
-    table.language = 0xFF
-    table.cmap = {}
-    table.uvsDict = {}
-    table.data = b""
-    font["cmap"].tables.append(table)
-    return table
+    raise ValueError(
+        "source font does not contain cmap format 14 IVS data"
+    )
 
 
 def set_derivative_names(font: TTFont, spec: dict[str, Any]) -> None:
@@ -72,7 +74,6 @@ def set_derivative_names(font: TTFont, spec: dict[str, Any]) -> None:
 
     name_table = font["name"]
 
-    # Windows Unicode English
     for name_id, value in (
         (1, family),
         (2, "Regular"),
@@ -83,7 +84,6 @@ def set_derivative_names(font: TTFont, spec: dict[str, Any]) -> None:
     ):
         name_table.setName(value, name_id, 3, 1, 0x0409)
 
-    # Macintosh Roman English, where representable.
     for name_id, value in (
         (1, family),
         (2, "Regular"),
@@ -91,6 +91,83 @@ def set_derivative_names(font: TTFont, spec: dict[str, Any]) -> None:
         (6, postscript),
     ):
         name_table.setName(value, name_id, 1, 0, 0)
+
+
+def is_phonetic_component(glyph_name: str) -> bool:
+    return (
+        glyph_name.startswith("zy")
+        or glyph_name.startswith("tone")
+    )
+
+
+def describe_components(font: TTFont, glyph_name: str) -> list[str]:
+    glyph = font["glyf"][glyph_name]
+    if not glyph.isComposite():
+        return []
+    return [
+        component.glyphName
+        for component in glyph.components
+    ]
+
+
+def annotated_glyph_for_codepoint(
+    font: TTFont,
+    codepoint: int,
+) -> str:
+    best_cmap = font.getBestCmap() or {}
+    glyph_name = best_cmap.get(codepoint)
+    if not glyph_name:
+        raise ValueError(
+            f"U+{codepoint:04X}: glyph not found in Unicode cmap"
+        )
+    if glyph_name not in font["glyf"]:
+        raise ValueError(
+            f"U+{codepoint:04X}: glyph {glyph_name!r} missing from glyf"
+        )
+    glyph = font["glyf"][glyph_name]
+    if not glyph.isComposite():
+        raise ValueError(
+            f"U+{codepoint:04X}: annotated glyph {glyph_name!r} "
+            "is not composite"
+        )
+    return glyph_name
+
+
+def split_components(
+    font: TTFont,
+    glyph_name: str,
+) -> tuple[list[Any], list[Any]]:
+    glyph = font["glyf"][glyph_name]
+    phonetic = []
+    non_phonetic = []
+
+    for component in glyph.components:
+        if is_phonetic_component(component.glyphName):
+            phonetic.append(copy.deepcopy(component))
+        else:
+            non_phonetic.append(copy.deepcopy(component))
+
+    if not phonetic:
+        raise ValueError(
+            f"{glyph_name!r}: no zy*/tone* phonetic components found; "
+            f"components={describe_components(font, glyph_name)}"
+        )
+    if not non_phonetic:
+        raise ValueError(
+            f"{glyph_name!r}: no base Han component found; "
+            f"components={describe_components(font, glyph_name)}"
+        )
+
+    return phonetic, non_phonetic
+
+
+def safe_glyph_suffix(reading: str) -> str:
+    # Only used in an internal glyph name. Avoid relying on Unicode there.
+    encoded = "_".join(
+        f"{ord(ch):04X}"
+        for ch in reading
+    )
+    return encoded.lower()
 
 
 def add_extension(
@@ -101,85 +178,75 @@ def add_extension(
     char = str(item["character"])
     codepoint = parse_uplus(str(item["codepoint"]))
     selector = parse_uplus(str(item["selector"]))
-    component_glyph = str(item["component_glyph"])
-    suffix = str(item["glyph_suffix"])
+
+    prototype_char = str(item["prototype_character"])
+    prototype_codepoint = parse_uplus(
+        str(item["prototype_codepoint"])
+    )
+    added_reading = str(item["added_reading"])
 
     if ord(char) != codepoint:
         raise ValueError(
             f"{char}: codepoint mismatch; "
             f"spec={item['codepoint']} actual=U+{ord(char):04X}"
         )
-
-    best_cmap = font.getBestCmap() or {}
-    source_name = best_cmap.get(codepoint)
-    if not source_name:
+    if ord(prototype_char) != prototype_codepoint:
         raise ValueError(
-            f"{char}: base glyph not found in Unicode cmap"
+            f"{prototype_char}: prototype codepoint mismatch; "
+            f"spec={item['prototype_codepoint']} "
+            f"actual=U+{ord(prototype_char):04X}"
         )
 
-    if "glyf" not in font:
-        raise ValueError(
-            "Only TrueType glyf-based Bpmf Huninn fonts are supported"
-        )
-
-    glyf = font["glyf"]
-    if component_glyph not in glyf:
-        raise ValueError(
-            f"{char}: pronunciation component {component_glyph!r} "
-            "not found in the source font"
-        )
-
-    source = glyf[source_name]
-    if not source.isComposite():
-        raise ValueError(
-            f"{char}: annotated source glyph {source_name!r} "
-            "is not composite"
-        )
-
-    bopomofo_components = [
-        component
-        for component in source.components
-        if component.glyphName.startswith("z_")
-    ]
-    if len(bopomofo_components) != 1:
-        names = [
-            component.glyphName
-            for component in source.components
-        ]
-        raise ValueError(
-            f"{char}: expected exactly one z_* component in "
-            f"{source_name!r}; got {names}"
-        )
-
-    new_name = (
-        f"{source_name}.poem300.{suffix}"
+    target_name = annotated_glyph_for_codepoint(
+        font,
+        codepoint,
+    )
+    prototype_name = annotated_glyph_for_codepoint(
+        font,
+        prototype_codepoint,
     )
 
-    # Re-running against an already-patched input should be deterministic.
-    if new_name not in glyf:
-        new_glyph = copy.deepcopy(source)
-        replaced = 0
-        for component in new_glyph.components:
-            if component.glyphName.startswith("z_"):
-                component.glyphName = component_glyph
-                replaced += 1
-        if replaced != 1:
-            raise AssertionError(
-                f"{char}: internal component replacement failed"
-            )
+    _target_phonetic, target_base = split_components(
+        font,
+        target_name,
+    )
+    prototype_phonetic, _prototype_base = split_components(
+        font,
+        prototype_name,
+    )
 
+    suffix = safe_glyph_suffix(added_reading)
+    new_name = f"{target_name}.poem300.{suffix}"
+
+    glyf = font["glyf"]
+
+    if new_name not in glyf:
+        new_glyph = copy.deepcopy(glyf[target_name])
+
+        # Keep the target Han component(s) but use the complete phonetic
+        # layout from the prototype. This is important because different
+        # readings can contain a different number of bopomofo symbols,
+        # so copying positions one-for-one from the target is not valid.
+        new_glyph.components = (
+            prototype_phonetic + target_base
+        )
         glyf[new_name] = new_glyph
 
         if "hmtx" in font:
             font["hmtx"].metrics[new_name] = (
-                font["hmtx"].metrics[source_name]
+                font["hmtx"].metrics[target_name]
             )
-        if "vmtx" in font and source_name in font["vmtx"].metrics:
+        if (
+            "vmtx" in font
+            and target_name in font["vmtx"].metrics
+        ):
             font["vmtx"].metrics[new_name] = (
-                font["vmtx"].metrics[source_name]
+                font["vmtx"].metrics[target_name]
             )
 
-    entries = list(uvs_table.uvsDict.get(selector, []))
+    entries = list(
+        uvs_table.uvsDict.get(selector, [])
+    )
     same_cp = [
         glyph_name
         for uv, glyph_name in entries
@@ -196,17 +263,23 @@ def add_extension(
         entries.append((codepoint, new_name))
         uvs_table.uvsDict[selector] = entries
 
-    # FontTools keeps original raw format-14 bytes after decompile.
-    # Clear them so the edited uvsDict is actually recompiled.
-    uvs_table.data = b""
+    # Force FontTools to compile the modified format-14 table rather than
+    # reusing the original raw bytes.
+    if hasattr(uvs_table, "data"):
+        uvs_table.data = b""
 
     return {
         "character": char,
         "codepoint": item["codepoint"],
         "selector": item["selector"],
-        "reading": item["added_reading"],
-        "source_glyph": source_name,
-        "component_glyph": component_glyph,
+        "reading": added_reading,
+        "target_glyph": target_name,
+        "prototype_character": prototype_char,
+        "prototype_glyph": prototype_name,
+        "prototype_components": [
+            component.glyphName
+            for component in prototype_phonetic
+        ],
         "new_glyph": new_name,
     }
 
@@ -224,7 +297,22 @@ def verify_output(
             char = str(item["character"])
             codepoint = parse_uplus(str(item["codepoint"]))
             selector = parse_uplus(str(item["selector"]))
-            expected_component = str(item["component_glyph"])
+
+            prototype_codepoint = parse_uplus(
+                str(item["prototype_codepoint"])
+            )
+            prototype_name = annotated_glyph_for_codepoint(
+                font,
+                prototype_codepoint,
+            )
+            prototype_phonetic, _ = split_components(
+                font,
+                prototype_name,
+            )
+            expected_components = [
+                component.glyphName
+                for component in prototype_phonetic
+            ]
 
             mappings = {
                 uv: glyph_name
@@ -239,15 +327,21 @@ def verify_output(
                     f"{item['codepoint']} + {item['selector']}"
                 )
 
-            glyph = font["glyf"][glyph_name]
-            components = [
+            actual_phonetic, _ = split_components(
+                font,
+                glyph_name,
+            )
+            actual_components = [
                 component.glyphName
-                for component in glyph.components
+                for component in actual_phonetic
             ]
-            if expected_component not in components:
+
+            if actual_components != expected_components:
                 raise ValueError(
-                    f"{char}: output glyph {glyph_name!r} does not "
-                    f"reference {expected_component!r}"
+                    f"{char}: output pronunciation components differ "
+                    f"from prototype {item['prototype_character']}: "
+                    f"expected={expected_components} "
+                    f"actual={actual_components}"
                 )
 
             results.append(
@@ -256,7 +350,10 @@ def verify_output(
                     "selector": item["selector"],
                     "reading": item["added_reading"],
                     "glyph": glyph_name,
-                    "component": expected_component,
+                    "prototype_character": (
+                        item["prototype_character"]
+                    ),
+                    "phonetic_components": actual_components,
                 }
             )
 
@@ -332,7 +429,7 @@ def main() -> int:
                 f"{item['character']} "
                 f"{item['selector']} -> "
                 f"{item['added_reading']} "
-                f"component={item['component_glyph']}"
+                f"prototype={item['prototype_character']}"
             )
         print("dry_run=true; no font was written.")
         return 0
@@ -347,7 +444,10 @@ def main() -> int:
 
         set_derivative_names(font, spec)
 
-        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
         font.save(str(output_path))
     finally:
         font.close()
@@ -360,7 +460,8 @@ def main() -> int:
             "  "
             f"{item['character']} "
             f"{item['selector']} -> {item['reading']} "
-            f"({item['component_glyph']})"
+            f"prototype={item['prototype_character']} "
+            f"components={item['prototype_components']}"
         )
 
     print("\nVerified")
@@ -369,10 +470,13 @@ def main() -> int:
             "  "
             f"{item['character']} "
             f"{item['selector']} -> {item['reading']} "
+            f"prototype={item['prototype_character']} "
             f"glyph={item['glyph']}"
         )
 
-    print(f"\nPASS output={output_path.as_posix()}")
+    print(
+        f"\nPASS output={output_path.as_posix()}"
+    )
     return 0
 
 
