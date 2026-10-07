@@ -1,17 +1,22 @@
 #!/usr/bin/env python3
-"""Patch a local Bpmf Huninn font with poem300-only IVS readings.
+"""Build the local poem300 Bpmf Huninn derivative font.
 
-The released Bpmf Huninn font does not necessarily retain the upstream
-intermediate z_<reading> composite glyphs. Instead, annotated Han glyphs
-may directly reference primitive bopomofo components such as zyzh, zyai,
-tone4, plus the base Han glyph.
+Two related problems are solved here:
 
-To stay compatible with the released font, this patcher copies the
-phonetic component layout from an existing prototype Han character that
-already has the desired reading, then combines it with the target Han
-glyph and assigns the requested IVS selector.
+1. Upstream Bpmf Huninn lacks a few literary readings needed by poem300.
+   Those readings are added as normal IVS variants by copying the phonetic
+   layout from an existing prototype character with the same reading.
 
-The source and derived TTF binaries stay local and are ignored by Git.
+2. Pillow/FreeType rasterization does not reliably consume the IVS
+   selector sequence used by bpmfvs. For deterministic PNG rendering,
+   every pronunciation override used by poem300 also receives a stable
+   Private Use Area (PUA) alias that points directly at the intended
+   annotated glyph.
+
+Canonical poem text is never changed. The PUA aliases exist only inside
+the local derived font and render_text_overlays.py.
+
+Source and derived font binaries stay local and are ignored by Git.
 
 Requires:
     fonttools>=4.0
@@ -22,7 +27,6 @@ from __future__ import annotations
 import argparse
 import copy
 import json
-import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -39,6 +43,7 @@ except ImportError as exc:
 DEFAULT_INPUT = Path("fonts/BpmfHuninn-Regular.ttf")
 DEFAULT_OUTPUT = Path("fonts/BpmfHuninn-Poem300-Regular.ttf")
 DEFAULT_SPEC = Path("data/bpmf_font_extensions.json")
+DEFAULT_OVERRIDES = Path("data/bopomofo_overrides.json")
 
 
 def parse_uplus(value: str) -> int:
@@ -57,7 +62,6 @@ def find_uvs_table(font: TTFont) -> Any:
         if table.format == 14:
             table.ensureDecompiled()
             return table
-
     raise ValueError(
         "source font does not contain cmap format 14 IVS data"
     )
@@ -71,7 +75,6 @@ def set_derivative_names(font: TTFont, spec: dict[str, Any]) -> None:
     family = str(output["family_name"])
     full = str(output["full_name"])
     postscript = str(output["postscript_name"])
-
     name_table = font["name"]
 
     for name_id, value in (
@@ -124,6 +127,7 @@ def annotated_glyph_for_codepoint(
         raise ValueError(
             f"U+{codepoint:04X}: glyph {glyph_name!r} missing from glyf"
         )
+
     glyph = font["glyf"][glyph_name]
     if not glyph.isComposite():
         raise ValueError(
@@ -157,17 +161,32 @@ def split_components(
             f"{glyph_name!r}: no base Han component found; "
             f"components={describe_components(font, glyph_name)}"
         )
-
     return phonetic, non_phonetic
 
 
 def safe_glyph_suffix(reading: str) -> str:
-    # Only used in an internal glyph name. Avoid relying on Unicode there.
-    encoded = "_".join(
+    return "_".join(
         f"{ord(ch):04X}"
         for ch in reading
-    )
-    return encoded.lower()
+    ).lower()
+
+
+def uvs_glyph(
+    uvs_table: Any,
+    *,
+    codepoint: int,
+    selector: int,
+) -> str | None:
+    for uv, glyph_name in uvs_table.uvsDict.get(selector, []):
+        if uv == codepoint:
+            return glyph_name
+    return None
+
+
+def ensure_glyph_order(font: TTFont, glyph_name: str) -> None:
+    order = font.getGlyphOrder()
+    if glyph_name not in order:
+        font.setGlyphOrder(order + [glyph_name])
 
 
 def add_extension(
@@ -178,7 +197,6 @@ def add_extension(
     char = str(item["character"])
     codepoint = parse_uplus(str(item["codepoint"]))
     selector = parse_uplus(str(item["selector"]))
-
     prototype_char = str(item["prototype_character"])
     prototype_codepoint = parse_uplus(
         str(item["prototype_codepoint"])
@@ -205,7 +223,6 @@ def add_extension(
         font,
         prototype_codepoint,
     )
-
     _target_phonetic, target_base = split_components(
         font,
         target_name,
@@ -217,20 +234,15 @@ def add_extension(
 
     suffix = safe_glyph_suffix(added_reading)
     new_name = f"{target_name}.poem300.{suffix}"
-
     glyf = font["glyf"]
 
     if new_name not in glyf:
         new_glyph = copy.deepcopy(glyf[target_name])
-
-        # Keep the target Han component(s) but use the complete phonetic
-        # layout from the prototype. This is important because different
-        # readings can contain a different number of bopomofo symbols,
-        # so copying positions one-for-one from the target is not valid.
         new_glyph.components = (
             prototype_phonetic + target_base
         )
         glyf[new_name] = new_glyph
+        ensure_glyph_order(font, new_name)
 
         if "hmtx" in font:
             font["hmtx"].metrics[new_name] = (
@@ -244,27 +256,24 @@ def add_extension(
                 font["vmtx"].metrics[target_name]
             )
 
-    entries = list(
-        uvs_table.uvsDict.get(selector, [])
+    existing = uvs_glyph(
+        uvs_table,
+        codepoint=codepoint,
+        selector=selector,
     )
-    same_cp = [
-        glyph_name
-        for uv, glyph_name in entries
-        if uv == codepoint
-    ]
-
-    if same_cp and same_cp != [new_name]:
+    if existing and existing != new_name:
         raise ValueError(
             f"{char}: selector {item['selector']} is already mapped "
-            f"to {same_cp}; refusing to overwrite"
+            f"to {existing!r}; refusing to overwrite"
         )
 
-    if not same_cp:
+    if not existing:
+        entries = list(
+            uvs_table.uvsDict.get(selector, [])
+        )
         entries.append((codepoint, new_name))
         uvs_table.uvsDict[selector] = entries
 
-    # Force FontTools to compile the modified format-14 table rather than
-    # reusing the original raw bytes.
     if hasattr(uvs_table, "data"):
         uvs_table.data = b""
 
@@ -284,20 +293,156 @@ def add_extension(
     }
 
 
+def unique_render_aliases(
+    overrides: dict[str, Any],
+) -> list[dict[str, Any]]:
+    aliases: dict[
+        tuple[str, str],
+        dict[str, Any],
+    ] = {}
+
+    pua_owners: dict[int, tuple[str, str]] = {}
+
+    for item in overrides.get("items", []):
+        render_codepoint = item.get("render_codepoint")
+        if not render_codepoint:
+            continue
+
+        char = str(item["character"])
+        selector = str(item["selector"]).upper()
+        pua = parse_uplus(str(render_codepoint))
+        key = (char, selector)
+
+        if not (0xE000 <= pua <= 0xF8FF):
+            raise ValueError(
+                f"{char} {selector}: render_codepoint "
+                f"{render_codepoint} is outside BMP PUA"
+            )
+
+        owner = pua_owners.get(pua)
+        if owner and owner != key:
+            raise ValueError(
+                f"{render_codepoint} assigned to both "
+                f"{owner} and {key}"
+            )
+        pua_owners[pua] = key
+
+        existing = aliases.get(key)
+        if existing:
+            if (
+                str(existing["render_codepoint"]).upper()
+                != str(render_codepoint).upper()
+            ):
+                raise ValueError(
+                    f"{key}: inconsistent render_codepoint values"
+                )
+            continue
+
+        aliases[key] = {
+            "character": char,
+            "selector": selector,
+            "render_codepoint": str(render_codepoint).upper(),
+            "expected_reading": str(
+                item.get("expected_reading", "")
+            ),
+        }
+
+    return sorted(
+        aliases.values(),
+        key=lambda item: parse_uplus(
+            item["render_codepoint"]
+        ),
+    )
+
+
+def add_unicode_alias(
+    font: TTFont,
+    *,
+    codepoint: int,
+    glyph_name: str,
+) -> int:
+    mapped_tables = 0
+
+    for table in font["cmap"].tables:
+        if not table.isUnicode():
+            continue
+        if table.format not in (4, 12):
+            continue
+
+        table.ensureDecompiled()
+        existing = table.cmap.get(codepoint)
+        if existing and existing != glyph_name:
+            raise ValueError(
+                f"U+{codepoint:04X} already maps to "
+                f"{existing!r}, cannot map to {glyph_name!r}"
+            )
+
+        table.cmap[codepoint] = glyph_name
+        mapped_tables += 1
+
+    if mapped_tables == 0:
+        raise ValueError(
+            "font has no Unicode cmap format 4/12 table "
+            "for PUA aliases"
+        )
+    return mapped_tables
+
+
+def add_render_aliases(
+    font: TTFont,
+    uvs_table: Any,
+    overrides: dict[str, Any],
+) -> list[dict[str, Any]]:
+    results = []
+
+    for item in unique_render_aliases(overrides):
+        char = item["character"]
+        codepoint = ord(char)
+        selector = parse_uplus(item["selector"])
+        pua = parse_uplus(item["render_codepoint"])
+
+        glyph_name = uvs_glyph(
+            uvs_table,
+            codepoint=codepoint,
+            selector=selector,
+        )
+        if not glyph_name:
+            raise ValueError(
+                f"{char} {item['selector']}: no IVS glyph exists "
+                "after applying project extensions"
+            )
+
+        mapped_tables = add_unicode_alias(
+            font,
+            codepoint=pua,
+            glyph_name=glyph_name,
+        )
+
+        results.append(
+            {
+                **item,
+                "glyph": glyph_name,
+                "mapped_cmap_tables": mapped_tables,
+            }
+        )
+
+    return results
+
+
 def verify_output(
     path: Path,
     spec: dict[str, Any],
-) -> list[dict[str, Any]]:
+    overrides: dict[str, Any],
+) -> dict[str, list[dict[str, Any]]]:
     font = TTFont(str(path))
     try:
         uvs_table = find_uvs_table(font)
-        results = []
+        extension_results = []
 
         for item in spec["extensions"]:
             char = str(item["character"])
             codepoint = parse_uplus(str(item["codepoint"]))
             selector = parse_uplus(str(item["selector"]))
-
             prototype_codepoint = parse_uplus(
                 str(item["prototype_codepoint"])
             )
@@ -314,13 +459,11 @@ def verify_output(
                 for component in prototype_phonetic
             ]
 
-            mappings = {
-                uv: glyph_name
-                for uv, glyph_name in (
-                    uvs_table.uvsDict.get(selector, [])
-                )
-            }
-            glyph_name = mappings.get(codepoint)
+            glyph_name = uvs_glyph(
+                uvs_table,
+                codepoint=codepoint,
+                selector=selector,
+            )
             if not glyph_name:
                 raise ValueError(
                     f"{char}: output font is missing "
@@ -335,7 +478,6 @@ def verify_output(
                 component.glyphName
                 for component in actual_phonetic
             ]
-
             if actual_components != expected_components:
                 raise ValueError(
                     f"{char}: output pronunciation components differ "
@@ -344,7 +486,7 @@ def verify_output(
                     f"actual={actual_components}"
                 )
 
-            results.append(
+            extension_results.append(
                 {
                     "character": char,
                     "selector": item["selector"],
@@ -353,11 +495,45 @@ def verify_output(
                     "prototype_character": (
                         item["prototype_character"]
                     ),
-                    "phonetic_components": actual_components,
                 }
             )
 
-        return results
+        alias_results = []
+        best_cmap = font.getBestCmap() or {}
+
+        for item in unique_render_aliases(overrides):
+            char = item["character"]
+            selector = parse_uplus(item["selector"])
+            pua = parse_uplus(item["render_codepoint"])
+            expected_glyph = uvs_glyph(
+                uvs_table,
+                codepoint=ord(char),
+                selector=selector,
+            )
+            actual_glyph = best_cmap.get(pua)
+
+            if not expected_glyph:
+                raise ValueError(
+                    f"{char} {item['selector']}: IVS glyph missing "
+                    "during alias verification"
+                )
+            if actual_glyph != expected_glyph:
+                raise ValueError(
+                    f"{item['render_codepoint']}: expected "
+                    f"{expected_glyph!r}, got {actual_glyph!r}"
+                )
+
+            alias_results.append(
+                {
+                    **item,
+                    "glyph": actual_glyph,
+                }
+            )
+
+        return {
+            "extensions": extension_results,
+            "aliases": alias_results,
+        }
     finally:
         font.close()
 
@@ -365,8 +541,8 @@ def verify_output(
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Create a local poem300 derivative of Bpmf Huninn "
-            "with literary IVS readings."
+            "Create the local poem300 Bpmf Huninn derivative "
+            "with literary IVS readings and raster-safe PUA aliases."
         )
     )
     parser.add_argument(
@@ -382,6 +558,10 @@ def main() -> int:
         default=str(DEFAULT_SPEC),
     )
     parser.add_argument(
+        "--overrides",
+        default=str(DEFAULT_OVERRIDES),
+    )
+    parser.add_argument(
         "--force",
         action="store_true",
         help="Overwrite an existing derived font.",
@@ -395,19 +575,20 @@ def main() -> int:
     input_path = Path(args.input)
     output_path = Path(args.output)
     spec_path = Path(args.spec)
+    overrides_path = Path(args.overrides)
 
-    if not input_path.exists():
-        print(
-            f"ERROR: source font not found: {input_path}",
-            file=sys.stderr,
-        )
-        return 2
-    if not spec_path.exists():
-        print(
-            f"ERROR: extension spec not found: {spec_path}",
-            file=sys.stderr,
-        )
-        return 2
+    for path, label in (
+        (input_path, "source font"),
+        (spec_path, "extension spec"),
+        (overrides_path, "bopomofo overrides"),
+    ):
+        if not path.exists():
+            print(
+                f"ERROR: {label} not found: {path}",
+                file=sys.stderr,
+            )
+            return 2
+
     if output_path.exists() and not args.force:
         print(
             f"ERROR: output already exists: {output_path}\n"
@@ -417,12 +598,16 @@ def main() -> int:
         return 2
 
     spec = read_json(spec_path)
+    overrides = read_json(overrides_path)
+    aliases = unique_render_aliases(overrides)
 
     print(f"input={input_path.as_posix()}")
     print(f"output={output_path.as_posix()}")
     print(f"extensions={len(spec.get('extensions', []))}")
+    print(f"render_aliases={len(aliases)}")
 
     if args.dry_run:
+        print("\nExtensions")
         for item in spec.get("extensions", []):
             print(
                 "  "
@@ -431,19 +616,35 @@ def main() -> int:
                 f"{item['added_reading']} "
                 f"prototype={item['prototype_character']}"
             )
-        print("dry_run=true; no font was written.")
+
+        print("\nRaster aliases")
+        for item in aliases:
+            print(
+                "  "
+                f"{item['character']} "
+                f"{item['selector']} -> "
+                f"{item['render_codepoint']} "
+                f"reading={item['expected_reading']}"
+            )
+
+        print("\ndry_run=true; no font was written.")
         return 0
 
     font = TTFont(str(input_path))
     try:
         uvs_table = find_uvs_table(font)
-        patched = [
+
+        patched_extensions = [
             add_extension(font, uvs_table, item)
             for item in spec["extensions"]
         ]
+        patched_aliases = add_render_aliases(
+            font,
+            uvs_table,
+            overrides,
+        )
 
         set_derivative_names(font, spec)
-
         output_path.parent.mkdir(
             parents=True,
             exist_ok=True,
@@ -452,28 +653,38 @@ def main() -> int:
     finally:
         font.close()
 
-    verified = verify_output(output_path, spec)
+    verified = verify_output(
+        output_path,
+        spec,
+        overrides,
+    )
 
-    print("\nPatched")
-    for item in patched:
+    print("\nPatched extensions")
+    for item in patched_extensions:
         print(
             "  "
             f"{item['character']} "
             f"{item['selector']} -> {item['reading']} "
-            f"prototype={item['prototype_character']} "
-            f"components={item['prototype_components']}"
+            f"prototype={item['prototype_character']}"
         )
 
-    print("\nVerified")
-    for item in verified:
+    print("\nPatched raster aliases")
+    for item in patched_aliases:
         print(
             "  "
             f"{item['character']} "
-            f"{item['selector']} -> {item['reading']} "
-            f"prototype={item['prototype_character']} "
+            f"{item['selector']} -> "
+            f"{item['render_codepoint']} "
             f"glyph={item['glyph']}"
         )
 
+    print("\nVerified")
+    print(
+        f"  extensions={len(verified['extensions'])}"
+    )
+    print(
+        f"  render_aliases={len(verified['aliases'])}"
+    )
     print(
         f"\nPASS output={output_path.as_posix()}"
     )
