@@ -258,6 +258,15 @@ py scripts\generate_images.py --poem-id 226 --force
 py scripts\generate_images.py --poem-id 226 --styles A --force
 ```
 
+批次生成全部 6 歲 approved 詩，只產 Style B：
+
+```powershell
+py scripts\generate_images.py --age 6 --approved-only --styles B --dry-run
+py scripts\generate_images.py --age 6 --approved-only --styles B
+```
+
+目前資料應選出 25 首、54 Scenes，因此 Style B 共 54 張。預設會略過已存在的正式 B 圖；只有需要全部重跑時才加 `--force`。
+
 正式輸出：
 
 ```text
