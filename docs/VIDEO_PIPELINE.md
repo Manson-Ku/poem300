@@ -307,20 +307,46 @@ If FFmpeg is installed but not in PATH:
 py scripts\render_video.py --poem-id 226 --style B --ffmpeg "C:\path\to\ffmpeg.exe"
 ```
 
-### Transition status
+### Motion composer v2
 
-Assembly POC v1 uses hard visual cuts.
+After the hard-cut assembly POC passed, the composer now uses:
 
-This is intentional: first validate layout, reveal state, audio timing and the complete six-session sequence.
+```text
+scene background crossfade      0.30s
+new content line fade-in        0.15s
+explanation fade-in / fade-out  0.20s / 0.20s
+background slow zoom            1.00 <-> 1.03
+```
 
-The timing contract already reserves:
+SSOT:
+
+```text
+config/video_motion_v1.json
+```
+
+Important contract:
+
+- Motion does not add time to the timeline.
+- Scene crossfade is consumed inside the already reserved transition/pre-roll budget.
+- Slow zoom is applied to the background only.
+- Title, author, poem content and explanation remain fixed in display-space coordinates.
+- Zoom direction alternates by consecutive same-background run.
+- A newly revealed poem line fades in by itself; previously revealed lines do not pulse or refade.
+- Explanation uses an independent fade layer and disappears by the end of its own event.
+
+For p226:
+
+```powershell
+py scripts\render_video.py --poem-id 226 --style B --dry-run
+py scripts\render_video.py --poem-id 226 --style B --force
+```
+
+The timing contract remains:
 
 ```text
 poem pre-roll / scene transition budget = 0.30s
 page turn pause = 0.45s
 ```
-
-Therefore slow zoom / pan / scene crossfade can be added in the next composer revision without redesigning the session or audio timeline.
 
 
 ## Motion
