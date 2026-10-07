@@ -225,3 +225,64 @@ A/B 測試固定同一份 `visual_plan_json` 與 Scene semantics，只改 style 
 目前舊的 prompt v1 POC 已停止；下一步先完成單一首詩的 scene/object visual plan，再做完整詩 A/B 測試。
 
 完整規格見 `docs/IMAGE_PIPELINE.md`。
+
+
+## Multi-turn image test
+
+同一首詩內改用 Gemini Interactions API 串接 Scene：
+
+```text
+Style A: s01 -> s02 -> s03 -> ...
+Style B: s01 -> s02 -> s03 -> ...
+```
+
+模型預設：
+
+```text
+gemini-3.1-flash-image
+```
+
+第一張建立 visual anchor，後續 Scene 使用 `previous_interaction_id` 延續前一輪圖像上下文。
+
+測試〈春曉〉：
+
+```powershell
+git pull
+py scripts\generate_images_multiturn.py --poem-id 225 --dry-run
+py scripts\generate_images_multiturn.py --poem-id 225
+```
+
+只測 Style A：
+
+```powershell
+py scripts\generate_images_multiturn.py --poem-id 225 --styles A
+```
+
+強制重跑 A/B 整條 chain：
+
+```powershell
+py scripts\generate_images_multiturn.py --poem-id 225 --force
+```
+
+輸出：
+
+```text
+assets/p225/s01/image/{style_id}/background.webp
+assets/p225/s01/image/{style_id}/meta.json
+assets/p225/s02/image/{style_id}/background.webp
+assets/p225/s02/image/{style_id}/meta.json
+```
+
+`meta.json` 只用於本機續跑 chain，不進 Git。API usage / interaction chain / estimated cost 會寫入：
+
+```text
+data/image_usage.csv
+```
+
+目前 Gemini 3.1 Flash Image Standard paid tier 記帳基準（2026-10-07）：
+
+```text
+input                 = USD 0.50 / 1M tokens
+non-image output      = USD 3.00 / 1M tokens
+image output          = USD 60.00 / 1M tokens
+```
