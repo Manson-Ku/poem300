@@ -110,33 +110,65 @@ YouTube CC / SRT / VTT 可另外提供，但不作為注音版面 SSOT。
 
 ## Repo 結構
 
-```text
+~~~text
 poem300/
 ├─ data/
 │  ├─ poems.csv
 │  ├─ scenes.csv
-│  └─ tts_usage.csv
+│  ├─ bopomofo_overrides.json
+│  ├─ bpmf_font_extensions.json
+│  ├─ tts_pronunciation_overrides.json
+│  ├─ pronunciation_qa_age6.json
+│  ├─ poem_bgm.csv
+│  ├─ tts_usage.csv
+│  └─ image_usage.csv
+├─ config/
+│  ├─ image_styles_age6.json
+│  ├─ text_overlay_1080p_v2.json
+│  ├─ video_sessions_v1.json
+│  ├─ video_timing_v1.json
+│  ├─ video_motion_v1.json
+│  ├─ bgm_mix_v1.json
+│  └─ youtube_v1.json
 ├─ assets/
 │  └─ pXXX/
-│     ├─ poem.json
+│     ├─ text/
+│     ├─ video/
 │     └─ sYY/
-│        ├─ scene.json
 │        ├─ audio/
-│        │  ├─ poem.wav
-│        │  └─ explanation.wav
 │        ├─ image/
-│        │  └─ background.webp
 │        └─ text/
-│           └─ poem_bpmf.png
-├─ docs/
 ├─ scripts/
 │  ├─ build_scenes.py
+│  ├─ generate_images.py
 │  ├─ generate_tts_assets.py
-│  ├─ tts_cost_report.py
-│  └─ tts_poc.py
+│  ├─ patch_bpmf_font.py
+│  ├─ qa_pronunciation.py
+│  ├─ render_text_overlays.py
+│  ├─ build_video_timeline.py
+│  ├─ render_video.py
+│  ├─ render_video_batch.py
+│  ├─ manage_bgm.py
+│  ├─ youtube_auth.py
+│  ├─ youtube_upload.py
+│  └─ youtube_upload_batch.py
+├─ docs/
+│  ├─ DEVELOPMENT_STATUS.md
+│  ├─ IMAGE_PIPELINE.md
+│  ├─ PRONUNCIATION_QA.md
+│  ├─ TTS_BATCH.md
+│  ├─ TEXT_OVERLAY_PIPELINE.md
+│  ├─ VIDEO_PIPELINE.md
+│  ├─ VIDEO_BATCH.md
+│  ├─ BGM_PIPELINE.md
+│  ├─ YOUTUBE_UPLOAD.md
+│  └─ YOUTUBE_BATCH_UPLOAD.md
+├─ requirements.txt
+├─ .env.example
 ├─ .gitignore
 └─ README.md
-```
+~~~
+
 
 ## SSOT 原則
 
