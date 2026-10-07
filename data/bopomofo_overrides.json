@@ -3,6 +3,26 @@
   "spec": "ButTaiwan/bpmfvs",
   "items": [
     {
+      "poem_id": 217,
+      "field": "content",
+      "line_no": 2,
+      "char_index": 1,
+      "character": "景",
+      "selector": "U+E01E1",
+      "expected_reading": "ㄧㄥˇ",
+      "note": "返景；poem300 font extension"
+    },
+    {
+      "poem_id": 217,
+      "field": "title",
+      "line_no": 0,
+      "char_index": 1,
+      "character": "柴",
+      "selector": "U+E01E1",
+      "expected_reading": "ㄓㄞˋ",
+      "note": "鹿柴；poem300 font extension"
+    },
+    {
       "poem_id": 219,
       "field": "content",
       "line_no": 1,
@@ -14,16 +34,6 @@
     },
     {
       "poem_id": 220,
-      "field": "title",
-      "line_no": 0,
-      "char_index": 0,
-      "character": "相",
-      "selector": "U+E01E1",
-      "expected_reading": "ㄒㄧㄤ",
-      "note": "相思"
-    },
-    {
-      "poem_id": 220,
       "field": "content",
       "line_no": 2,
       "char_index": 9,
@@ -31,6 +41,16 @@
       "selector": "U+E01E1",
       "expected_reading": "ㄒㄧㄤ",
       "note": "此物最相思"
+    },
+    {
+      "poem_id": 220,
+      "field": "title",
+      "line_no": 0,
+      "char_index": 0,
+      "character": "相",
+      "selector": "U+E01E1",
+      "expected_reading": "ㄒㄧㄤ",
+      "note": "相思"
     },
     {
       "poem_id": 225,
@@ -64,16 +84,6 @@
     },
     {
       "poem_id": 231,
-      "field": "title",
-      "line_no": 0,
-      "char_index": 0,
-      "character": "彈",
-      "selector": "U+E01E1",
-      "expected_reading": "ㄊㄢˊ",
-      "note": "彈琴=彈奏"
-    },
-    {
-      "poem_id": 231,
       "field": "content",
       "line_no": 2,
       "char_index": 10,
@@ -81,6 +91,16 @@
       "selector": "U+E01E1",
       "expected_reading": "ㄊㄢˊ",
       "note": "今人多不彈=彈奏"
+    },
+    {
+      "poem_id": 231,
+      "field": "title",
+      "line_no": 0,
+      "char_index": 0,
+      "character": "彈",
+      "selector": "U+E01E1",
+      "expected_reading": "ㄊㄢˊ",
+      "note": "彈琴=彈奏"
     },
     {
       "poem_id": 233,
