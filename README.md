@@ -357,3 +357,42 @@ assets/p226/video/p226_B_1080p.mp4
 ```
 
 The first hard-cut assembly POC has passed. The current composer renders one continuous background-motion clip per consecutive scene/background run, alternating centered 100% -> 80% and 80% -> 100% crop-window zoom. Timeline events slice that run-level clip, so poem/explanation boundaries do not restart the camera.
+
+
+## Poem-level BGM
+
+Local music lives under:
+
+```text
+bgm/
+```
+
+The MP3/audio files remain untracked. The composer discovers them dynamically.
+
+List available local tracks:
+
+```powershell
+py scripts\manage_bgm.py --list
+```
+
+Persist one poem's selection:
+
+```powershell
+py scripts\manage_bgm.py --poem-id 226 --set "空山滴翠V2.mp3"
+```
+
+Or test a track without changing the poem map:
+
+```powershell
+py scripts\render_video.py --poem-id 226 --style B --bgm "空山滴翠V2" --force
+```
+
+BGM is normalized to a low background target of -32 LUFS before the optional poem-level trim is applied. Narration stays at 0 dB and remains the foreground.
+
+SSOT:
+
+```text
+config/bgm_mix_v1.json
+data/poem_bgm.csv
+docs/BGM_PIPELINE.md
+```
