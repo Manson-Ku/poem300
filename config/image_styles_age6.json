@@ -1,0 +1,16 @@
+{
+  "target_age": 6,
+  "ab_test_version": "age6_ab_v1",
+  "styles": {
+    "A": {
+      "style_id": "age6_a_watercolor_ink_v1",
+      "config": "config/image_style_age6_A_watercolor_v1.json"
+    },
+    "B": {
+      "style_id": "age6_b_gouache_storybook_v1",
+      "config": "config/image_style_age6_B_gouache_v1.json"
+    }
+  },
+  "asset_path_template": "assets/p{poem_id:03d}/s{scene_no:02d}/image/{style_id}/background.webp",
+  "rule": "A/B must use the same poem visual_plan_json and scene semantics. Only style preset may differ."
+}
