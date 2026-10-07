@@ -121,15 +121,17 @@ explanation line chars       max 30
 - 6 個 content line 超過 28 個主要字元。
 - 最長單行為 254 字，屬序文/長段落型內容。
 
-因此正式策略：
+因此正式策略已固定為：
 
 ```text
-<= 8 lines  -> 同一 content page 自動縮放
-> 8 lines   -> 分頁，每頁最多 8 lines
-single line still cannot fit at minimum font -> QA FAIL
+content page = 4 fixed slots
+> 4 nonblank lines -> content-zone page turn
+font size depends on the longest measured line on that page,
+not on total poem line count
+single line still cannot fit at 56px -> QA FAIL
 ```
 
-不得把 60 行長詩硬縮成一張 1080p 畫面。
+不得把長詩硬縮成一張 1080p 畫面。
 
 ### Blank physical lines
 
