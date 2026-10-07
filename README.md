@@ -474,3 +474,24 @@ py scripts\youtube_upload.py --poem-id 226 --existing-video-id l5WYLemUnuQ
 ```
 
 The repair mode verifies the existing video and retries only the age-playlist routing. It never uploads the MP4 again.
+
+
+## Age-group video batch rendering
+
+Render all remaining approved 6-year-old Style B videos:
+
+```powershell
+py scripts\render_video_batch.py --age 6 --style B
+```
+
+The batch runner is resume-safe: existing MP4 files are skipped, so already completed p225/p226 videos are not rebuilt by default.
+
+Optional full-batch preflight without rendering:
+
+```powershell
+py scripts\render_video_batch.py --age 6 --style B --preflight-only
+```
+
+The runner first validates every remaining poem; if any asset/timeline/composer preflight fails, it stops before starting expensive MP4 rendering.
+
+Full contract: `docs/VIDEO_BATCH.md`.
