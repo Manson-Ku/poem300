@@ -19,7 +19,10 @@
       "author",
       "poem_type",
       "child_explanation_6_8"
-    ]
+    ],
+    "raster_pronunciation_override": "project_font_pua_alias",
+    "canonical_pronunciation_metadata": "bpmfvs_IVS_selector",
+    "render_alias_source": "data/bopomofo_overrides.json"
   },
   "zones": {
     "title": {
