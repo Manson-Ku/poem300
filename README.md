@@ -123,7 +123,7 @@ poem300/
 
 1. `data/poems.csv` 是詩詞內容層 SSOT。
 2. `data/scenes.csv` 的 `scene_id / poem_id / scene_no / original_line / child_explanation_line` 應由 script 生成。
-3. AI prompt、產圖狀態、媒體路徑可在後續 pipeline 中補充或移至 manifest。
+3. `data/poems.csv.visual_plan_json` 保存每首詩跨 Scene 共用的人物、場景、物件與 continuity；prompt 不是 SSOT。
 4. 不將字型檔直接提交至公開 Repo；只記錄字型名稱、授權與本機配置方式。
 5. 原始高解析圖片、音檔與 MP4 不直接進 Git，後續使用外部 object storage 或 release artifact 管理。
 6. 資產以 `assets/pXXX/sYY/` 組織；`poem.json` / `scene.json` 可進 Git，生成的 WAV / image / text overlay 不進 Git。
@@ -194,27 +194,34 @@ py scripts\tts_cost_report.py
 - 25 poems
 - 54 scenes
 - 1 physical line = 1 background image
-- style preset: `storybook_cn_age6_v1`
-- asset path: `assets/pXXX/sYY/image/background.webp`
+- poem-level visual SSOT: `data/poems.csv.visual_plan_json`
+- 圖片與後續注音/文字 overlay 完全解耦
 
-先建立可審核 prompt manifest：
-
-```powershell
-py scripts\build_image_prompts.py --age 6
-```
-
-預期：
+目前先固定兩套 A/B style：
 
 ```text
-poems=25 scenes=54
-output=data/image_prompts_age6.csv
+A = age6_a_watercolor_ink_v1
+    東方淡彩水彩繪本
+
+B = age6_b_gouache_storybook_v1
+    厚粉彩童書插畫
 ```
 
-第一輪圖片 POC 固定使用四個代表 Scene：
+Registry：
 
-- `p225_s01` 春曉：清晨 / 室內外
-- `p226_s03` 夜思：夜晚 / 人物 / 月光
-- `p217_s02` 鹿柴：純自然 / 光影
-- `p242_s01` 尋隱者不遇：人物互動
+```text
+config/image_styles_age6.json
+```
 
-圖片正式批次在 POC PASS 後才啟用。完整規格見 `docs/IMAGE_PIPELINE.md`。
+同一 Scene 可同時保存兩種 style：
+
+```text
+assets/p225/s01/image/age6_a_watercolor_ink_v1/background.webp
+assets/p225/s01/image/age6_b_gouache_storybook_v1/background.webp
+```
+
+A/B 測試固定同一份 `visual_plan_json` 與 Scene semantics，只改 style preset。
+
+目前舊的 prompt v1 POC 已停止；下一步先完成單一首詩的 scene/object visual plan，再做完整詩 A/B 測試。
+
+完整規格見 `docs/IMAGE_PIPELINE.md`。
