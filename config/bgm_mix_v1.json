@@ -1,0 +1,32 @@
+{
+  "version": "bgm_mix_v1",
+  "principle": "BGM is a selectable poem-level presentation asset. Narration remains the foreground and is never attenuated by the BGM mixer.",
+  "bgm_dir": "bgm",
+  "poem_map": "data/poem_bgm.csv",
+  "selection_priority": [
+    "render_video --bgm override",
+    "data/poem_bgm.csv poem selection",
+    "no BGM"
+  ],
+  "supported_extensions": [
+    ".mp3",
+    ".wav",
+    ".m4a",
+    ".aac",
+    ".flac",
+    ".ogg"
+  ],
+  "mix": {
+    "narration_gain_db": 0,
+    "bgm_target_i_lufs": -32,
+    "bgm_target_tp_db": -6,
+    "bgm_target_lra": 7,
+    "default_gain_db": 0,
+    "fade_in_sec": 1.2,
+    "fade_out_sec": 1.8,
+    "limiter_peak": 0.95,
+    "loop_to_video_duration": true,
+    "normalize_final_mix": false
+  },
+  "note": "Every selected BGM is first loudness-normalized to the same low background target, then an optional per-poem gain_db trim is applied. This keeps seven locally produced tracks comparable while preserving clear TTS."
+}
