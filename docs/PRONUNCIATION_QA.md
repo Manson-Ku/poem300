@@ -115,6 +115,48 @@ proxy='返影入深林，復照青苔上。'
 After generation, these two WAV files require human listening QA before video composition.
 
 
+## Raster-safe pronunciation aliases
+
+The semantic pronunciation selector remains bpmfvs IVS, but the PNG renderer does not emit Han + IVS directly.
+
+Observed failure mode with Pillow/FreeType:
+
+```text
+Han + U+E01E1
+```
+
+can leave the variation selector visible as a rectangular fallback glyph instead of selecting the intended annotated glyph.
+
+Therefore the local project font exposes each pronunciation override through a stable BMP Private Use Area alias. The renderer substitutes only at raster time:
+
+```text
+canonical text: 返景入深林
+semantic selector: 景 + U+E01E1 = ㄧㄥˇ
+raster text: 返 + U+E901 + 入深林
+```
+
+The PUA glyph itself is the complete annotated glyph: original Han character plus the selected bopomofo. No manual bopomofo compositing is used.
+
+Current aliases are stored directly in:
+
+```text
+data/bopomofo_overrides.json
+```
+
+and generated into:
+
+```text
+fonts/BpmfHuninn-Poem300-Regular.ttf
+```
+
+by:
+
+```powershell
+py scripts\patch_bpmf_font.py --force
+```
+
+This currently produces 9 unique raster aliases covering all 17 age-6 pronunciation override occurrences.
+
 ## Project font extensions
 
 The upstream bpmfvs font does not expose two literary readings required by p217:
@@ -144,10 +186,10 @@ fonts/BpmfHuninn-Poem300-Regular.ttf
 
 The derived font adds IVS U+E01E1 for the two missing readings while preserving the original default glyphs.
 
-After building it, rerender only p217:
+After rebuilding the project font, rerender the whole age-6 set because all pronunciation overrides now use raster-safe aliases:
 
 ```powershell
-py scripts\render_text_overlays.py --poem-id 217 --force
+py scripts\render_text_overlays.py --age 6 --approved-only --force
 ```
 
 Then the normal validator verifies the actual local font file and requires both extensions to exist:
