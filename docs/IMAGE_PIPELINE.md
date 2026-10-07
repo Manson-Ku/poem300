@@ -117,8 +117,8 @@ config   = config/image_style_age6_A_watercolor_v1.json
 Style B：
 
 ```text
-style_id = age6_b_gouache_storybook_v1
-config   = config/image_style_age6_B_gouache_v1.json
+style_id = age6_b_3d_fairytale_cinematic_v1
+config   = config/image_style_age6_B_3d_fairytale_v1.json
 ```
 
 A/B test 必須固定：
