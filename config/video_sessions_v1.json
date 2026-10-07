@@ -43,7 +43,7 @@
     "reset_at_session_start": true,
     "reset_on_page_turn": true,
     "keep_previous_lines_same_page": true,
-    "line_position_source": "config/text_overlay_1080p_v1.json",
+    "line_position_source": "config/text_overlay_1080p_v2.json",
     "blank_scene_policy": "separator_no_audio_force_page_turn_if_page_has_content"
   },
   "sessions": [
