@@ -1,5 +1,112 @@
 # Video Pipeline
 
+## Session timeline v1
+
+SSOT：
+
+```text
+config/video_sessions_v1.json
+```
+
+影片固定由六個 session 組成：
+
+```text
+session_intro
+session_content
+session_explain
+session_recap1
+session_recap2
+session_end
+```
+
+### session_intro
+
+- 顯示 title + author。
+- poem_type 可顯示。
+- 依序播放 `title.wav`、`author.wav`。
+- 不顯示 content / explanation。
+
+### session_content
+
+依 Scene 順序：
+
+1. 切換到該 Scene 背景圖。
+2. 該 Scene 的 content PNG 出現在目前 content page 的固定 slot。
+3. 同一 page 已出現的前面詩句保留。
+4. 播放該 Scene `poem.wav`。
+5. 每 4 個非空 Scene 做一次 **content-zone only page turn**。
+
+換頁只清除 content 區，title / author 仍常駐。
+
+### session_explain
+
+每個 Scene：
+
+1. 顯示 / 累積該句 content。
+2. 播放 `poem.wav`。
+3. 在 explanation zone 顯示該句 `explanation.png`。
+4. 播放 `explanation.wav`。
+5. explanation audio 結束後 explanation overlay 消失。
+6. 已出現的 content 行仍保留到該 content page 結束。
+
+### session_recap1
+
+與 `session_content` 相同：
+
+- Scene 背景。
+- content 逐段累積。
+- 每 Scene 播放一次 poem.wav。
+- 不播放 explanation。
+
+### session_recap2
+
+再執行一次與 `session_content` 相同的完整朗讀。
+
+### session_end
+
+- 隱藏 content / explanation。
+- 顯示 title + author。
+- poem_type 可顯示。
+- 依序播放 `title.wav`、`author.wav`。
+
+### Persistent overlays
+
+Title / Author：
+
+```text
+session_intro    visible
+session_content  visible
+session_explain  visible
+session_recap1   visible
+session_recap2   visible
+session_end      visible
+```
+
+Poem type：
+
+```text
+intro/end only
+```
+
+### Content page state
+
+每個 content-bearing session 開始時，都從 page 1 / slot 1 重新開始，不沿用上一個 session 的 reveal state。
+
+固定：
+
+```text
+page capacity = 4 nonblank Scenes
+slot positions = config/text_overlay_1080p_v1.json
+```
+
+Blank Scene 是 separator：
+
+- 不播放音訊。
+- 不產文字。
+- 若 page 已有內容，結束當頁。
+- 下一個非空 Scene 從新頁 slot 1 開始。
+
+
 ## 目標
 
 以 313 首唐詩資料，自動產出兒童向 YouTube-ready 影片。
