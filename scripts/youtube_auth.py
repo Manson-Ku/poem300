@@ -27,15 +27,6 @@ from googleapiclient.errors import HttpError
 DEFAULT_TOKEN_PATH = Path("credentials/youtube_token.json")
 DEFAULT_CONFIG_PATH = Path("config/youtube_v1.json")
 
-# Installed apps do not support incremental authorization. Request the
-# upload scope now together with readonly so the same token can both
-# verify the authenticated channel and upload later.
-SCOPES = [
-    "https://www.googleapis.com/auth/youtube.readonly",
-    "https://www.googleapis.com/auth/youtube.upload",
-]
-
-
 def read_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -86,6 +77,7 @@ def load_credentials(
     *,
     client_config: dict[str, Any],
     token_path: Path,
+    scopes: list[str],
     force_reauth: bool,
 ) -> Credentials:
     credentials: Credentials | None = None
@@ -93,7 +85,7 @@ def load_credentials(
     if token_path.exists() and not force_reauth:
         credentials = Credentials.from_authorized_user_file(
             str(token_path),
-            SCOPES,
+            scopes,
         )
 
     if (
@@ -107,7 +99,7 @@ def load_credentials(
     if not credentials or not credentials.valid or force_reauth:
         flow = InstalledAppFlow.from_client_config(
             client_config,
-            SCOPES,
+            scopes,
         )
         credentials = flow.run_local_server(
             host="127.0.0.1",
@@ -241,6 +233,10 @@ def main() -> int:
             "YTB_KEY_JSON",
         )
     )
+    scopes = [
+        str(value)
+        for value in config["scopes"]
+    ]
     token_path = Path(args.token)
 
     client_config = load_client_config(
@@ -251,6 +247,7 @@ def main() -> int:
         credentials = load_credentials(
             client_config=client_config,
             token_path=token_path,
+            scopes=scopes,
             force_reauth=args.force_reauth,
         )
         result = verify_channel(
@@ -271,7 +268,7 @@ def main() -> int:
     print(f"token={token_path.as_posix()}")
     print(
         "scopes="
-        + ",".join(SCOPES)
+        + ",".join(scopes)
     )
     print(
         f"channel_title={result['title']}"
