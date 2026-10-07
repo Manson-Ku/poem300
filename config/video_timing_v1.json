@@ -1,0 +1,59 @@
+{
+  "version": "video_timing_v1",
+  "principle": "All spoken segments derive their visual duration from the measured WAV duration plus explicit pre/post padding. Transition time is reserved inside padding where possible.",
+  "audio_padding": {
+    "title": {
+      "pre_roll_sec": 0.45,
+      "post_roll_sec": 0.5
+    },
+    "author": {
+      "pre_roll_sec": 0.25,
+      "post_roll_sec": 0.6
+    },
+    "poem": {
+      "pre_roll_sec": 0.3,
+      "post_roll_sec": 0.45
+    },
+    "explanation": {
+      "pre_roll_sec": 0.25,
+      "post_roll_sec": 0.55
+    }
+  },
+  "session": {
+    "lead_in_sec": {
+      "session_intro": 0.6,
+      "session_content": 0.5,
+      "session_explain": 0.5,
+      "session_recap1": 0.5,
+      "session_recap2": 0.5,
+      "session_end": 0.6
+    },
+    "tail_hold_sec": {
+      "session_intro": 0.5,
+      "session_content": 0.6,
+      "session_explain": 0.7,
+      "session_recap1": 0.6,
+      "session_recap2": 0.8,
+      "session_end": 1
+    },
+    "between_sessions_sec": 0.8
+  },
+  "transition": {
+    "scene_crossfade_sec": 0.3,
+    "page_turn_pause_sec": 0.45,
+    "explanation_overlay_fade_sec": 0.2,
+    "note": "scene_crossfade_sec is budgeted inside the following poem pre-roll and is not added again to total duration."
+  },
+  "reveal": {
+    "content_line": "Reveal at event start, then wait poem pre-roll before speech.",
+    "explanation": "Reveal at explanation event start; hide after its post-roll.",
+    "page_turn": "Clear content zone, hold page_turn_pause_sec, then reveal new page slot 1."
+  },
+  "constraints": {
+    "minimum_event_sec": 0.5,
+    "audio_must_fit_inside_event": true,
+    "no_audio_overlap": true,
+    "frame_rate": 30,
+    "rounding": "Keep internal timestamps at millisecond precision; composer later snaps to video frames."
+  }
+}
