@@ -149,9 +149,24 @@ def ensure_ledger(path: Path) -> None:
         writer = csv.DictWriter(f, fieldnames=LEDGER_FIELDS)
         writer.writeheader()
         for row in old_rows:
-            writer.writerow(
-                {field: row.get(field, "") for field in LEDGER_FIELDS}
-            )
+            migrated = {
+                field: row.get(field, "")
+                for field in LEDGER_FIELDS
+            }
+            if (
+                not migrated["estimated_output_image_cost_usd"]
+                and row.get("estimated_output_cost_usd")
+            ):
+                migrated["estimated_output_image_cost_usd"] = row[
+                    "estimated_output_cost_usd"
+                ]
+            style_id = migrated.get("style_id", "")
+            if not migrated.get("style_key"):
+                if "_a_" in style_id.lower():
+                    migrated["style_key"] = "A"
+                elif "_b_" in style_id.lower():
+                    migrated["style_key"] = "B"
+            writer.writerow(migrated)
 
 
 def append_ledger(path: Path, row: dict[str, Any]) -> None:
