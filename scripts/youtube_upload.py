@@ -128,8 +128,19 @@ def build_metadata(
         )
     )
 
+    description_header = str(
+        config["upload"].get(
+            "description_header_template",
+            "{title}-{author}-{poem_type}",
+        )
+    ).format(
+        title=title,
+        author=author,
+        poem_type=poem_type,
+    )
+
     description = (
-        f"{title}-{author}-{poem_type}\n"
+        f"{description_header}\n"
         f"{content}\n\n"
         f"{tracking_url}"
     )
@@ -175,7 +186,12 @@ def build_metadata(
 
     status = {
         "privacyStatus": privacy,
-        "selfDeclaredMadeForKids": True,
+        "selfDeclaredMadeForKids": bool(
+            config["upload"].get(
+                "self_declared_made_for_kids",
+                True,
+            )
+        ),
     }
 
     return {
