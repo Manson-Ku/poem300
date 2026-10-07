@@ -5,9 +5,10 @@
   "token_path": "credentials/youtube_token.json",
   "scopes": [
     "https://www.googleapis.com/auth/youtube.readonly",
-    "https://www.googleapis.com/auth/youtube.upload"
+    "https://www.googleapis.com/auth/youtube.upload",
+    "https://www.googleapis.com/auth/youtube.force-ssl"
   ],
-  "note": "OAuth Desktop-app client JSON stays in .env. User token stays under credentials/ and is gitignored. Upload metadata is generated from data/poems.csv. Initial upload default is private, made-for-kids=true, notifySubscribers=false.",
+  "note": "OAuth Desktop-app client JSON stays in .env. User token stays under credentials/ and is gitignored. Upload metadata is generated from data/poems.csv. Uploads default to public, made-for-kids=true, notifySubscribers=false. Each uploaded poem is added to a recommended_age playlist such as 6歲建議. Thumbnail is left to YouTube automatic selection.",
   "upload": {
     "title_template": "唐詩三百首-注音版-{title}-{author}-KidMore啟蒙",
     "description_header_template": "{title}-{author}-{poem_type}",
@@ -22,8 +23,18 @@
       "兒童閱讀"
     ],
     "default_language": "zh-TW",
-    "default_privacy": "private",
+    "default_privacy": "public",
     "self_declared_made_for_kids": true,
     "notify_subscribers_default": false
+  },
+  "playlist": {
+    "enabled": true,
+    "title_template": "{recommended_age}歲建議",
+    "default_privacy": "public",
+    "create_if_missing": true,
+    "add_uploaded_video": true
+  },
+  "thumbnail": {
+    "mode": "youtube_auto"
   }
 }
