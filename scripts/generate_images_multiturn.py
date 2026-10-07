@@ -554,15 +554,21 @@ def fallback_must_not_show(
             items.append(
                 f"{future_id} 才發生的畫面核心：{focus}"
             )
-        else:
-            action = _text_value(
-                future.get("action")
-                or future.get("actions")
+
+        action = _text_value(
+            future.get("action")
+            or future.get("actions")
+        )
+        if action:
+            items.append(
+                f"{future_id} 才發生的動作：{action}"
             )
-            if action:
-                items.append(
-                    f"{future_id} 才發生的動作：{action}"
-                )
+
+        future_note = _text_value(future.get("note"))
+        if future_note:
+            items.append(
+                f"{future_id} 才適用的備註：{future_note}"
+            )
 
         for entity_id in _scene_entity_ids(future):
             if (
