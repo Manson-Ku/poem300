@@ -353,3 +353,38 @@ thumbnail=youtube_auto
 ```
 
 The first p225 private-upload POC remains a historical test artifact; this policy applies to subsequent uploads unless `--privacy` explicitly overrides the default.
+
+
+## Playlist propagation recovery
+
+A real public upload can complete before a newly created playlist or newly uploaded video is immediately visible to every `playlistItems` API endpoint.
+
+Observed production case:
+
+```text
+video upload: PASS
+privacy: public
+playlistItems.list: 404 playlistNotFound
+```
+
+The uploader now avoids the pre-insert `playlistItems.list` check and performs the idempotent playlist insert directly.
+
+For transient `playlistNotFound` or `videoNotFound` responses, it retries the playlist insert with bounded exponential delays.
+
+If YouTube reports `videoAlreadyInPlaylist`, the operation is treated as already complete.
+
+Most importantly, a failed post-upload playlist step no longer requires another video upload. Use the existing video ID:
+
+```powershell
+py scripts\youtube_upload.py --poem-id 226 --existing-video-id l5WYLemUnuQ
+```
+
+This command:
+
+1. verifies the existing YouTube video;
+2. resolves the `recommended_age` playlist;
+3. creates the playlist if still missing;
+4. adds the existing video with propagation retries;
+5. does not upload the MP4 again.
+
+This repair path should always be used after a successful video upload followed by a playlist-stage failure.
