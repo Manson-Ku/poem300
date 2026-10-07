@@ -68,6 +68,53 @@ This includes sensitive author/title/place-name readings such as:
 
 TTS QA is still auditory QA: after regeneration, the affected WAV files should be spot-checked by listening. The registry guarantees the intended reading instruction was supplied; it does not perform speech recognition on the output.
 
+## Deterministic TTS fallback for literary readings
+
+Gemini TTS did not reliably obey pronunciation-style instructions for two p217 literary readings:
+
+```text
+鹿柴  -> 柴 ㄓㄞˋ
+返景  -> 景 ㄧㄥˇ
+```
+
+For these two assets only, the TTS registry now separates:
+
+```text
+source_text     = canonical poem text
+synthesis_text  = pronunciation-only homophonic proxy sent to TTS
+```
+
+Current proxies:
+
+```text
+鹿柴
+  source_text    = 鹿柴
+  synthesis_text = 鹿寨
+
+返景入深林，復照青苔上。
+  source_text    = 返景入深林，復照青苔上。
+  synthesis_text = 返影入深林，復照青苔上。
+```
+
+The WAV asset still belongs to the canonical source text and all manifests/scene semantics remain unchanged. The proxy exists only at the TTS synthesis boundary.
+
+Regenerate only these p217 pronunciation-sensitive assets:
+
+```powershell
+py scripts\generate_tts_assets.py --poem-id 217 --types title poem --pronunciation-qa-only --dry-run
+py scripts\generate_tts_assets.py --poem-id 217 --types title poem --pronunciation-qa-only --force
+```
+
+The dry-run must show:
+
+```text
+proxy='鹿寨'
+proxy='返影入深林，復照青苔上。'
+```
+
+After generation, these two WAV files require human listening QA before video composition.
+
+
 ## Project font extensions
 
 The upstream bpmfvs font does not expose two literary readings required by p217:
