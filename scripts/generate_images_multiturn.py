@@ -19,6 +19,7 @@ import hashlib
 import io
 import json
 import os
+import shutil
 import sys
 import time
 import uuid
@@ -938,6 +939,35 @@ def output_paths(
     )
 
 
+
+def poc_output_path(
+    poem_id: int,
+    scene_no: int,
+    style_key: str,
+) -> Path:
+    return (
+        Path("assets")
+        / "poc"
+        / f"{poem_id:03d}_{style_key.upper()}_s{scene_no:02d}.webp"
+    )
+
+
+def copy_to_poc(
+    source_path: Path,
+    *,
+    poem_id: int,
+    scene_no: int,
+    style_key: str,
+) -> Path:
+    target = poc_output_path(
+        poem_id,
+        scene_no,
+        style_key,
+    )
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(source_path, target)
+    return target
+
 def read_meta(path: Path) -> dict[str, Any] | None:
     if not path.exists():
         return None
@@ -1080,6 +1110,12 @@ def generate_scene(
             base64.b64decode(image_b64),
             output_image,
         )
+        poc_image = copy_to_poc(
+            output_image,
+            poem_id=poem_id,
+            scene_no=scene_no,
+            style_key=style_key,
+        )
 
         usage = obj_get(interaction, "usage")
 
@@ -1155,6 +1191,7 @@ def generate_scene(
             ),
             "prompt_sha256": base["prompt_sha256"],
             "output_image": output_image.as_posix(),
+            "poc_image": poc_image.as_posix(),
             "generated_at_utc": datetime.now(
                 timezone.utc
             ).isoformat(),
@@ -1203,7 +1240,8 @@ def generate_scene(
             f"input={total_input_tokens} "
             f"image_tokens={output_image_tokens} "
             f"latency={latency_ms}ms "
-            f"est_usd={total_cost:.9f}"
+            f"est_usd={total_cost:.9f} "
+            f"poc={poc_image.as_posix()}"
         )
 
         return interaction_id, "generated", total_cost
@@ -1428,6 +1466,11 @@ def main() -> int:
                     int(scene["scene_no"]),
                     style["style_id"],
                 )
+                poc_path = poc_output_path(
+                    int(poem["poem_id"]),
+                    int(scene["scene_no"]),
+                    style["style_key"],
+                )
                 if image_path.exists() and meta_path.exists():
                     action = (
                         "OVERWRITE" if args.force else "SKIP"
@@ -1451,6 +1494,7 @@ def main() -> int:
                     f"{index}. {scene['scene_id']}: "
                     f"{prompt_mode} {action} -> "
                     f"{image_path.as_posix()} "
+                    f"poc={poc_path.as_posix()} "
                     f"prompt={prompt_hash}"
                 )
         return 0
