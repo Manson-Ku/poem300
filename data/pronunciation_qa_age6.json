@@ -162,7 +162,7 @@
     }
   ],
   "font_gaps": [],
-  "qa_status": "requires_local_project_font_verification",
+  "qa_status": "requires_local_project_font_alias_verification_and_human_tts_listening",
   "font_extensions_required": [
     {
       "poem_id": 217,
@@ -186,5 +186,6 @@
       "extension_spec": "data/bpmf_font_extensions.json",
       "expected_font": "fonts/BpmfHuninn-Poem300-Regular.ttf"
     }
-  ]
+  ],
+  "raster_override_mode": "project_font_pua_alias"
 }
