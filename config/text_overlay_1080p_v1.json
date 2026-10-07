@@ -1,5 +1,5 @@
 {
-  "version": "text_overlay_1080p_v1",
+  "version": "text_overlay_1080p_v2",
   "canvas": {
     "width": 1920,
     "height": 1080
@@ -7,6 +7,7 @@
   "raster_scale": 2,
   "font": {
     "source": "local_only",
+    "default_path": "fonts/BpmfHuninn-Regular.ttf",
     "path_env": "BPMF_FONT_PATH",
     "git_policy": "fonts/ and font binaries must stay untracked",
     "ivs_spec": "ButTaiwan/bpmfvs",
@@ -23,91 +24,143 @@
   "zones": {
     "title": {
       "x": 120,
-      "y": 48,
+      "y": 44,
       "width": 1680,
-      "height": 120,
-      "align": "center"
-    },
-    "meta": {
-      "x": 120,
-      "y": 174,
-      "width": 1680,
-      "height": 62,
+      "height": 118,
       "align": "center",
-      "layout": "author_then_poem_type",
-      "gap": 48
+      "persistence": "whole_video"
+    },
+    "author": {
+      "x": 120,
+      "y": 164,
+      "width": 1680,
+      "height": 58,
+      "align": "center",
+      "persistence": "whole_video"
+    },
+    "poem_type": {
+      "x": 120,
+      "y": 218,
+      "width": 1680,
+      "height": 42,
+      "align": "center",
+      "persistence": "intro_end_only"
     },
     "content": {
       "x": 160,
-      "y": 260,
+      "y": 286,
       "width": 1600,
-      "height": 560,
-      "align": "center"
+      "height": 500,
+      "align": "center",
+      "page_capacity": 4,
+      "page_policy": "fixed_slots_then_region_page_turn",
+      "reveal_policy": "progressive_accumulate_within_page",
+      "reset_policy": "clear_content_zone_on_page_turn",
+      "slots": [
+        {
+          "slot": 1,
+          "center_y": 340
+        },
+        {
+          "slot": 2,
+          "center_y": 462
+        },
+        {
+          "slot": 3,
+          "center_y": 584
+        },
+        {
+          "slot": 4,
+          "center_y": 706
+        }
+      ]
     },
     "explanation": {
       "x": 180,
-      "y": 870,
+      "y": 844,
       "width": 1560,
-      "height": 120,
-      "align": "center"
+      "height": 128,
+      "align": "center",
+      "persistence": "active_scene_only"
     }
   },
   "typography": {
     "title": {
-      "font_px_max": 108,
-      "font_px_min": 36,
+      "candidate_font_px": [
+        108,
+        96,
+        84,
+        72,
+        60,
+        48,
+        36
+      ],
       "single_line": true,
-      "fit": "shrink_to_width"
+      "fit": "largest_discrete_size_that_fits_width"
     },
     "author": {
-      "font_px_max": 42,
-      "font_px_min": 32,
+      "candidate_font_px": [
+        48,
+        44,
+        40,
+        36,
+        32
+      ],
       "single_line": true,
-      "fit": "shrink_to_width"
+      "fit": "largest_discrete_size_that_fits_width"
     },
     "poem_type": {
-      "font_px_max": 42,
-      "font_px_min": 32,
+      "candidate_font_px": [
+        34,
+        30,
+        28,
+        26
+      ],
       "single_line": true,
-      "fit": "shrink_to_width"
+      "fit": "largest_discrete_size_that_fits_width"
     },
     "content": {
-      "single_line_per_asset": true,
-      "max_lines_per_page": 8,
-      "tiers": [
-        {
-          "min_lines": 1,
-          "max_lines": 4,
-          "target_font_px": 96,
-          "min_font_px": 72,
-          "line_gap_px": 18
-        },
-        {
-          "min_lines": 5,
-          "max_lines": 6,
-          "target_font_px": 78,
-          "min_font_px": 60,
-          "line_gap_px": 14
-        },
-        {
-          "min_lines": 7,
-          "max_lines": 8,
-          "target_font_px": 60,
-          "min_font_px": 50,
-          "line_gap_px": 10
-        }
+      "candidate_font_px": [
+        96,
+        92,
+        88,
+        84,
+        80,
+        76,
+        72
       ],
-      "fit": "measure_actual_font_then_shrink_to_width",
-      "overflow_policy": "qa_fail_if_single_line_cannot_fit_at_tier_min",
-      "page_policy": "paginate_when_poem_has_more_than_8_lines"
+      "single_line_per_asset": true,
+      "size_scope": "one_content_page",
+      "size_rule": "choose_one_size_for_all_nonblank_lines_on_page_using_longest_measured_glyph_bbox",
+      "fit": "largest_discrete_size_that_fits_width",
+      "overflow_policy": "qa_fail_if_page_lines_cannot_fit_at_72px",
+      "total_poem_line_count_must_not_reduce_font_size": true
     },
     "explanation": {
-      "font_px_max": 42,
-      "font_px_min": 24,
+      "candidate_font_px": [
+        42,
+        38,
+        34,
+        30,
+        28,
+        26,
+        24
+      ],
       "single_line": true,
-      "mode": "active_scene_only",
-      "fit": "measure_actual_font_then_shrink_to_width"
+      "fit": "largest_discrete_size_that_fits_width",
+      "mode": "active_scene_only"
     }
+  },
+  "page_logic": {
+    "content_page_capacity": 4,
+    "blank_scene_policy": "separator_and_force_page_turn_if_current_page_has_content",
+    "line_assignment": "sequential_nonblank_scene_order_with_blank_scene_preserved_in_manifest",
+    "progressive_behavior": [
+      "scene enters its fixed slot",
+      "previous lines on same page remain visible",
+      "no existing line changes position after reveal",
+      "next page clears content zone before first line appears"
+    ]
   },
   "appearance": {
     "title_content": {
