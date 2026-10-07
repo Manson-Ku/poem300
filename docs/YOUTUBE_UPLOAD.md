@@ -117,17 +117,25 @@ If the Google Cloud OAuth app is still in Testing mode, make sure the Google acc
 
 A browser warning for an unverified testing app is an OAuth-console configuration issue, not a YouTube API connection failure.
 
-## Next stage
+## Current production status
 
-After this connection test passes, the next implementation is the actual resumable YouTube upload command.
+The YouTube connection, resumable upload, public publication defaults, made-for-kids flag, age-playlist routing, propagation recovery and channel-aware batch reconciliation are all implemented.
 
-The upload stage will consume an already-rendered MP4 such as:
+Age 6 has completed the full YouTube production cycle. The first private upload remains documented below as historical POC evidence; it is not the current default behavior.
 
-```text
-assets/p225/video/p225_B_1080p.mp4
-```
+Current production uploader:
 
-and will initially default to a safe non-public upload status until metadata / thumbnail / playlist behavior has been verified.
+~~~text
+scripts/youtube_upload.py
+~~~
+
+Current batch/reconciliation layer:
+
+~~~text
+scripts/youtube_upload_batch.py
+docs/YOUTUBE_BATCH_UPLOAD.md
+~~~
+
 
 ## Upload metadata contract
 
@@ -182,16 +190,19 @@ status.selfDeclaredMadeForKids = true
 兒童閱讀
 ```
 
-### Test privacy
+### Publication default
 
-The first upload workflow defaults to:
+Current production default:
 
-```text
-privacyStatus = private
+~~~text
+privacyStatus = public
 notifySubscribers = false
-```
+selfDeclaredMadeForKids = true
+thumbnail = YouTube automatic
+~~~
 
-This is an operational test safeguard and is separate from the made-for-kids audience setting.
+The original p225 private upload below is retained only as historical POC evidence.
+
 
 ## Dry-run metadata check
 
@@ -388,3 +399,22 @@ This command:
 5. does not upload the MP4 again.
 
 This repair path should always be used after a successful video upload followed by a playlist-stage failure.
+
+
+## Age 6 batch completion
+
+Final channel-aware batch result:
+
+~~~text
+already_uploaded=2
+existing_postchecked=2
+existing_post_failed=0
+uploaded_now=23
+failed=0
+waiting_local=0
+PASS
+~~~
+
+This establishes 25/25 Age 6 channel completeness and closes the first full production delivery cycle.
+
+Future age groups should reuse the same uploader and reconciliation behavior rather than introducing a separate publication path.
