@@ -718,7 +718,36 @@ def main() -> int:
             "Generate independent Scene illustrations from one shared poem world."
         )
     )
-    parser.add_argument("--poem-id", type=int, required=True)
+    selector = parser.add_mutually_exclusive_group(required=True)
+    selector.add_argument(
+        "--poem-id",
+        type=int,
+        help="Generate one poem only.",
+    )
+    selector.add_argument(
+        "--age",
+        type=int,
+        choices=(6, 7, 8, 9),
+        help="Batch-select poems by recommended_age.",
+    )
+    parser.add_argument(
+        "--approved-only",
+        action="store_true",
+        help=(
+            "When batch-selecting by --age, include only poems whose "
+            "visual_plan_status is approved."
+        ),
+    )
+    parser.add_argument(
+        "--start-poem-id",
+        type=int,
+        help="Optional lower poem_id bound for batch selection.",
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        help="Optional maximum number of poems after filtering.",
+    )
     parser.add_argument(
         "--styles",
         default="A,B",
@@ -727,7 +756,10 @@ def main() -> int:
     parser.add_argument(
         "--scene-ids",
         default="",
-        help="Optional comma-separated full scene IDs.",
+        help=(
+            "Optional comma-separated full scene IDs. Intended mainly "
+            "for single-poem tests."
+        ),
     )
     parser.add_argument("--poems", default="data/poems.csv")
     parser.add_argument("--scenes", default="data/scenes.csv")
@@ -755,54 +787,47 @@ def main() -> int:
     )
     args = parser.parse_args()
 
+    if args.limit is not None and args.limit <= 0:
+        parser.error("--limit must be > 0")
+
     poems = read_csv(Path(args.poems))
     scenes = read_csv(Path(args.scenes))
 
-    poem = next(
-        (
+    if args.poem_id is not None:
+        selected_poems = [
             row for row in poems
             if int(row["poem_id"]) == args.poem_id
-        ),
-        None,
-    )
-    if poem is None:
-        print(
-            f"ERROR: poem_id={args.poem_id} not found",
-            file=sys.stderr,
-        )
-        return 2
+        ]
+        if not selected_poems:
+            print(
+                f"ERROR: poem_id={args.poem_id} not found",
+                file=sys.stderr,
+            )
+            return 2
+    else:
+        selected_poems = [
+            row for row in poems
+            if int(row["recommended_age"]) == args.age
+        ]
+        if args.approved_only:
+            selected_poems = [
+                row for row in selected_poems
+                if (row.get("visual_plan_status") or "").strip().lower()
+                == "approved"
+            ]
+        if args.start_poem_id is not None:
+            selected_poems = [
+                row for row in selected_poems
+                if int(row["poem_id"]) >= args.start_poem_id
+            ]
 
-    raw_plan = (poem.get("visual_plan_json") or "").strip()
-    if not raw_plan:
-        print(
-            "ERROR: selected poem has no visual_plan_json",
-            file=sys.stderr,
-        )
-        return 2
-    plan = json.loads(raw_plan)
+    selected_poems.sort(key=lambda row: int(row["poem_id"]))
 
-    poem_scenes = [
-        row for row in scenes
-        if int(row["poem_id"]) == args.poem_id
-    ]
-    poem_scenes.sort(key=lambda row: int(row["scene_no"]))
+    if args.limit is not None:
+        selected_poems = selected_poems[: args.limit]
 
-    plan_scene_ids = [
-        item.get("id") or item.get("scene_id")
-        for item in plan.get("scenes", [])
-        if isinstance(item, dict)
-    ]
-    source_scene_ids = [
-        row["scene_id"] for row in poem_scenes
-    ]
-    if plan_scene_ids != source_scene_ids:
-        print(
-            "ERROR: visual_plan_json Scene IDs/order do not match "
-            "data/scenes.csv physical-line Scenes.",
-            file=sys.stderr,
-        )
-        print(f"plan={plan_scene_ids}", file=sys.stderr)
-        print(f"source={source_scene_ids}", file=sys.stderr)
+    if not selected_poems:
+        print("ERROR: no poems matched selection", file=sys.stderr)
         return 2
 
     requested_scene_ids = {
@@ -810,8 +835,81 @@ def main() -> int:
         for item in args.scene_ids.split(",")
         if item.strip()
     }
+
+    style_keys = [
+        item.strip().upper()
+        for item in args.styles.split(",")
+        if item.strip()
+    ]
+    if not style_keys:
+        parser.error("--styles must contain at least one style key")
+
+    styles = [
+        resolve_style(key, Path(args.registry))
+        for key in style_keys
+    ]
+
+    work_items: list[
+        tuple[dict[str, str], dict[str, Any], list[dict[str, str]]]
+    ] = []
+    all_source_scene_ids: set[str] = set()
+
+    # Validate every selected poem before any API request is allowed.
+    for poem in selected_poems:
+        raw_plan = (poem.get("visual_plan_json") or "").strip()
+        if not raw_plan:
+            print(
+                f"ERROR: poem_id={poem['poem_id']} "
+                "has no visual_plan_json",
+                file=sys.stderr,
+            )
+            return 2
+
+        try:
+            plan = json.loads(raw_plan)
+        except json.JSONDecodeError as exc:
+            print(
+                f"ERROR: poem_id={poem['poem_id']} "
+                f"invalid visual_plan_json: {exc}",
+                file=sys.stderr,
+            )
+            return 2
+
+        poem_scenes = [
+            row for row in scenes
+            if row["poem_id"] == poem["poem_id"]
+        ]
+        poem_scenes.sort(key=lambda row: int(row["scene_no"]))
+
+        plan_scene_ids = [
+            item.get("id") or item.get("scene_id")
+            for item in plan.get("scenes", [])
+            if isinstance(item, dict)
+        ]
+        source_scene_ids = [
+            row["scene_id"] for row in poem_scenes
+        ]
+
+        if plan_scene_ids != source_scene_ids:
+            print(
+                "ERROR: visual_plan_json Scene IDs/order do not match "
+                "data/scenes.csv physical-line Scenes.",
+                file=sys.stderr,
+            )
+            print(
+                f"poem_id={poem['poem_id']} "
+                f"title={poem['title']}",
+                file=sys.stderr,
+            )
+            print(f"plan={plan_scene_ids}", file=sys.stderr)
+            print(f"source={source_scene_ids}", file=sys.stderr)
+            return 2
+
+        all_source_scene_ids.update(source_scene_ids)
+        work_items.append((poem, plan, poem_scenes))
+
     if requested_scene_ids:
-        unknown = requested_scene_ids - set(source_scene_ids)
+        unknown = requested_scene_ids - all_source_scene_ids
         if unknown:
             print(
                 "ERROR: unknown scene IDs: "
@@ -819,36 +917,47 @@ def main() -> int:
                 file=sys.stderr,
             )
             return 2
-        poem_scenes = [
-            row for row in poem_scenes
-            if row["scene_id"] in requested_scene_ids
-        ]
 
-    style_keys = [
-        item.strip().upper()
-        for item in args.styles.split(",")
-        if item.strip()
-    ]
-    styles = [
-        resolve_style(key, Path(args.registry))
-        for key in style_keys
-    ]
+        filtered_items = []
+        for poem, plan, poem_scenes in work_items:
+            selected_scenes = [
+                row for row in poem_scenes
+                if row["scene_id"] in requested_scene_ids
+            ]
+            if selected_scenes:
+                filtered_items.append(
+                    (poem, plan, selected_scenes)
+                )
+        work_items = filtered_items
+
+    selected_scene_count = sum(
+        len(poem_scenes)
+        for _, _, poem_scenes in work_items
+    )
+    planned_images = selected_scene_count * len(styles)
 
     print("architecture=poem_world_independent_scene_v1")
     print(f"model={args.model}")
+    if args.poem_id is not None:
+        print(f"selection=poem_id:{args.poem_id}")
+    else:
+        status_text = "approved" if args.approved_only else "any"
+        print(
+            f"selection=age:{args.age} "
+            f"visual_plan_status:{status_text}"
+        )
+    print(f"poem_count={len(work_items)}")
+    print(f"scene_count={selected_scene_count}")
     print(
-        f"poem_id={poem['poem_id']} "
-        f"title={poem['title']}"
+        f"planned_images={planned_images} "
+        f"({selected_scene_count} scenes x {len(styles)} styles)"
     )
-    print(f"world={visual_world(poem, plan)}")
     print(
-        "scenes="
-        + ",".join(row["scene_id"] for row in poem_scenes)
-    )
-    print(f"scene_count={len(poem_scenes)}")
-    print(
-        f"planned_images={len(poem_scenes) * len(styles)} "
-        f"({len(poem_scenes)} scenes x {len(styles)} styles)"
+        "poem_ids="
+        + ",".join(
+            poem["poem_id"]
+            for poem, _, _ in work_items
+        )
     )
     print(
         "styles="
@@ -861,45 +970,57 @@ def main() -> int:
     print(f"force={args.force} dry_run={args.dry_run}")
 
     if args.dry_run:
-        for style in styles:
+        for poem, plan, poem_scenes in work_items:
             print(
-                f"\n=== Style {style['style_key']} / "
-                f"{style['style_id']} ==="
+                f"\n=== Poem {poem['poem_id']} "
+                f"{poem['title']} ==="
             )
-            for scene in poem_scenes:
-                scene_no = int(scene["scene_no"])
-                image_path, meta_path = output_paths(
-                    int(poem["poem_id"]),
-                    scene_no,
-                    style["style_id"],
-                )
-                poc_path = poc_output_path(
-                    int(poem["poem_id"]),
-                    scene_no,
-                    style["style_key"],
-                )
-                scene_plan = find_scene_plan(
-                    plan,
-                    scene["scene_id"],
-                )
-                if image_path.exists():
-                    action = "OVERWRITE" if args.force else "SKIP"
-                else:
-                    action = "GENERATE"
-                prompt = build_prompt(
-                    poem,
-                    scene,
-                    plan,
-                    style,
-                )
+            print(f"world={visual_world(poem, plan)}")
+            for style in styles:
                 print(
-                    f"{scene['scene_id']} {style['style_key']}: "
-                    f"{action} line={scene['original_line']} "
-                    f"focus={scene_plan.get('focus') or scene_plan.get('visual_focus', '')} "
-                    f"prompt={hashlib.sha256(prompt.encode('utf-8')).hexdigest()[:12]} "
-                    f"output={image_path.as_posix()} "
-                    f"poc={poc_path.as_posix()}"
+                    f"-- Style {style['style_key']} / "
+                    f"{style['style_id']} --"
                 )
+                for scene in poem_scenes:
+                    scene_no = int(scene["scene_no"])
+                    image_path, _ = output_paths(
+                        int(poem["poem_id"]),
+                        scene_no,
+                        style["style_id"],
+                    )
+                    poc_path = poc_output_path(
+                        int(poem["poem_id"]),
+                        scene_no,
+                        style["style_key"],
+                    )
+                    scene_plan = find_scene_plan(
+                        plan,
+                        scene["scene_id"],
+                    )
+                    if image_path.exists():
+                        action = (
+                            "OVERWRITE" if args.force else "SKIP"
+                        )
+                    else:
+                        action = "GENERATE"
+                    prompt = build_prompt(
+                        poem,
+                        scene,
+                        plan,
+                        style,
+                    )
+                    print(
+                        f"{scene['scene_id']} "
+                        f"{style['style_key']}: "
+                        f"{action} "
+                        f"line={scene['original_line']} "
+                        f"focus="
+                        f"{scene_plan.get('focus') or scene_plan.get('visual_focus', '')} "
+                        f"prompt="
+                        f"{hashlib.sha256(prompt.encode('utf-8')).hexdigest()[:12]} "
+                        f"output={image_path.as_posix()} "
+                        f"poc={poc_path.as_posix()}"
+                    )
         return 0
 
     api_key = os.environ.get("GEMINI_API_KEY", "").strip()
@@ -925,39 +1046,46 @@ def main() -> int:
     failed = 0
     total_cost = 0.0
 
-    for style in styles:
+    for poem, plan, poem_scenes in work_items:
         print(
-            f"\n=== Style {style['style_key']} / "
-            f"{style['style_id']} ==="
+            f"\n=== Poem {poem['poem_id']} "
+            f"{poem['title']} ==="
         )
-        for scene in poem_scenes:
-            try:
-                status, cost = generate_scene(
-                    client,
-                    poem=poem,
-                    scene=scene,
-                    plan=plan,
-                    style=style,
-                    model=args.model,
-                    ledger=ledger,
-                    run_id=run_id,
-                    force=args.force,
-                )
-                total_cost += cost
-                if status == "generated":
-                    generated += 1
-                else:
-                    skipped += 1
-            except Exception as exc:
-                failed += 1
-                print(
-                    f"{scene['scene_id']} "
-                    f"{style['style_key']}: FAILED "
-                    f"{type(exc).__name__}: {exc}",
-                    file=sys.stderr,
-                )
+        for style in styles:
+            print(
+                f"-- Style {style['style_key']} / "
+                f"{style['style_id']} --"
+            )
+            for scene in poem_scenes:
+                try:
+                    status, cost = generate_scene(
+                        client,
+                        poem=poem,
+                        scene=scene,
+                        plan=plan,
+                        style=style,
+                        model=args.model,
+                        ledger=ledger,
+                        run_id=run_id,
+                        force=args.force,
+                    )
+                    total_cost += cost
+                    if status == "generated":
+                        generated += 1
+                    else:
+                        skipped += 1
+                except Exception as exc:
+                    failed += 1
+                    print(
+                        f"{scene['scene_id']} "
+                        f"{style['style_key']}: FAILED "
+                        f"{type(exc).__name__}: {exc}",
+                        file=sys.stderr,
+                    )
 
     print("\nSummary")
+    print(f"poems={len(work_items)}")
+    print(f"scenes={selected_scene_count}")
     print(f"generated={generated}")
     print(f"skipped_existing={skipped}")
     print(f"failed={failed}")
