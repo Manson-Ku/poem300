@@ -315,7 +315,7 @@ After the hard-cut assembly POC passed, the composer now uses:
 scene background crossfade      0.30s
 new content line fade-in        0.15s
 explanation fade-in / fade-out  0.20s / 0.20s
-background slow zoom            1.00 <-> 1.03
+background centered zoom        1.00 <-> 1.015
 ```
 
 SSOT:
@@ -328,9 +328,12 @@ Important contract:
 
 - Motion does not add time to the timeline.
 - Scene crossfade is consumed inside the already reserved transition/pre-roll budget.
-- Slow zoom is applied to the background only.
-- Title, author, poem content and explanation remain fixed in display-space coordinates.
+- Background motion is centered zoom only; no pan or drift is allowed.
+- Zoom range is intentionally small: 1.000 <-> 1.015.
 - Zoom direction alternates by consecutive same-background run.
+- FFmpeg zoompan runs on a 2x intermediate canvas to reduce integer-coordinate jitter.
+- The outgoing side of a scene crossfade preserves the previous segment's final zoom state, avoiding a snap back to 1.000 before the fade.
+- Title, author, poem content and explanation remain fixed in display-space coordinates.
 - A newly revealed poem line fades in by itself; previously revealed lines do not pulse or refade.
 - Explanation uses an independent fade layer and disappears by the end of its own event.
 
