@@ -129,8 +129,8 @@ v1 policy:
 
 ```text
 narration gain      0 dB (untouched)
-BGM loudness target -32 LUFS
-BGM true-peak target -6 dB
+BGM loudness target -35 LUFS
+BGM true-peak target -9 dB
 BGM LRA target       7 LU
 default poem trim    0 dB
 fade in              1.2 s
@@ -146,7 +146,7 @@ For every render the selected BGM is:
 local BGM
   -> loop if needed
   -> trim to video duration
-  -> loudness normalize to -32 LUFS
+  -> loudness normalize to -35 LUFS
   -> apply optional poem gain_db
   -> fade in/out
   -> mix under narration
@@ -188,3 +188,17 @@ event segments
 ```
 
 The video stream is copied during the BGM mix step, so adding BGM does not re-encode the already-rendered picture.
+
+
+## Listening QA adjustment
+
+After the first p226 BGM render, the default music bed was judged slightly too loud relative to narration.
+
+The global BGM baseline is now about 3 dB lower:
+
+```text
+integrated loudness  -32 -> -35 LUFS
+true-peak ceiling     -6 ->  -9 dB
+```
+
+A 3 dB reduction is approximately a 30% reduction in linear amplitude. Per-poem `gain_db` remains available for small artistic adjustments.
