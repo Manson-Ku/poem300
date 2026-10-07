@@ -394,6 +394,20 @@ def main() -> int:
                 f"expected={expected!r} actual={actual!r}"
             )
 
+        synthesis_text = item.get("synthesis_text")
+        if synthesis_text is not None:
+            synthesis_text = str(synthesis_text)
+            if not synthesis_text.strip():
+                errors.append(
+                    f"TTS override {key}: synthesis_text is empty"
+                )
+            if len(synthesis_text) != len(actual):
+                errors.append(
+                    f"TTS override {key}: synthesis_text length "
+                    f"{len(synthesis_text)} != source_text length "
+                    f"{len(actual)}"
+                )
+
         for pronunciation in item.get(
             "pronunciations",
             [],
@@ -419,6 +433,15 @@ def main() -> int:
         f"bopomofo_overrides={len(bop.get('items', []))}"
     )
     print(f"tts_override_assets={len(tts.get('items', []))}")
+    print(
+        "tts_synthesis_proxy_assets="
+        + str(
+            sum(
+                bool(item.get("synthesis_text"))
+                for item in tts.get("items", [])
+            )
+        )
+    )
     print(f"font_extensions_required={extension_count}")
     print(f"font_extensions_verified={verified_extensions}")
     print(f"font_gaps={len(legacy_font_gaps)}")
