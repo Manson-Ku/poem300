@@ -2,6 +2,25 @@
 
 唐詩三百首兒童內容、分鏡、產圖與影片生成資料專案。
 
+## 目前狀態
+
+截至 2026-10-07：
+
+~~~text
+Age 6  COMPLETE  25 poems / 54 scenes / 25 channel videos
+Age 7  NEXT      50 poems / 127 scenes / visual plans still draft
+Age 8  PENDING  100 poems / 395 scenes / visual plans still draft
+Age 9  PENDING  138 poems / 1,050 scenes / visual plans still draft
+~~~
+
+Age 6 已完成從資料、資源生成、影片組裝到 YouTube batch upload 的完整 production cycle。
+
+完整開發狀態、production baseline、Definition of Done 與下一階段規劃：
+
+~~~text
+docs/DEVELOPMENT_STATUS.md
+~~~
+
 ## 專案定位
 
 本 Repo 以資料驅動方式管理：
@@ -132,23 +151,22 @@ poem300/
 
 ## 下一步
 
-第一個 POC 建議先選熱門短詩，例如：
+下一個 production phase 是 Age 7。
 
-- 春曉
-- 靜夜思
-- 登鸛雀樓
-- 相思
-- 鹿柴
+Age 7 目前：
 
-先驗證：
+~~~text
+poems            50
+approved          0
+draft            50
+scenes          127
+~~~
 
-1. 統一畫風
-2. Scene prompt
-3. 背景插圖
-4. 注音透明 PNG
-5. TTS
-6. FFmpeg 動態化
-7. YouTube-ready MP4
+因此先做 Age 7 inventory / visual-plan approval / pronunciation QA / image-style generalization，再依序產 TTS、文字、圖片、timeline、MP4，最後走 YouTube batch reconciliation。
+
+Age 6 不再視為 POC；其 pipeline 已是後續 7 / 8 / 9 歲的 production baseline。除非 Age 7 出現真正的跨 age contract gap，後續優先複用既有流程而不是重做架構。
+
+詳見：`docs/DEVELOPMENT_STATUS.md`。
 
 
 ## Production TTS
@@ -419,21 +437,34 @@ The local refreshable user token is stored under `credentials/youtube_token.json
 Full workflow: `docs/YOUTUBE_UPLOAD.md`.
 
 
-### First YouTube upload test
+### YouTube upload milestone
 
-Preview p225 metadata without uploading:
+Age 6 的 YouTube pipeline 已完成 production 驗證。
 
-```powershell
-py scripts\youtube_upload.py --poem-id 225 --style B --dry-run
-```
+歷史里程碑：
 
-Private upload test:
+- p225〈春曉〉：第一支 private OAuth / resumable-upload POC，PASS。
+- p226〈夜思〉：第一支 public production upload；曾遇 playlist propagation 404，existing-video repair path 已 PASS。
+- Age 6 final batch：25/25 channel completeness。
 
-```powershell
-py scripts\youtube_upload.py --poem-id 225 --style B
-```
+最終 batch：
 
-The uploader generates title / description / UTM / tags from the poem record, sets `selfDeclaredMadeForKids=true`, and defaults to private with subscriber notifications disabled.
+~~~text
+already_uploaded=2
+existing_postchecked=2
+existing_post_failed=0
+uploaded_now=23
+failed=0
+waiting_local=0
+PASS
+~~~
+
+完整紀錄見：
+
+~~~text
+docs/YOUTUBE_UPLOAD.md
+docs/YOUTUBE_BATCH_UPLOAD.md
+~~~
 
 
 ### YouTube production defaults
@@ -495,3 +526,28 @@ py scripts\render_video_batch.py --age 6 --style B --preflight-only
 The runner first validates every remaining poem; if any asset/timeline/composer preflight fails, it stops before starting expensive MP4 rendering.
 
 Full contract: `docs/VIDEO_BATCH.md`.
+
+
+## YouTube batch upload
+
+Channel-aware batch uploader：
+
+~~~text
+scripts/youtube_upload_batch.py
+~~~
+
+先盤點、不上傳：
+
+~~~powershell
+py scripts\youtube_upload_batch.py --age 7 --style B --dry-run
+~~~
+
+正式 loop：
+
+~~~powershell
+py scripts\youtube_upload_batch.py --age 7 --style B
+~~~
+
+YouTube channel 是 runtime uploaded-state SSOT。已存在的影片不重傳；只做 idempotent playlist postcheck。未完成本機 MP4 會標成 WAIT_LOCAL；重跑同一命令即可 resume。
+
+完整規格：`docs/YOUTUBE_BATCH_UPLOAD.md`。
