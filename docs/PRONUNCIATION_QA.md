@@ -44,7 +44,7 @@ These are encoded in `data/bopomofo_overrides.json` and are applied by `render_t
 After pulling these overrides, rerender the age-6 text assets with:
 
 ```powershell
-py scripts\render_text_overlays.py --age 6 --approved-only --font-path fonts\BpmfHuninn-Regular.ttf --force
+py scripts\render_text_overlays.py --age 6 --approved-only --font-path fonts\BpmfHuninn-Poem300-Regular.ttf --force
 ```
 
 ## TTS-sensitive readings
