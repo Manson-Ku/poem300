@@ -317,6 +317,366 @@ def scene_plan_text(
     return "\n".join(parts)
 
 
+def _text_value(value: Any) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, (list, tuple)):
+        return "、".join(
+            part for part in (_text_value(item) for item in value)
+            if part
+        )
+    if isinstance(value, dict):
+        parts = []
+        for key, item in value.items():
+            text = _text_value(item)
+            if text:
+                parts.append(f"{key}：{text}")
+        return "；".join(parts)
+    return str(value).strip()
+
+
+def _directive_lines(value: Any) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, (list, tuple)):
+        lines: list[str] = []
+        for item in value:
+            lines.extend(_directive_lines(item))
+        return lines
+    if isinstance(value, dict):
+        lines = []
+        for key, item in value.items():
+            if isinstance(item, (list, tuple, dict)):
+                for text in _directive_lines(item):
+                    lines.append(f"{key}：{text}")
+            else:
+                text = _text_value(item)
+                if text:
+                    lines.append(f"{key}：{text}")
+        return lines
+    text = _text_value(value)
+    return [text] if text else []
+
+
+def _unique_lines(items: list[str]) -> list[str]:
+    result: list[str] = []
+    seen: set[str] = set()
+    for item in items:
+        text = str(item).strip()
+        if text and text not in seen:
+            seen.add(text)
+            result.append(text)
+    return result
+
+
+def _scene_entity_ids(scene_plan: dict[str, Any]) -> list[str]:
+    refs = (
+        scene_plan.get("entities")
+        or scene_plan.get("entity_states")
+        or []
+    )
+    result: list[str] = []
+    if not isinstance(refs, list):
+        return result
+    for ref in refs:
+        if isinstance(ref, str) and ref.strip():
+            result.append(ref.strip())
+        elif isinstance(ref, dict) and ref.get("id"):
+            result.append(str(ref["id"]).strip())
+    return result
+
+
+def _entity_map(plan: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    return {
+        str(item["id"]): item
+        for item in plan.get("entities", [])
+        if isinstance(item, dict) and item.get("id")
+    }
+
+
+def _entity_text(
+    plan: dict[str, Any],
+    entity_id: str,
+) -> str:
+    item = _entity_map(plan).get(entity_id)
+    if not item:
+        return entity_id
+
+    label = item.get("label") or entity_id
+    detail = item.get("detail")
+    if detail:
+        return f"{label}：{detail}"
+    return str(label)
+
+
+def recurring_visual_objects(plan: dict[str, Any]) -> str:
+    """Only expose cross-Scene anchors, never future-only entities."""
+    counts: dict[str, int] = {}
+    for scene_plan in plan.get("scenes", []):
+        if not isinstance(scene_plan, dict):
+            continue
+        for entity_id in set(_scene_entity_ids(scene_plan)):
+            counts[entity_id] = counts.get(entity_id, 0) + 1
+
+    continuity = plan.get("continuity") or {}
+    explicit = continuity.get("recurring_entities") or []
+    recurring_ids = {
+        str(item)
+        for item in explicit
+        if str(item).strip()
+    }
+    recurring_ids.update(
+        entity_id
+        for entity_id, count in counts.items()
+        if count > 1
+    )
+
+    entities = _entity_map(plan)
+    ordered_ids = [
+        str(item.get("id"))
+        for item in plan.get("entities", [])
+        if isinstance(item, dict)
+        and item.get("id")
+        and str(item.get("id")) in recurring_ids
+    ]
+
+    lines = []
+    for entity_id in ordered_ids:
+        item = entities[entity_id]
+        label = item.get("label") or entity_id
+        detail = item.get("detail")
+        line = f"- {label}"
+        if detail:
+            line += f"：{detail}"
+        lines.append(line)
+
+    return "\n".join(lines)
+
+
+def fallback_must_show(
+    plan: dict[str, Any],
+    scene_plan: dict[str, Any],
+) -> list[str]:
+    items: list[str] = []
+    for key, label in (
+        ("setting", "場景"),
+        ("time", "時間"),
+        ("weather", "天候"),
+        ("mood", "情緒"),
+        ("focus", "畫面核心"),
+        ("visual_focus", "畫面核心"),
+        ("action", "動作"),
+        ("actions", "動作"),
+    ):
+        text = _text_value(scene_plan.get(key))
+        if text:
+            items.append(f"{label}：{text}")
+
+    for entity_id in _scene_entity_ids(scene_plan):
+        items.append(
+            "本幕既定元素：" + _entity_text(plan, entity_id)
+        )
+
+    return _unique_lines(items)
+
+
+def fallback_scene_delta(
+    plan: dict[str, Any],
+    scene_plan: dict[str, Any],
+    previous_scene_plan: dict[str, Any] | None,
+) -> list[str]:
+    if previous_scene_plan is None:
+        return []
+
+    items: list[str] = []
+    for key, label in (
+        ("setting", "場景"),
+        ("time", "時間"),
+        ("weather", "天候"),
+        ("mood", "情緒"),
+        ("focus", "畫面核心"),
+        ("visual_focus", "畫面核心"),
+        ("action", "動作"),
+        ("actions", "動作"),
+    ):
+        current = _text_value(scene_plan.get(key))
+        previous = _text_value(previous_scene_plan.get(key))
+        if current and current != previous:
+            items.append(f"{label}：{current}")
+
+    previous_ids = set(_scene_entity_ids(previous_scene_plan))
+    for entity_id in _scene_entity_ids(scene_plan):
+        if entity_id not in previous_ids:
+            items.append(
+                "本幕新增既定元素："
+                + _entity_text(plan, entity_id)
+            )
+
+    note = _text_value(scene_plan.get("note"))
+    if note:
+        items.append("本幕備註：" + note)
+
+    return _unique_lines(items)
+
+
+def fallback_must_not_show(
+    plan: dict[str, Any],
+    scene_index: int,
+) -> list[str]:
+    scenes = [
+        item
+        for item in plan.get("scenes", [])
+        if isinstance(item, dict)
+    ]
+    if scene_index < 0 or scene_index >= len(scenes):
+        return []
+
+    current = scenes[scene_index]
+    current_ids = set(_scene_entity_ids(current))
+    items: list[str] = []
+
+    note = _text_value(current.get("note"))
+    if note:
+        items.append("不得違反本幕備註：" + note)
+
+    seen_future_entities: set[str] = set()
+    for future in scenes[scene_index + 1:]:
+        future_id = (
+            future.get("id")
+            or future.get("scene_id")
+            or "後續 Scene"
+        )
+        focus = _text_value(
+            future.get("focus")
+            or future.get("visual_focus")
+        )
+        if focus:
+            items.append(
+                f"{future_id} 才發生的畫面核心：{focus}"
+            )
+        else:
+            action = _text_value(
+                future.get("action")
+                or future.get("actions")
+            )
+            if action:
+                items.append(
+                    f"{future_id} 才發生的動作：{action}"
+                )
+
+        for entity_id in _scene_entity_ids(future):
+            if (
+                entity_id not in current_ids
+                and entity_id not in seen_future_entities
+            ):
+                seen_future_entities.add(entity_id)
+                items.append(
+                    f"{future_id} 才出現的元素："
+                    + _entity_text(plan, entity_id)
+                )
+
+    return _unique_lines(items)
+
+
+def resolve_scene_isolation(
+    plan: dict[str, Any],
+    scene_id: str,
+) -> dict[str, Any]:
+    scenes = [
+        item
+        for item in plan.get("scenes", [])
+        if isinstance(item, dict)
+    ]
+
+    scene_index = -1
+    scene_plan: dict[str, Any] = {}
+    for index, item in enumerate(scenes):
+        current_id = item.get("id") or item.get("scene_id")
+        if current_id == scene_id:
+            scene_index = index
+            scene_plan = item
+            break
+
+    previous_scene_plan = (
+        scenes[scene_index - 1]
+        if scene_index > 0
+        else None
+    )
+
+    if "must_show" in scene_plan:
+        must_show = _directive_lines(scene_plan.get("must_show"))
+        must_show_source = "visual_plan_json"
+    else:
+        must_show = fallback_must_show(plan, scene_plan)
+        must_show_source = "deterministic_fallback"
+
+    if "must_not_show" in scene_plan:
+        must_not_show = _directive_lines(
+            scene_plan.get("must_not_show")
+        )
+        must_not_show_source = "visual_plan_json"
+    else:
+        must_not_show = fallback_must_not_show(
+            plan,
+            scene_index,
+        )
+        must_not_show_source = "deterministic_fallback"
+
+    if "scene_delta" in scene_plan:
+        scene_delta = _directive_lines(
+            scene_plan.get("scene_delta")
+        )
+        scene_delta_source = "visual_plan_json"
+    else:
+        scene_delta = fallback_scene_delta(
+            plan,
+            scene_plan,
+            previous_scene_plan,
+        )
+        scene_delta_source = "deterministic_fallback"
+
+    return {
+        "scene_plan": scene_plan,
+        "scene_index": scene_index,
+        "must_show": _unique_lines(must_show),
+        "must_not_show": _unique_lines(must_not_show),
+        "scene_delta": _unique_lines(scene_delta),
+        "must_show_source": must_show_source,
+        "must_not_show_source": must_not_show_source,
+        "scene_delta_source": scene_delta_source,
+    }
+
+
+def _append_list_section(
+    blocks: list[str],
+    title: str,
+    items: list[str],
+    empty_text: str,
+) -> None:
+    blocks += ["", title]
+    if items:
+        blocks.extend(f"- {item}" for item in items)
+    else:
+        blocks.append(f"- {empty_text}")
+
+
+GLOBAL_VISUAL_EXCLUSIONS = [
+    "音符",
+    "對話框",
+    "漫畫符號或漫畫聲效符號",
+    "任何文字",
+    "題字",
+    "書法",
+    "字幕",
+    "注音",
+    "Logo",
+    "UI",
+    "白色字幕條",
+    "刻意空白區",
+    "圓角卡片式畫框",
+]
+
+
 def build_prompt(
     poem: dict[str, str],
     scene: dict[str, str],
@@ -324,51 +684,53 @@ def build_prompt(
     style: dict[str, Any],
     chain_index: int,
 ) -> str:
-    exclusions = style.get("global_exclusions") or []
+    isolation = resolve_scene_isolation(
+        plan,
+        scene["scene_id"],
+    )
+    scene_plan = isolation["scene_plan"]
 
-    if chain_index == 1:
-        continuity_instruction = (
-            "這是這首詩的第一張圖，也是後續 Scene 的視覺錨點。"
-            "請建立可延續的角色外貌、服裝、場景空間、主要物件、"
-            "光線、色彩與整體繪本語言。"
-        )
-    else:
-        continuity_instruction = (
-            "這是同一首詩的下一個 Scene。"
-            "你已經看過上一輪產生的圖。"
-            "請延續既有角色外貌、服裝、場景空間、主要物件、"
-            "畫風、光線邏輯與色彩系統；只修改本 Scene 必須改變的內容。"
-            "除非詩意明確要求，不要重新設計人物或地點。"
-        )
+    style_exclusions = style.get("global_exclusions") or []
+    exclusions = _unique_lines(
+        [str(item) for item in style_exclusions]
+        + GLOBAL_VISUAL_EXCLUSIONS
+    )
 
     blocks = [
-        "請以繁體中文理解內容，生成一張 16:9、完整滿版的兒童繪本插畫。",
-        continuity_instruction,
-        "",
-        f"詩名：{poem['title']}",
-        f"作者：{poem['author']}",
-        f"整首詩：\n{poem['content']}",
-        "",
-        "整首詩共用的視覺世界：",
-        visual_world(poem, plan) or "依詩意自然建立。",
-        "",
-        "整首詩共用的人物／場景／物件：",
-        visual_objects(poem, plan) or "依詩意自然建立。",
-        "",
-        "跨 Scene 連貫規則：",
-        visual_continuity(poem, plan) or "重複元素保持一致。",
-        "",
-        f"本 Scene：{scene['scene_id']}",
-        f"原詩：{scene['original_line']}",
-        f"兒童解釋：{scene['child_explanation_line']}",
+        "請以繁體中文理解以下結構化視覺指令。",
+        "生成一張 16:9、1K、完整滿版的兒童繪本背景插畫。",
     ]
 
-    planned = scene_plan_text(plan, scene["scene_id"])
-    if planned:
+    if chain_index == 1:
         blocks += [
             "",
-            "本 Scene 已定義的視覺內容：",
-            planned,
+            "Scene Isolation：這是第一幕，也是後續影像的視覺錨點。",
+            "只能呈現本 Scene；後續 Scene 的事件、結果、角色狀態與專屬物件不得提前出現。",
+            "整體世界設定只用來固定世界與連續性；若與本幕 must_show / must_not_show 有先後差異，以本幕規則優先。",
+            "",
+            "Poem-level 視覺連續性：",
+            "世界：",
+            visual_world(poem, plan) or "依 visual plan 建立。",
+            "",
+            "跨 Scene 固定人物／場景／共用物件：",
+            recurring_visual_objects(plan)
+            or "- 依本幕與 continuity 建立。",
+            "",
+            "跨 Scene 連貫規則：",
+            visual_continuity(poem, plan)
+            or "重複元素保持一致。",
+        ]
+    else:
+        blocks += [
+            "",
+            "Scene Isolation：這是同一條 multi-turn chain 的下一幕。",
+            "以上一輪影像上下文為外觀與空間的既定基準，只執行本 Scene 的必要變化。",
+            "不要重新設計人物、房間、固定場景、主要物件、構圖語言或畫風；除非 scene_delta 明確要求。",
+            "不要回頭重新詮釋整首詩，也不要提前呈現後續 Scene。",
+            "",
+            "跨 Scene 連貫規則：",
+            visual_continuity(poem, plan)
+            or "重複元素保持一致。",
         ]
 
     blocks += [
@@ -376,22 +738,60 @@ def build_prompt(
         "畫風：",
         style_text(style),
         "",
+        f"本 Scene：{scene['scene_id']}",
+        f"原詩本段：{scene['original_line']}",
+        f"兒童理解：{scene['child_explanation_line']}",
+    ]
+
+    planned = scene_plan_text(plan, scene["scene_id"])
+    if planned:
+        blocks += [
+            "",
+            "本 Scene 已定義內容：",
+            planned,
+        ]
+
+    _append_list_section(
+        blocks,
+        "must_show：",
+        isolation["must_show"],
+        "依本 Scene 已定義內容呈現。",
+    )
+    _append_list_section(
+        blocks,
+        "scene_delta：",
+        isolation["scene_delta"],
+        (
+            "第一幕無前一幕差分，建立本幕視覺錨點。"
+            if chain_index == 1
+            else "沒有額外差分；延續上一幕。"
+        ),
+    )
+    _append_list_section(
+        blocks,
+        "must_not_show：",
+        isolation["must_not_show"],
+        "不得加入本 Scene 未定義的後續事件。",
+    )
+
+    blocks += [
+        "",
         "生成規則：",
-        "- 這個 Scene 是單一完整畫面，不依逗號或句號拆成多格。",
-        "- 圖片本身只負責詩意與故事畫面，不替字幕、注音或排版預留區域。",
-        "- 不要加入沒有必要的新角色。",
-        "- 畫面需自然延續前一 Scene，而不是重新抽一張相似題材的插畫。",
+        "- must_not_show 是硬限制；不得用背景、回憶、象徵、倒影、夢境或裝飾方式偷渡。",
+        "- 只生成一個完整 Scene，不依逗號或句號拆成多格、拼貼或漫畫分鏡。",
+        "- 畫面自然延伸到四邊，保持完整滿版；不要設計白色橫條、刻意空白區或卡片式邊框。",
+        "- 不要加入本 Scene 不需要的新角色或新物件。",
+        "- 聲音用角色／動物姿態與環境氛圍表現；例如鳥叫用鳥的姿態、張口與晨間氛圍，不使用音符或漫畫聲效符號。",
     ]
 
     if exclusions:
         blocks += [
             "",
-            "禁止出現：",
+            "全局禁止出現：",
             *[f"- {item}" for item in exclusions],
         ]
 
     return "\n".join(blocks)
-
 
 def calc_cost(
     total_input_tokens: int,
@@ -897,6 +1297,42 @@ def main() -> int:
     print(f"force={args.force} dry_run={args.dry_run}")
 
     if args.dry_run:
+        print("\n=== Scene Isolation semantics (shared by A/B) ===")
+        print("whole_poem_text_in_prompt=no")
+        for index, scene in enumerate(poem_scenes, start=1):
+            isolation = resolve_scene_isolation(
+                plan,
+                scene["scene_id"],
+            )
+            print(f"\n{index}. {scene['scene_id']}")
+            print(
+                "  must_show "
+                f"[{isolation['must_show_source']}]"
+            )
+            for item in isolation["must_show"]:
+                print(f"    - {item}")
+            if not isolation["must_show"]:
+                print("    - (none)")
+
+            print(
+                "  scene_delta "
+                f"[{isolation['scene_delta_source']}]"
+            )
+            for item in isolation["scene_delta"]:
+                print(f"    - {item}")
+            if not isolation["scene_delta"]:
+                print("    - (anchor scene; no prior delta)")
+
+            print(
+                "  must_not_show "
+                f"[{isolation['must_not_show_source']}]"
+            )
+            for item in isolation["must_not_show"]:
+                print(f"    - {item}")
+            if not isolation["must_not_show"]:
+                print("    - (no additional scene-specific exclusions)")
+
+        print("\n=== Output plan ===")
         for style in styles:
             print(
                 f"\n=== Style {style['style_key']} / "
@@ -914,9 +1350,20 @@ def main() -> int:
                     )
                 else:
                     action = "GENERATE"
+                prompt = build_prompt(
+                    poem,
+                    scene,
+                    plan,
+                    style,
+                    index,
+                )
+                prompt_hash = hashlib.sha256(
+                    prompt.encode("utf-8")
+                ).hexdigest()[:12]
                 print(
                     f"{index}. {scene['scene_id']}: "
-                    f"{action} -> {image_path.as_posix()}"
+                    f"{action} -> {image_path.as_posix()} "
+                    f"prompt={prompt_hash}"
                 )
         return 0
 
