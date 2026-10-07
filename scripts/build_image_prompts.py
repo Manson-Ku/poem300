@@ -128,9 +128,12 @@ def build_prompt(
     source_scene: dict[str, str],
     style: dict[str, Any],
 ) -> str:
-    world = visual_plan.get("world", "")
+    """Build one independent Scene prompt from the shared poem world."""
+    world = (
+        (poem.get("visual_world") or "").strip()
+        or str(visual_plan.get("world") or "").strip()
+    )
     entities = entity_details(visual_plan, scene_plan)
-    continuity = visual_plan.get("continuity_rules") or []
     exclusions = style.get("global_exclusions") or []
 
     entity_lines = []
@@ -142,47 +145,84 @@ def build_prompt(
         entity_lines.append(text)
 
     prompt_parts = [
-        "請產生一張完整、自然的唐詩兒童繪本插畫。",
+        "請生成一張 16:9、1K、完整滿版的唐詩兒童繪本插畫。",
         "",
-        f"詩名：{poem['title']}",
-        f"作者：{poem['author']}",
-        f"原詩本段：{source_scene['original_line']}",
-        f"兒童理解：{source_scene['child_explanation_line']}",
+        "核心原則：",
+        "- 這是一張獨立 Scene 圖片。",
+        "- data/scenes.csv 的一個實際換行就是一個 Scene；只表達本句，不主動補齊前一句或下一句。",
+        "- 整首詩的世界觀只提供共同時代、空間與氣氛；本張圖片永遠以目前這一句詩為最高優先。",
+        "- 兒童解釋只用來幫助理解原詩，不得凌駕或擴寫原詩。",
+        "- 不需要延續上一張圖片的鏡位、姿勢或物件位置；可以自由選擇最能說清楚本句的構圖。",
         "",
-        f"整首詩的共同世界設定：{world}",
-        f"本幕場景：{scene_plan.get('setting', '依 visual plan')}",
-        f"本幕時間：{scene_plan.get('time', '未限定')}",
-        f"本幕視覺核心：{scene_plan.get('focus') or scene_plan.get('visual_focus', '')}",
-        f"本幕動作：{scene_plan.get('action') or '依詩意自然呈現'}",
+        "整首詩共同世界觀：",
+        world or "依本詩 visual plan 的世界設定自然建立。",
+        "",
+        f"本 Scene：{source_scene['scene_id']}",
+        f"本句原詩：{source_scene['original_line']}",
+        f"兒童解釋：{source_scene['child_explanation_line']}",
     ]
+
+    for key, label in (
+        ("setting", "本幕場景"),
+        ("time", "本幕時間"),
+        ("weather", "本幕天候"),
+        ("mood", "本幕情緒"),
+        ("focus", "本幕視覺核心"),
+        ("visual_focus", "本幕視覺核心"),
+        ("action", "本幕動作"),
+    ):
+        value = scene_plan.get(key)
+        if value:
+            if isinstance(value, list):
+                value = "、".join(str(x) for x in value)
+            prompt_parts.append(f"{label}：{value}")
+
+    actions = scene_plan.get("actions")
+    if actions:
+        prompt_parts.append(
+            "本幕動作：" + "、".join(str(x) for x in actions)
+        )
 
     note = scene_plan.get("note")
     if note:
         prompt_parts.append(f"本幕特別注意：{note}")
 
     if entity_lines:
-        prompt_parts += ["", "本幕必須沿用的既定人物／場景／物件：", *entity_lines]
-
-    if continuity:
-        prompt_parts += ["", "跨幕連貫規則："] + [
-            f"- {rule}" for rule in continuity
+        prompt_parts += [
+            "",
+            "本幕可使用的人物／場景／物件：",
+            *entity_lines,
         ]
 
     prompt_parts += [
         "",
         f"畫風：{style_description(style)}",
         "",
-        "請把這個換行段落視為一個完整場景，不依逗號或句號拆成拼貼、分鏡格或多張畫面。",
-        "畫面本身就是完整插畫，不需要替後續字幕、注音或排版預留任何區域。",
+        "生成要求：",
+        "- 第一眼要能幫幼童理解目前這一句詩。",
+        "- 世界觀一致即可，不追求跨 Scene 的角色姿勢、房間細節、鏡位或構圖完全一致。",
+        "- 不要因為知道整首詩而提前加入其他句子的主要事件。",
+        "- 圖片自然延伸到四邊，不替後續字幕或注音預留區域。",
+        "- 聲音與情緒使用人物姿態、表情、環境與光線表現，不使用符號化圖示。",
+        "",
+        "禁止出現：",
+        "- 任何文字、題字、書法",
+        "- 字幕、注音、Logo、UI",
+        "- 對話框、思想泡泡、音符、漫畫聲效符號",
+        "- 白色字幕條、刻意留白區、圓角卡片式畫框",
+        "- 多格漫畫、拼貼、分割畫面",
     ]
 
     if exclusions:
-        prompt_parts += ["", "禁止出現："] + [
-            f"- {item}" for item in exclusions
+        prompt_parts += [
+            *[
+                f"- {item}"
+                for item in exclusions
+                if str(item).strip()
+            ]
         ]
 
     return "\n".join(prompt_parts)
-
 
 def main() -> int:
     parser = argparse.ArgumentParser(
