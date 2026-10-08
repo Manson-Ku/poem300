@@ -1109,3 +1109,42 @@ duplicate_conflicts = 0
 missing_local       = 0
 ready_to_upload + already_uploaded = 50
 ~~~
+
+
+## 26. Age 7 YouTube inventory + scheduled publication decision（2026-10-08）
+
+Age 7 YouTube dry-run inventory:
+
+~~~text
+selected=50
+already_uploaded=1
+ready_to_upload=49
+missing_local=0
+duplicate_conflicts=0
+~~~
+
+Decision: new Age 7 uploads use YouTube scheduled publishing instead of immediate public release.
+
+Policy:
+
+~~~text
+timezone: Asia/Taipei
+2 new videos/day
+morning random window: 06:00-08:59
+evening random window: 17:00-19:59
+first Age 7 date: 2026-10-09
+notifySubscribers: false
+upload privacy before publishAt: private
+~~~
+
+The one already-uploaded Age 7 video is preserved and is not automatically rescheduled.
+
+Implementation:
+
+~~~text
+youtube_upload.py      -> --publish-at, status.publishAt, forced private upload
+youtube_upload_batch.py -> deterministic schedule planning + persisted resume plan
+youtube_v1.json         -> schedule policy
+~~~
+
+For 49 new videos, the current plan spans 2026-10-09 through 2026-11-02 (24 full two-video days plus one final morning slot).

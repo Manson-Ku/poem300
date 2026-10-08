@@ -86,3 +86,41 @@ channel completeness = selected poem count
 ~~~
 
 The next group should not be uploaded until its local resource/video production gate has passed.
+
+
+## Scheduled batch publication
+
+Batch upload now supports a persistent publication schedule.
+
+Current policy:
+
+~~~text
+2 new videos per day
+morning: 06:00-08:59 Asia/Taipei
+evening: 17:00-19:59 Asia/Taipei
+~~~
+
+For Age 7 production starting 2026-10-09:
+
+~~~powershell
+py scripts\youtube_upload_batch.py --age 7 --style B --dry-run --schedule-start 2026-10-09
+py scripts\youtube_upload_batch.py --age 7 --style B --schedule-start 2026-10-09
+~~~
+
+The first real production run persists the mapping to:
+
+~~~text
+output/youtube_schedules/age7_B.json
+~~~
+
+This file is local/runtime state and remains under the gitignored `output/` tree.
+
+Resume behavior:
+
+1. channel inventory still determines already-uploaded state;
+2. the saved schedule plan is reused;
+3. newly scheduled videos keep their original `publishAt`;
+4. existing channel matches are never rescheduled by the batch repair path;
+5. if a pending poem's scheduled time has already passed, upload stops rather than accidentally publishing it immediately.
+
+Use `--no-schedule` only for an intentional unscheduled batch.

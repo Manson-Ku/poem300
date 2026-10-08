@@ -2,7 +2,8 @@
 """Upload a rendered poem video to YouTube using poem300 metadata rules.
 
 Default production behavior:
-- privacyStatus=public
+- normal one-off upload privacy comes from config
+- scheduled upload uses privacyStatus=private + status.publishAt
 - notifySubscribers=False
 - selfDeclaredMadeForKids=True
 - add the uploaded video to the recommended_age playlist
@@ -21,6 +22,7 @@ import mimetypes
 import random
 import socket
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
@@ -127,6 +129,7 @@ def build_metadata(
     poem: dict[str, str],
     config: dict[str, Any],
     privacy: str,
+    publish_at: str | None = None,
 ) -> dict[str, Any]:
     title = poem["title"].strip()
     author = poem["author"].strip()
@@ -224,6 +227,13 @@ def build_metadata(
             )
         ),
     }
+
+    if publish_at:
+        if privacy != "private":
+            raise ValueError(
+                "YouTube scheduled publishing requires privacyStatus=private"
+            )
+        status["publishAt"] = publish_at
 
     return {
         "snippet": snippet,
@@ -529,6 +539,12 @@ def print_preview(
         "notify_subscribers="
         + str(notify_subscribers).lower()
     )
+    publish_at = body["status"].get("publishAt")
+    if publish_at:
+        print("scheduled=true")
+        print("publish_at=" + str(publish_at))
+    else:
+        print("scheduled=false")
     print(
         "playlist="
         + playlist_title
@@ -649,6 +665,14 @@ def main() -> int:
         ),
     )
     parser.add_argument(
+        "--publish-at",
+        help=(
+            "Schedule public release at this future ISO 8601 timestamp. "
+            "When set, upload privacy is forced to private as required "
+            "by YouTube status.publishAt."
+        ),
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help=(
@@ -672,16 +696,37 @@ def main() -> int:
         args.poem_id,
     )
 
-    privacy = (
-        args.privacy
-        if args.privacy
-        else str(
-            config["upload"].get(
-                "default_privacy",
-                "public",
+    publish_at = (args.publish_at or "").strip() or None
+    if publish_at:
+        normalized = publish_at.replace("Z", "+00:00")
+        try:
+            publish_dt = datetime.fromisoformat(normalized)
+        except ValueError as exc:
+            raise ValueError(
+                f"invalid --publish-at ISO 8601 timestamp: {publish_at!r}"
+            ) from exc
+        if publish_dt.tzinfo is None:
+            raise ValueError("--publish-at must include a timezone offset or Z")
+        if publish_dt.astimezone(timezone.utc) <= datetime.now(timezone.utc):
+            raise ValueError("--publish-at must be in the future")
+        privacy = "private"
+    else:
+        privacy = (
+            args.privacy
+            if args.privacy
+            else str(
+                config["upload"].get(
+                    "default_privacy",
+                    "public",
+                )
             )
         )
-    )
+
+    if args.existing_video_id and publish_at:
+        raise ValueError(
+            "--publish-at is only supported for a new upload; "
+            "existing-video repair does not change publication timing"
+        )
 
     video_path = (
         Path(args.file)
@@ -696,6 +741,7 @@ def main() -> int:
         poem=poem,
         config=config,
         privacy=privacy,
+        publish_at=publish_at,
     )
     playlist_title = recommended_age_playlist_title(
         poem=poem,
@@ -794,7 +840,7 @@ def main() -> int:
                 "YouTube upload returned no video ID"
             )
 
-    requested_privacy = privacy
+    requested_privacy = str(body["status"]["privacyStatus"])
     actual_privacy = str(
         response.get(
             "status",
@@ -819,6 +865,12 @@ def main() -> int:
         + actual_privacy
     )
     print("made_for_kids=true")
+    if publish_at:
+        actual_publish_at = str(
+            response.get("status", {}).get("publishAt", publish_at)
+        )
+        print("scheduled=true")
+        print("publish_at=" + actual_publish_at)
 
     if (
         not args.existing_video_id

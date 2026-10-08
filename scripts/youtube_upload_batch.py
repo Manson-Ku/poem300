@@ -23,11 +23,15 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
+import json
 import subprocess
 import sys
 import unicodedata
+from datetime import date, datetime, time as dt_time, timedelta, timezone
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from googleapiclient.discovery import build
 
@@ -43,6 +47,204 @@ from youtube_upload import (
 
 
 UPLOAD_SCRIPT = Path("scripts/youtube_upload.py")
+DEFAULT_SCHEDULE_DIR = Path("output/youtube_schedules")
+
+
+def parse_hhmm(value: str) -> dt_time:
+    try:
+        return datetime.strptime(value, "%H:%M").time()
+    except ValueError as exc:
+        raise ValueError(f"invalid schedule time {value!r}; expected HH:MM") from exc
+
+
+def deterministic_minute(
+    *,
+    seed: str,
+    age: int,
+    style: str,
+    poem_id: int,
+    target_date: date,
+    slot_name: str,
+    start: dt_time,
+    end: dt_time,
+) -> int:
+    start_minutes = start.hour * 60 + start.minute
+    end_minutes = end.hour * 60 + end.minute
+    span = end_minutes - start_minutes
+    if span <= 0:
+        raise ValueError(
+            f"schedule window {slot_name!r} must end after it starts"
+        )
+    material = (
+        f"{seed}|age={age}|style={style.upper()}|poem={poem_id}|"
+        f"date={target_date.isoformat()}|slot={slot_name}"
+    ).encode("utf-8")
+    value = int.from_bytes(hashlib.sha256(material).digest()[:8], "big")
+    return start_minutes + (value % span)
+
+
+def schedule_plan_path(
+    *,
+    config: dict[str, Any],
+    age: int,
+    style: str,
+) -> Path:
+    schedule = config.get("schedule", {})
+    root = Path(
+        str(schedule.get("plan_dir", DEFAULT_SCHEDULE_DIR.as_posix()))
+    )
+    return root / f"age{age}_{style.upper()}.json"
+
+
+def read_schedule_plan(path: Path) -> dict[str, Any]:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def write_schedule_plan(path: Path, payload: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+
+def build_schedule_plan(
+    *,
+    ready: list[tuple[dict[str, str], Path]],
+    config: dict[str, Any],
+    age: int,
+    style: str,
+    start_date: date,
+) -> dict[str, Any]:
+    schedule = config.get("schedule", {})
+    timezone_name = str(schedule.get("timezone", "Asia/Taipei"))
+    tz = ZoneInfo(timezone_name)
+    seed = str(schedule.get("random_seed", "poem300-youtube-schedule-v1"))
+    windows = schedule.get("windows") or [
+        {"name": "morning", "start": "06:00", "end": "09:00"},
+        {"name": "evening", "start": "17:00", "end": "20:00"},
+    ]
+    if len(windows) != 2:
+        raise ValueError("youtube schedule requires exactly two daily windows")
+
+    assignments: list[dict[str, Any]] = []
+    for index, (poem, _video_path) in enumerate(ready):
+        window = windows[index % len(windows)]
+        day_offset = index // len(windows)
+        target_date = start_date + timedelta(days=day_offset)
+        start = parse_hhmm(str(window["start"]))
+        end = parse_hhmm(str(window["end"]))
+        minute_of_day = deterministic_minute(
+            seed=seed,
+            age=age,
+            style=style,
+            poem_id=int(poem["poem_id"]),
+            target_date=target_date,
+            slot_name=str(window["name"]),
+            start=start,
+            end=end,
+        )
+        local_dt = datetime.combine(
+            target_date,
+            dt_time(hour=minute_of_day // 60, minute=minute_of_day % 60),
+            tzinfo=tz,
+        )
+        utc_dt = local_dt.astimezone(timezone.utc)
+        assignments.append(
+            {
+                "poem_id": int(poem["poem_id"]),
+                "title": poem["title"],
+                "slot_index": index,
+                "window": str(window["name"]),
+                "publish_at_local": local_dt.isoformat(),
+                "publish_at_utc": utc_dt.isoformat().replace("+00:00", "Z"),
+            }
+        )
+
+    return {
+        "version": "youtube_schedule_v1",
+        "created_at_utc": datetime.now(timezone.utc).isoformat(),
+        "age": age,
+        "style": style.upper(),
+        "timezone": timezone_name,
+        "start_date": start_date.isoformat(),
+        "windows": windows,
+        "random_seed": seed,
+        "assignments": assignments,
+    }
+
+
+def resolve_schedule_plan(
+    *,
+    ready: list[tuple[dict[str, str], Path]],
+    config: dict[str, Any],
+    age: int,
+    style: str,
+    schedule_start: str | None,
+    persist: bool,
+) -> tuple[dict[int, str], Path | None, dict[str, Any] | None]:
+    schedule = config.get("schedule", {})
+    enabled = bool(schedule.get("enabled", False))
+    if not enabled:
+        return {}, None, None
+
+    plan_path = schedule_plan_path(
+        config=config,
+        age=age,
+        style=style,
+    )
+
+    if plan_path.exists():
+        plan = read_schedule_plan(plan_path)
+        if int(plan.get("age", -1)) != age:
+            raise ValueError(f"schedule plan age mismatch: {plan_path}")
+        if str(plan.get("style", "")).upper() != style.upper():
+            raise ValueError(f"schedule plan style mismatch: {plan_path}")
+        if schedule_start and str(plan.get("start_date")) != schedule_start:
+            raise ValueError(
+                "existing schedule plan start_date differs from "
+                f"--schedule-start: {plan_path}"
+            )
+    else:
+        timezone_name = str(schedule.get("timezone", "Asia/Taipei"))
+        tz = ZoneInfo(timezone_name)
+        if schedule_start:
+            try:
+                start_date = date.fromisoformat(schedule_start)
+            except ValueError as exc:
+                raise ValueError(
+                    f"invalid --schedule-start date: {schedule_start!r}"
+                ) from exc
+        else:
+            start_date = datetime.now(tz).date() + timedelta(days=1)
+
+        plan = build_schedule_plan(
+            ready=ready,
+            config=config,
+            age=age,
+            style=style,
+            start_date=start_date,
+        )
+        if persist:
+            write_schedule_plan(plan_path, plan)
+
+    mapping = {
+        int(item["poem_id"]): str(item["publish_at_utc"])
+        for item in plan.get("assignments", [])
+    }
+
+    missing = [
+        int(poem["poem_id"])
+        for poem, _video_path in ready
+        if int(poem["poem_id"]) not in mapping
+    ]
+    if missing:
+        raise ValueError(
+            "existing schedule plan does not cover ready poems: "
+            + ",".join(f"p{pid:03d}" for pid in missing)
+        )
+
+    return mapping, plan_path, plan
 
 
 def read_poems(path: Path) -> list[dict[str, str]]:
@@ -283,6 +485,7 @@ def upload_command(
     poems: Path,
     token: Path,
     existing_video_id: str | None = None,
+    publish_at: str | None = None,
 ) -> list[str]:
     command = [
         sys.executable,
@@ -304,6 +507,14 @@ def upload_command(
             [
                 "--existing-video-id",
                 existing_video_id,
+            ]
+        )
+
+    if publish_at:
+        command.extend(
+            [
+                "--publish-at",
+                publish_at,
             ]
         )
 
@@ -376,6 +587,22 @@ def main() -> int:
         help=(
             "Continue to later poems after one upload fails. "
             "Default is fail-fast."
+        ),
+    )
+    parser.add_argument(
+        "--schedule-start",
+        help=(
+            "First local publication date in YYYY-MM-DD. "
+            "Default for a new schedule plan is tomorrow in the "
+            "configured timezone."
+        ),
+    )
+    parser.add_argument(
+        "--no-schedule",
+        action="store_true",
+        help=(
+            "Disable scheduled publication for this run even when "
+            "config schedule.enabled=true."
         ),
     )
     args = parser.parse_args()
@@ -560,6 +787,56 @@ def main() -> int:
         f"duplicate_conflicts={len(duplicate_matches)}"
     )
 
+    schedule_enabled = bool(
+        config.get("schedule", {}).get("enabled", False)
+    ) and not args.no_schedule
+    schedule_map: dict[int, str] = {}
+    schedule_path: Path | None = None
+    schedule_plan: dict[str, Any] | None = None
+
+    if schedule_enabled:
+        schedule_map, schedule_path, schedule_plan = resolve_schedule_plan(
+            ready=ready_to_upload,
+            config=config,
+            age=args.age,
+            style=args.style,
+            schedule_start=args.schedule_start,
+            persist=not args.dry_run,
+        )
+        print("")
+        print("=== SCHEDULE ===")
+        print("schedule_enabled=true")
+        print(
+            "timezone="
+            + str(schedule_plan.get("timezone", ""))
+        )
+        print(
+            "schedule_start="
+            + str(schedule_plan.get("start_date", ""))
+        )
+        print(
+            f"schedule_plan={schedule_path.as_posix() if schedule_path else ''}"
+        )
+        print(
+            f"scheduled_new_uploads={len(ready_to_upload)}"
+        )
+        for poem, _video_path in ready_to_upload:
+            pid = int(poem["poem_id"])
+            assignment = next(
+                item
+                for item in schedule_plan["assignments"]
+                if int(item["poem_id"]) == pid
+            )
+            print(
+                f"SCHEDULE p{pid:03d} {poem['title']} "
+                f"window={assignment['window']} "
+                f"local={assignment['publish_at_local']} "
+                f"utc={assignment['publish_at_utc']}"
+            )
+    else:
+        print("")
+        print("schedule_enabled=false")
+
     if duplicate_matches:
         print(
             "STOP: duplicate channel matches require review. "
@@ -679,6 +956,19 @@ def main() -> int:
             f"file={video_path.as_posix()}"
         )
 
+        publish_at = schedule_map.get(pid)
+        if publish_at:
+            normalized = publish_at.replace("Z", "+00:00")
+            publish_dt = datetime.fromisoformat(normalized)
+            if publish_dt.astimezone(timezone.utc) <= datetime.now(timezone.utc):
+                print(
+                    f"UPLOAD_FAIL p{pid:03d} scheduled time is no longer "
+                    f"in the future: {publish_at}"
+                )
+                failed.append((pid, 2))
+                break
+            print(f"publish_at={publish_at}")
+
         completed = subprocess.run(
             upload_command(
                 poem_id=pid,
@@ -686,6 +976,7 @@ def main() -> int:
                 config=config_path,
                 poems=poems_path,
                 token=token_path,
+                publish_at=publish_at,
             ),
             check=False,
         )

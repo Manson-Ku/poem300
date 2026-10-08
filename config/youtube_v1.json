@@ -8,7 +8,7 @@
     "https://www.googleapis.com/auth/youtube.upload",
     "https://www.googleapis.com/auth/youtube.force-ssl"
   ],
-  "note": "OAuth Desktop-app client JSON stays in .env. User token stays under credentials/ and is gitignored. Upload metadata is generated from data/poems.csv. Uploads default to public, made-for-kids=true, notifySubscribers=false. Each uploaded poem is added to a recommended_age playlist such as 6歲建議. Thumbnail is left to YouTube automatic selection.",
+  "note": "OAuth Desktop-app client JSON stays in .env. User token stays under credentials/ and is gitignored. Upload metadata is generated from data/poems.csv. Batch production uses scheduled private uploads with status.publishAt, made-for-kids=true, notifySubscribers=false, age-playlist routing, and YouTube automatic thumbnails.",
   "upload": {
     "title_template": "唐詩三百首-注音版-{title}-{author}-KidMore啟蒙",
     "description_header_template": "{title}-{author}-{poem_type}",
@@ -50,5 +50,24 @@
     "child_uploader": "scripts/youtube_upload.py",
     "existing_match_policy": "skip_video_upload_and_run_idempotent_playlist_postcheck",
     "existing_private_policy": "preserve_existing_privacy_and_report_it"
+  },
+  "schedule": {
+    "enabled": true,
+    "timezone": "Asia/Taipei",
+    "start_date_policy": "tomorrow",
+    "random_seed": "poem300-youtube-schedule-v1",
+    "plan_dir": "output/youtube_schedules",
+    "windows": [
+      {
+        "name": "morning",
+        "start": "06:00",
+        "end": "09:00"
+      },
+      {
+        "name": "evening",
+        "start": "17:00",
+        "end": "20:00"
+      }
+    ]
   }
 }

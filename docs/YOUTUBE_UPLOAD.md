@@ -418,3 +418,36 @@ PASS
 This establishes 25/25 Age 6 channel completeness and closes the first full production delivery cycle.
 
 Future age groups should reuse the same uploader and reconciliation behavior rather than introducing a separate publication path.
+
+
+## Scheduled publishing
+
+YouTube Data API supports scheduled publication through:
+
+~~~text
+status.privacyStatus = private
+status.publishAt      = future ISO 8601 timestamp
+~~~
+
+`publishAt` is valid only for a private video that has never been published. A scheduled upload therefore remains private until YouTube automatically publishes it at the specified time.
+
+Single-video example:
+
+~~~powershell
+py scripts\youtube_upload.py --poem-id 6 --style B --publish-at 2026-10-09T00:30:00Z --dry-run
+~~~
+
+When `--publish-at` is present, `youtube_upload.py` forces `privacyStatus=private`; do not combine scheduled publication with a public/unlisted override.
+
+The batch scheduler is defined in `config/youtube_v1.json.schedule`. Production defaults:
+
+~~~text
+timezone = Asia/Taipei
+daily slots = 2
+morning window = 06:00 <= time < 09:00
+evening window = 17:00 <= time < 20:00
+randomness = deterministic minute selection
+notifySubscribers = false
+~~~
+
+The random minute is deterministic from the schedule seed, poem ID, date, slot and style. Therefore a persisted plan is stable across resume runs.
