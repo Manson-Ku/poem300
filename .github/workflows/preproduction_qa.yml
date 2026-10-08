@@ -1,0 +1,51 @@
+name: Preproduction QA
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "data/poems.csv"
+      - "data/scenes.csv"
+      - "data/bopomofo_overrides.json"
+      - "data/bpmf_font_extensions.json"
+      - "data/tts_pronunciation_overrides.json"
+      - "data/pronunciation_candidates_age8.json"
+      - "scripts/inventory_pronunciation.py"
+      - "scripts/qa_age_production.py"
+      - "scripts/qa_font_coverage.py"
+      - "scripts/qa_pronunciation.py"
+      - "scripts/patch_bpmf_font.py"
+      - "scripts/sync_bpmf_font.py"
+      - ".github/workflows/preproduction_qa.yml"
+  workflow_dispatch:
+
+jobs:
+  age8:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Rebuild pinned project font
+        run: |
+          python scripts/sync_bpmf_font.py
+          python scripts/patch_bpmf_font.py --force
+
+      - name: Age 8 structural and production gate
+        run: python scripts/qa_age_production.py --age 8 --production-ready
+
+      - name: Age 8 pronunciation source gate
+        run: python scripts/inventory_pronunciation.py --age 8
+
+      - name: Age 8 project-font coverage
+        run: python scripts/qa_font_coverage.py --age 8
+
+      - name: Pronunciation registry and font contract
+        run: python scripts/qa_pronunciation.py
