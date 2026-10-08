@@ -809,7 +809,7 @@ compatibility aliases           6
 scripts/sync_bpmf_font.py
 ~~~
 
-使用 pinned upstream BpmfHuninn 後，`螘` / `蟢` 由 upstream 直接提供；project derivative 再處理：
+本機實測顯示 pinned upstream BpmfHuninn binary 仍缺 `螘` / `蟢`；雖然 bpmfvs pronunciation data 有收錄，font cmap 並未實際包含。因此 project derivative 改為同時處理：
 
 ~~~text
 㡬 -> 幾
@@ -818,9 +818,13 @@ scripts/sync_bpmf_font.py
 藁 -> 稿
 衆 -> 眾
 隣 -> 鄰
+
+synthesized canonical glyphs:
+螘 = 虫 + 豈
+蟢 = 虫 + 喜
 ~~~
 
-canonical CSV 不因字型 coverage 而改字。
+合成只處理 Han glyph，注音仍使用既有 bpmfvs phonetic components。canonical CSV 不因字型 coverage 而改字。
 
 下一個 gate 必須在本機依序通過：
 
@@ -833,3 +837,8 @@ py scripts\qa_pronunciation.py
 ~~~
 
 上述 PASS 前，不開始 Age 7 大量 TTS / image generation。
+
+
+### Age 7 font binary coverage correction
+
+第一次 pinned-font rebuild 的實測結果：pronunciation QA PASS，但 generic font coverage 仍缺 `螘`、`蟢`。因此新增 `bpmf_font_extensions_v3.synthesized_glyphs`；此 gate 目前等待本機 rebuild 後重新確認 `missing_unique_han=0`。

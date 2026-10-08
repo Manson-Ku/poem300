@@ -263,8 +263,8 @@ Age 7 canonical text 另有以下 historical / variant Han codepoints：
 
 1. canonical poem text 不改字。
 2. 先同步 pinned upstream BpmfHuninn。
-3. upstream 已直接支援 `螘`、`蟢`。
-4. project derivative 對其他缺字建立 renderer-only compatibility aliases：
+3. bpmfvs pronunciation source data 雖收錄 `螘`、`蟢`，但 pinned BpmfHuninn binary 的 cmap 實測仍缺這兩個 glyph；source-data coverage 與 font-binary coverage 必須分開 QA。
+4. project derivative 對一般異體缺字建立 renderer-only compatibility aliases：
 
 ~~~text
 㡬 -> 幾
@@ -275,8 +275,9 @@ Age 7 canonical text 另有以下 historical / variant Han codepoints：
 隣 -> 鄰
 ~~~
 
-5. p293 canonical 「爲有」需要 ㄨㄟˋ；此 occurrence 不使用 `爲 -> 為` 的 default ㄨㄟˊ glyph，而是使用 PUA pronunciation alias，來源為 `為 + U+E01E1`。
-6. renderer proxy / PUA / compatibility alias 都不回寫 canonical source。
+5. `螘`、`蟢` 不用錯字代替；`bpmf_font_extensions_v3` 在 project font 內以同字體既有 Han components 合成 canonical 字形：`螘 = 虫 + 豈`、`蟢 = 虫 + 喜`。注音仍直接複用 bpmfvs 既有 phonetic components，不手工拼注音。
+6. p293 canonical 「爲有」需要 ㄨㄟˋ；此 occurrence 不使用 `爲 -> 為` 的 default ㄨㄟˊ glyph，而是使用 PUA pronunciation alias，來源為 `為 + U+E01E1`。
+7. renderer proxy / PUA / compatibility alias / synthesized glyph 都不回寫 canonical source。
 
 Pinned base-font sync：
 
