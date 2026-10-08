@@ -42,6 +42,7 @@ DEFAULT_TOKEN = Path("credentials/youtube_token.json")
 RETRIABLE_STATUS_CODES = {500, 502, 503, 504}
 MAX_RETRIES = 10
 PLAYLIST_POST_MAX_RETRIES = 6
+AMBIGUOUS_UPLOAD_RECONCILE_DELAYS = (0, 2, 4, 8, 16, 30)
 
 
 def read_json(path: Path) -> dict[str, Any]:
@@ -475,6 +476,146 @@ def add_video_to_playlist(
     return False
 
 
+def channel_upload_playlist_id(
+    *,
+    youtube: Any,
+) -> str:
+    response = youtube.channels().list(
+        part="contentDetails",
+        mine=True,
+        maxResults=1,
+    ).execute()
+
+    items = response.get("items", [])
+    if not items:
+        raise RuntimeError(
+            "No authenticated YouTube channel was returned."
+        )
+
+    playlist_id = str(
+        items[0]
+        .get("contentDetails", {})
+        .get("relatedPlaylists", {})
+        .get("uploads", "")
+    ).strip()
+    if not playlist_id:
+        raise RuntimeError(
+            "Authenticated channel returned no uploads playlist ID."
+        )
+    return playlist_id
+
+
+def find_channel_video_matches(
+    *,
+    youtube: Any,
+    expected_title: str,
+    tracking_url: str,
+) -> list[dict[str, Any]]:
+    """Find exact poem uploads without using the high-cost search endpoint."""
+
+    uploads_playlist_id = channel_upload_playlist_id(
+        youtube=youtube,
+    )
+    video_ids: list[str] = []
+    page_token: str | None = None
+
+    while True:
+        response = youtube.playlistItems().list(
+            part="contentDetails",
+            playlistId=uploads_playlist_id,
+            maxResults=50,
+            pageToken=page_token,
+        ).execute()
+
+        for item in response.get("items", []):
+            video_id = str(
+                item.get("contentDetails", {}).get("videoId", "")
+            ).strip()
+            if video_id:
+                video_ids.append(video_id)
+
+        page_token = response.get("nextPageToken")
+        if not page_token:
+            break
+
+    matches: dict[str, dict[str, Any]] = {}
+    for offset in range(0, len(video_ids), 50):
+        group = video_ids[offset:offset + 50]
+        response = youtube.videos().list(
+            part="id,snippet,status",
+            id=",".join(group),
+            maxResults=50,
+        ).execute()
+
+        for item in response.get("items", []):
+            video_id = str(item.get("id", "")).strip()
+            snippet = item.get("snippet", {})
+            title = str(snippet.get("title", "")).strip()
+            description = str(snippet.get("description", ""))
+
+            if (
+                title == expected_title
+                or (
+                    bool(tracking_url)
+                    and tracking_url in description
+                )
+            ):
+                matches[video_id] = item
+
+    return list(matches.values())
+
+
+def reconcile_ambiguous_upload_completion(
+    *,
+    youtube: Any,
+    expected_title: str,
+    tracking_url: str,
+) -> dict[str, Any] | None:
+    """Recover when the resumable session dies after YouTube committed video.
+
+    A terminal 404/410 is never treated as success by itself. We only recover
+    when the authenticated channel contains exactly one deterministic match.
+    """
+
+    for attempt, delay in enumerate(
+        AMBIGUOUS_UPLOAD_RECONCILE_DELAYS,
+        start=1,
+    ):
+        if delay:
+            print(
+                "upload_completion_reconcile_wait="
+                f"{delay}s attempt={attempt}"
+            )
+            time.sleep(delay)
+
+        matches = find_channel_video_matches(
+            youtube=youtube,
+            expected_title=expected_title,
+            tracking_url=tracking_url,
+        )
+
+        if len(matches) == 1:
+            return matches[0]
+
+        if len(matches) > 1:
+            video_ids = ",".join(
+                str(item.get("id", ""))
+                for item in matches
+            )
+            raise RuntimeError(
+                "ambiguous upload completion produced multiple "
+                f"channel matches: {video_ids}"
+            )
+
+        print(
+            "upload_completion_reconcile_match=0 "
+            f"attempt={attempt}/"
+            f"{len(AMBIGUOUS_UPLOAD_RECONCILE_DELAYS)}"
+        )
+
+    return None
+
+
 def verify_existing_video(
     *,
     youtube: Any,
@@ -832,7 +973,40 @@ def main() -> int:
         )
 
         print("upload_start=true")
-        response = resumable_upload(request)
+        try:
+            response = resumable_upload(request)
+        except HttpError as exc:
+            if exc.resp.status not in {404, 410}:
+                raise
+
+            print(
+                "upload_completion_ambiguous=true "
+                f"http_status={exc.resp.status}"
+            )
+            print(
+                "upload_completion_reconcile_start=true"
+            )
+
+            response = reconcile_ambiguous_upload_completion(
+                youtube=youtube,
+                expected_title=str(body["snippet"]["title"]),
+                tracking_url=str(
+                    body.get("_tracking_url", "")
+                ),
+            )
+            if response is None:
+                print(
+                    "upload_completion_reconcile_result=not_found"
+                )
+                raise
+
+            print(
+                "upload_completion_reconcile_result=recovered"
+            )
+            print(
+                "upload_completion_http_status="
+                f"{exc.resp.status}"
+            )
 
         video_id = str(response.get("id", ""))
         if not video_id:

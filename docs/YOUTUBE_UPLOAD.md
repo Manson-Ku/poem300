@@ -451,3 +451,23 @@ notifySubscribers = false
 ~~~
 
 The random minute is deterministic from the schedule seed, poem ID, date, slot and style. Therefore a persisted plan is stable across resume runs.
+
+
+## Ambiguous resumable completion recovery
+
+A resumable upload can rarely end in a state where YouTube has already committed the video but the client receives a terminal session response instead of the normal final video resource. The Age 7 p006 scheduled-upload smoke test demonstrated this with HTTP 410 after upload progress reached 91%; YouTube Studio nevertheless showed the correctly scheduled video.
+
+The uploader therefore treats HTTP 404/410 as an **ambiguous completion**, not as either automatic success or automatic retry.
+
+Recovery behavior:
+
+~~~text
+404/410 from resumable session
+  -> inventory authenticated channel uploads
+  -> deterministic match by exact generated title OR tracking URL
+     -> exactly 1 match: recover and continue post-upload processing
+     -> 0 matches: retry inventory for bounded propagation delay, then fail
+     -> >1 matches: fail as duplicate ambiguity
+~~~
+
+This avoids duplicate uploads. A terminal 404/410 alone never becomes PASS.

@@ -1150,23 +1150,42 @@ youtube_v1.json         -> schedule policy
 For 49 new videos, the current plan spans 2026-10-09 through 2026-11-02 (24 full two-video days plus one final morning slot).
 
 
-## 27. Age 7 scheduled YouTube upload smoke test PASS（2026-10-08）
+## 27. Age 7 scheduled YouTube upload smoke test: remote schedule PASS / client completion FAIL（2026-10-08）
 
-The first scheduled Age 7 upload was verified successfully in YouTube Studio.
+The first scheduled Age 7 upload p006 was successfully created by YouTube and displayed in YouTube Studio with the intended scheduled publish time.
 
-Validated behavior:
+However, the local uploader did **not** complete cleanly. After the upload reached 91%, the resumable session returned:
 
 ~~~text
-poem: p006 望嶽
-upload privacy before release: private
-scheduled publication: PASS
-timezone contract: Asia/Taipei
-daily schedule policy: morning/evening windows
-playlist routing: 7歲建議
-made_for_kids: true
-notifySubscribers: false
+HTTP 410 Gone
 ~~~
 
-The YouTube Studio UI displayed the uploaded video as scheduled, confirming that `status.publishAt` is accepted by the channel and that the scheduled-publication path works end-to-end.
+The batch therefore exited with `UPLOAD_FAIL p006 rc=1`, even though the video had already been committed remotely.
 
-The persisted local Age 7 schedule plan remains the resume SSOT for the remaining new uploads. The next production action is to rerun the same Age 7 batch command without `--limit`; channel inventory will skip already-uploaded items and continue with the remaining scheduled videos.
+Interpretation:
+
+~~~text
+scheduled publication contract   PASS
+remote video creation            PASS
+local completion acknowledgement FAIL
+duplicate-safe recovery          REQUIRED
+~~~
+
+This is an ambiguous resumable-upload completion: the remote side contains the video, but the client did not receive the normal final video resource response.
+
+## 28. YouTube ambiguous completion recovery（2026-10-08）
+
+`youtube_upload.py` now handles terminal HTTP 404/410 from the resumable session conservatively.
+
+Recovery contract:
+
+1. a 404/410 is **not** automatically considered success;
+2. inventory the authenticated channel uploads playlist;
+3. match the expected generated title or canonical tracking URL;
+4. if exactly one video exists, recover that video resource and continue normal post-upload processing;
+5. if zero matches remain after bounded propagation retries, preserve the original failure;
+6. if multiple matches exist, stop as a duplicate ambiguity.
+
+This prevents a remotely successful upload from being reported as a failure, while also preventing blind re-upload/duplication.
+
+p006 already exists remotely. On the next Age 7 batch run, channel inventory will classify it as already uploaded and run the existing idempotent post-upload/playlist repair path rather than upload it again.
