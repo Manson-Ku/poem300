@@ -1,0 +1,1423 @@
+{
+  "version": "pronunciation_candidates_age8_v1",
+  "scope": {
+    "recommended_age": 8,
+    "poems": 100,
+    "scenes": 395,
+    "candidate_items": 156,
+    "pronunciation_sensitive_assets": 123
+  },
+  "status": "reviewed_inventory",
+  "policy": {
+    "canonical_text_immutable": true,
+    "authority_check": 0,
+    "synthesis_proxy_policy": "Do not add synthesis_text during preprocessing. Add a proxy only after listening QA proves instruction-only synthesis is insufficient."
+  },
+  "items": [
+    {
+      "poem_id": 1,
+      "field": "content",
+      "line_no": 2,
+      "character": "爲",
+      "context": "自爾爲佳節",
+      "candidate_reading": "ㄨㄟˊ",
+      "reason": "為=成為"
+    },
+    {
+      "poem_id": 5,
+      "field": "content",
+      "line_no": 1,
+      "character": "燕",
+      "context": "燕草",
+      "candidate_reading": "ㄧㄢ",
+      "reason": "燕國地名"
+    },
+    {
+      "poem_id": 10,
+      "field": "content",
+      "line_no": 6,
+      "character": "冠",
+      "context": "冠蓋",
+      "candidate_reading": "ㄍㄨㄢ",
+      "reason": "冠蓋官服"
+    },
+    {
+      "poem_id": 10,
+      "field": "content",
+      "line_no": 7,
+      "character": "將",
+      "context": "將老",
+      "candidate_reading": "ㄐㄧㄤ",
+      "reason": "將=將要"
+    },
+    {
+      "poem_id": 14,
+      "field": "content",
+      "line_no": 4,
+      "character": "荷",
+      "context": "荷鋤",
+      "candidate_reading": "ㄏㄜˋ",
+      "reason": "荷=肩負"
+    },
+    {
+      "poem_id": 14,
+      "field": "content",
+      "line_no": 4,
+      "character": "相",
+      "context": "相見",
+      "candidate_reading": "ㄒㄧㄤ",
+      "reason": "相見"
+    },
+    {
+      "poem_id": 16,
+      "field": "content",
+      "line_no": 6,
+      "character": "重",
+      "context": "重陽",
+      "candidate_reading": "ㄔㄨㄥˊ",
+      "reason": "重陽"
+    },
+    {
+      "poem_id": 17,
+      "field": "content",
+      "line_no": 4,
+      "character": "彈",
+      "context": "鳴琴彈",
+      "candidate_reading": "ㄊㄢˊ",
+      "reason": "彈琴"
+    },
+    {
+      "poem_id": 19,
+      "field": "title",
+      "line_no": 0,
+      "character": "翫",
+      "context": "翫月",
+      "candidate_reading": "ㄨㄢˋ",
+      "reason": "教育部：翫=觀賞"
+    },
+    {
+      "poem_id": 19,
+      "field": "title",
+      "line_no": 0,
+      "character": "少",
+      "context": "少府",
+      "candidate_reading": "ㄕㄠˋ",
+      "reason": "少府官名"
+    },
+    {
+      "poem_id": 26,
+      "field": "content",
+      "line_no": 3,
+      "character": "朝",
+      "context": "今朝",
+      "candidate_reading": "ㄓㄠ",
+      "reason": "今朝"
+    },
+    {
+      "poem_id": 26,
+      "field": "content",
+      "line_no": 3,
+      "character": "處",
+      "context": "何處",
+      "candidate_reading": "ㄔㄨˋ",
+      "reason": "地方"
+    },
+    {
+      "poem_id": 26,
+      "field": "content",
+      "line_no": 3,
+      "character": "還",
+      "context": "還相遇",
+      "candidate_reading": "ㄏㄨㄢˊ",
+      "reason": "還=再/返回"
+    },
+    {
+      "poem_id": 26,
+      "field": "content",
+      "line_no": 3,
+      "character": "相",
+      "context": "還相遇",
+      "candidate_reading": "ㄒㄧㄤ",
+      "reason": "相遇"
+    },
+    {
+      "poem_id": 28,
+      "field": "content",
+      "line_no": 2,
+      "character": "爲",
+      "context": "何爲來",
+      "candidate_reading": "ㄨㄟˋ",
+      "reason": "何為=為什麼"
+    },
+    {
+      "poem_id": 29,
+      "field": "title",
+      "line_no": 0,
+      "character": "盱",
+      "context": "盱眙",
+      "candidate_reading": "ㄒㄩ",
+      "reason": "教育部地名盱眙"
+    },
+    {
+      "poem_id": 29,
+      "field": "title",
+      "line_no": 0,
+      "character": "眙",
+      "context": "盱眙",
+      "candidate_reading": "ㄧˊ",
+      "reason": "教育部地名盱眙"
+    },
+    {
+      "poem_id": 30,
+      "field": "content",
+      "line_no": 1,
+      "character": "舍",
+      "context": "吏舍",
+      "candidate_reading": "ㄕㄜˋ",
+      "reason": "官舍"
+    },
+    {
+      "poem_id": 34,
+      "field": "title",
+      "line_no": 0,
+      "character": "塞",
+      "context": "塞上曲",
+      "candidate_reading": "ㄙㄞˋ",
+      "reason": "邊塞"
+    },
+    {
+      "poem_id": 34,
+      "field": "content",
+      "line_no": 2,
+      "character": "塞",
+      "context": "出塞",
+      "candidate_reading": "ㄙㄞˋ",
+      "reason": "出塞"
+    },
+    {
+      "poem_id": 34,
+      "field": "content",
+      "line_no": 2,
+      "character": "塞",
+      "context": "入塞",
+      "candidate_reading": "ㄙㄞˋ",
+      "reason": "入塞"
+    },
+    {
+      "poem_id": 34,
+      "field": "content",
+      "line_no": 3,
+      "character": "幷",
+      "context": "幽幷客",
+      "candidate_reading": "ㄅㄧㄥ",
+      "reason": "幷州/并州"
+    },
+    {
+      "poem_id": 77,
+      "field": "title",
+      "line_no": 0,
+      "character": "行",
+      "context": "行路難",
+      "candidate_reading": "ㄒㄧㄥˊ",
+      "reason": "行路"
+    },
+    {
+      "poem_id": 77,
+      "field": "content",
+      "line_no": 1,
+      "character": "斗",
+      "context": "斗十千",
+      "candidate_reading": "ㄉㄡˇ",
+      "reason": "容量單位"
+    },
+    {
+      "poem_id": 77,
+      "field": "content",
+      "line_no": 3,
+      "character": "塞",
+      "context": "冰塞川",
+      "candidate_reading": "ㄙㄜˋ",
+      "reason": "塞=阻塞"
+    },
+    {
+      "poem_id": 77,
+      "field": "content",
+      "line_no": 3,
+      "character": "將",
+      "context": "將登太行",
+      "candidate_reading": "ㄐㄧㄤ",
+      "reason": "將=將要"
+    },
+    {
+      "poem_id": 77,
+      "field": "content",
+      "line_no": 3,
+      "character": "行",
+      "context": "太行",
+      "candidate_reading": "ㄏㄤˊ",
+      "reason": "教育部：太行山"
+    },
+    {
+      "poem_id": 84,
+      "field": "content",
+      "line_no": 4,
+      "character": "還",
+      "context": "還寢",
+      "candidate_reading": "ㄏㄨㄢˊ",
+      "reason": "返回"
+    },
+    {
+      "poem_id": 90,
+      "field": "content",
+      "line_no": 4,
+      "character": "處",
+      "context": "何處",
+      "candidate_reading": "ㄔㄨˋ",
+      "reason": "地方"
+    },
+    {
+      "poem_id": 92,
+      "field": "author",
+      "line_no": 0,
+      "character": "參",
+      "context": "岑參",
+      "candidate_reading": "ㄕㄣ",
+      "reason": "人名岑參"
+    },
+    {
+      "poem_id": 92,
+      "field": "title",
+      "line_no": 0,
+      "character": "省",
+      "context": "左省",
+      "candidate_reading": "ㄕㄥˇ",
+      "reason": "門下省"
+    },
+    {
+      "poem_id": 93,
+      "field": "content",
+      "line_no": 3,
+      "character": "中",
+      "context": "中聖",
+      "candidate_reading": "ㄓㄨㄥˋ",
+      "reason": "中聖=飲酒而醉"
+    },
+    {
+      "poem_id": 95,
+      "field": "content",
+      "line_no": 2,
+      "character": "為",
+      "context": "一為別",
+      "candidate_reading": "ㄨㄟˊ",
+      "reason": "為=成為/作為"
+    },
+    {
+      "poem_id": 96,
+      "field": "title",
+      "line_no": 0,
+      "character": "濬",
+      "context": "濬彈琴",
+      "candidate_reading": "ㄐㄩㄣˋ",
+      "reason": "教育部：濬"
+    },
+    {
+      "poem_id": 96,
+      "field": "title",
+      "line_no": 0,
+      "character": "彈",
+      "context": "彈琴",
+      "candidate_reading": "ㄊㄢˊ",
+      "reason": "彈琴"
+    },
+    {
+      "poem_id": 96,
+      "field": "content",
+      "line_no": 2,
+      "character": "爲",
+      "context": "爲我",
+      "candidate_reading": "ㄨㄟˋ",
+      "reason": "為我=替我"
+    },
+    {
+      "poem_id": 96,
+      "field": "content",
+      "line_no": 4,
+      "character": "重",
+      "context": "幾重",
+      "candidate_reading": "ㄔㄨㄥˊ",
+      "reason": "層層"
+    },
+    {
+      "poem_id": 97,
+      "field": "content",
+      "line_no": 2,
+      "character": "將",
+      "context": "謝將軍",
+      "candidate_reading": "ㄐㄧㄤ",
+      "reason": "將軍"
+    },
+    {
+      "poem_id": 97,
+      "field": "content",
+      "line_no": 4,
+      "character": "朝",
+      "context": "明朝",
+      "candidate_reading": "ㄓㄠ",
+      "reason": "明朝=明天"
+    },
+    {
+      "poem_id": 98,
+      "field": "content",
+      "line_no": 4,
+      "character": "勝",
+      "context": "不勝簪",
+      "candidate_reading": "ㄕㄥ",
+      "reason": "勝=承受"
+    },
+    {
+      "poem_id": 99,
+      "field": "content",
+      "line_no": 1,
+      "character": "鄜",
+      "context": "鄜州",
+      "candidate_reading": "ㄈㄨ",
+      "reason": "地名鄜州"
+    },
+    {
+      "poem_id": 100,
+      "field": "content",
+      "line_no": 4,
+      "character": "朝",
+      "context": "明朝",
+      "candidate_reading": "ㄓㄠ",
+      "reason": "明朝=明天"
+    },
+    {
+      "poem_id": 100,
+      "field": "content",
+      "line_no": 4,
+      "character": "數",
+      "context": "數問",
+      "candidate_reading": "ㄕㄨㄛˋ",
+      "reason": "數=屢次"
+    },
+    {
+      "poem_id": 103,
+      "field": "content",
+      "line_no": 2,
+      "character": "幾",
+      "context": "幾時",
+      "candidate_reading": "ㄐㄧˇ",
+      "reason": "幾時"
+    },
+    {
+      "poem_id": 103,
+      "field": "content",
+      "line_no": 4,
+      "character": "應",
+      "context": "應共",
+      "candidate_reading": "ㄧㄥ",
+      "reason": "應=應當/大概"
+    },
+    {
+      "poem_id": 104,
+      "field": "content",
+      "line_no": 2,
+      "character": "幾",
+      "context": "幾時",
+      "candidate_reading": "ㄐㄧˇ",
+      "reason": "幾時"
+    },
+    {
+      "poem_id": 104,
+      "field": "content",
+      "line_no": 2,
+      "character": "重",
+      "context": "重把",
+      "candidate_reading": "ㄔㄨㄥˊ",
+      "reason": "重=再次"
+    },
+    {
+      "poem_id": 104,
+      "field": "content",
+      "line_no": 3,
+      "character": "朝",
+      "context": "三朝",
+      "candidate_reading": "ㄔㄠˊ",
+      "reason": "朝廷/朝代"
+    },
+    {
+      "poem_id": 104,
+      "field": "content",
+      "line_no": 4,
+      "character": "處",
+      "context": "歸處",
+      "candidate_reading": "ㄔㄨˋ",
+      "reason": "地方"
+    },
+    {
+      "poem_id": 106,
+      "field": "content",
+      "line_no": 3,
+      "character": "著",
+      "context": "文章著",
+      "candidate_reading": "ㄓㄨˋ",
+      "reason": "著=著名"
+    },
+    {
+      "poem_id": 106,
+      "field": "content",
+      "line_no": 3,
+      "character": "應",
+      "context": "官應",
+      "candidate_reading": "ㄧㄥ",
+      "reason": "應=應當"
+    },
+    {
+      "poem_id": 110,
+      "field": "content",
+      "line_no": 2,
+      "character": "相",
+      "context": "相與還",
+      "candidate_reading": "ㄒㄧㄤ",
+      "reason": "相與"
+    },
+    {
+      "poem_id": 110,
+      "field": "content",
+      "line_no": 2,
+      "character": "還",
+      "context": "相與還",
+      "candidate_reading": "ㄏㄨㄢˊ",
+      "reason": "返回"
+    },
+    {
+      "poem_id": 111,
+      "field": "content",
+      "line_no": 4,
+      "character": "處",
+      "context": "人處宿",
+      "candidate_reading": "ㄔㄨˋ",
+      "reason": "地方"
+    },
+    {
+      "poem_id": 112,
+      "field": "content",
+      "line_no": 2,
+      "character": "長",
+      "context": "長策",
+      "candidate_reading": "ㄔㄤˊ",
+      "reason": "長策"
+    },
+    {
+      "poem_id": 112,
+      "field": "content",
+      "line_no": 3,
+      "character": "彈",
+      "context": "彈琴",
+      "candidate_reading": "ㄊㄢˊ",
+      "reason": "彈琴"
+    },
+    {
+      "poem_id": 113,
+      "field": "content",
+      "line_no": 1,
+      "character": "數",
+      "context": "數里",
+      "candidate_reading": "ㄕㄨˋ",
+      "reason": "數里=幾里"
+    },
+    {
+      "poem_id": 113,
+      "field": "content",
+      "line_no": 2,
+      "character": "處",
+      "context": "何處",
+      "candidate_reading": "ㄔㄨˋ",
+      "reason": "地方"
+    },
+    {
+      "poem_id": 113,
+      "field": "content",
+      "line_no": 3,
+      "character": "咽",
+      "context": "泉聲咽",
+      "candidate_reading": "ㄧㄝˋ",
+      "reason": "低沉阻塞聲"
+    },
+    {
+      "poem_id": 113,
+      "field": "content",
+      "line_no": 4,
+      "character": "曲",
+      "context": "潭曲",
+      "candidate_reading": "ㄑㄩ",
+      "reason": "彎曲處"
+    },
+    {
+      "poem_id": 114,
+      "field": "content",
+      "line_no": 1,
+      "character": "參",
+      "context": "參天",
+      "candidate_reading": "ㄘㄢ",
+      "reason": "參天"
+    },
+    {
+      "poem_id": 114,
+      "field": "content",
+      "line_no": 2,
+      "character": "重",
+      "context": "百重泉",
+      "candidate_reading": "ㄔㄨㄥˊ",
+      "reason": "層層"
+    },
+    {
+      "poem_id": 115,
+      "field": "content",
+      "line_no": 1,
+      "character": "塞",
+      "context": "楚塞",
+      "candidate_reading": "ㄙㄞˋ",
+      "reason": "邊塞/險塞"
+    },
+    {
+      "poem_id": 116,
+      "field": "content",
+      "line_no": 2,
+      "character": "興",
+      "context": "興來",
+      "candidate_reading": "ㄒㄧㄥˋ",
+      "reason": "興致"
+    },
+    {
+      "poem_id": 116,
+      "field": "content",
+      "line_no": 2,
+      "character": "勝",
+      "context": "勝事",
+      "candidate_reading": "ㄕㄥˋ",
+      "reason": "美好之事"
+    },
+    {
+      "poem_id": 116,
+      "field": "content",
+      "line_no": 3,
+      "character": "行",
+      "context": "行到",
+      "candidate_reading": "ㄒㄧㄥˊ",
+      "reason": "行走"
+    },
+    {
+      "poem_id": 116,
+      "field": "content",
+      "line_no": 3,
+      "character": "處",
+      "context": "水窮處",
+      "candidate_reading": "ㄔㄨˋ",
+      "reason": "地方"
+    },
+    {
+      "poem_id": 116,
+      "field": "content",
+      "line_no": 4,
+      "character": "還",
+      "context": "無還期",
+      "candidate_reading": "ㄏㄨㄢˊ",
+      "reason": "返回"
+    },
+    {
+      "poem_id": 117,
+      "field": "title",
+      "line_no": 0,
+      "character": "相",
+      "context": "丞相",
+      "candidate_reading": "ㄒㄧㄤˋ",
+      "reason": "丞相"
+    },
+    {
+      "poem_id": 118,
+      "field": "title",
+      "line_no": 0,
+      "character": "峴",
+      "context": "峴山",
+      "candidate_reading": "ㄒㄧㄢˋ",
+      "reason": "教育部：峴"
+    },
+    {
+      "poem_id": 118,
+      "field": "content",
+      "line_no": 2,
+      "character": "勝",
+      "context": "勝跡",
+      "candidate_reading": "ㄕㄥˋ",
+      "reason": "名勝古蹟"
+    },
+    {
+      "poem_id": 119,
+      "field": "content",
+      "line_no": 2,
+      "character": "使",
+      "context": "青鳥使",
+      "candidate_reading": "ㄕˇ",
+      "reason": "使者"
+    },
+    {
+      "poem_id": 123,
+      "field": "content",
+      "line_no": 4,
+      "character": "還",
+      "context": "還將兩行淚",
+      "candidate_reading": "ㄏㄞˊ",
+      "reason": "還=仍/又"
+    },
+    {
+      "poem_id": 124,
+      "field": "content",
+      "line_no": 1,
+      "character": "朝",
+      "context": "朝朝",
+      "candidate_reading": "ㄓㄠ",
+      "reason": "每天早晨"
+    },
+    {
+      "poem_id": 125,
+      "field": "content",
+      "line_no": 2,
+      "character": "曲",
+      "context": "襄水曲",
+      "candidate_reading": "ㄑㄩ",
+      "reason": "水灣"
+    },
+    {
+      "poem_id": 126,
+      "field": "author",
+      "line_no": 0,
+      "character": "長",
+      "context": "劉長卿",
+      "candidate_reading": "ㄔㄤˊ",
+      "reason": "人名劉長卿"
+    },
+    {
+      "poem_id": 127,
+      "field": "author",
+      "line_no": 0,
+      "character": "長",
+      "context": "劉長卿",
+      "candidate_reading": "ㄔㄤˊ",
+      "reason": "人名劉長卿"
+    },
+    {
+      "poem_id": 128,
+      "field": "author",
+      "line_no": 0,
+      "character": "長",
+      "context": "劉長卿",
+      "candidate_reading": "ㄔㄤˊ",
+      "reason": "人名劉長卿"
+    },
+    {
+      "poem_id": 129,
+      "field": "author",
+      "line_no": 0,
+      "character": "長",
+      "context": "劉長卿",
+      "candidate_reading": "ㄔㄤˊ",
+      "reason": "人名劉長卿"
+    },
+    {
+      "poem_id": 130,
+      "field": "author",
+      "line_no": 0,
+      "character": "長",
+      "context": "劉長卿",
+      "candidate_reading": "ㄔㄤˊ",
+      "reason": "人名劉長卿"
+    },
+    {
+      "poem_id": 127,
+      "field": "content",
+      "line_no": 1,
+      "character": "將",
+      "context": "征南將",
+      "candidate_reading": "ㄐㄧㄤˋ",
+      "reason": "將領"
+    },
+    {
+      "poem_id": 128,
+      "field": "content",
+      "line_no": 2,
+      "character": "處",
+      "context": "何處",
+      "candidate_reading": "ㄔㄨˋ",
+      "reason": "地方"
+    },
+    {
+      "poem_id": 129,
+      "field": "content",
+      "line_no": 1,
+      "character": "行",
+      "context": "經行處",
+      "candidate_reading": "ㄒㄧㄥˊ",
+      "reason": "行經"
+    },
+    {
+      "poem_id": 129,
+      "field": "content",
+      "line_no": 1,
+      "character": "處",
+      "context": "經行處",
+      "candidate_reading": "ㄔㄨˋ",
+      "reason": "地方"
+    },
+    {
+      "poem_id": 133,
+      "field": "content",
+      "line_no": 1,
+      "character": "爲",
+      "context": "爲客",
+      "candidate_reading": "ㄨㄟˊ",
+      "reason": "為=作為"
+    },
+    {
+      "poem_id": 133,
+      "field": "content",
+      "line_no": 1,
+      "character": "相",
+      "context": "相逢",
+      "candidate_reading": "ㄒㄧㄤ",
+      "reason": "相逢"
+    },
+    {
+      "poem_id": 133,
+      "field": "content",
+      "line_no": 1,
+      "character": "還",
+      "context": "醉還",
+      "candidate_reading": "ㄏㄨㄢˊ",
+      "reason": "返回"
+    },
+    {
+      "poem_id": 134,
+      "field": "content",
+      "line_no": 2,
+      "character": "重",
+      "context": "帆來重",
+      "candidate_reading": "ㄓㄨㄥˋ",
+      "reason": "沉重"
+    },
+    {
+      "poem_id": 134,
+      "field": "content",
+      "line_no": 4,
+      "character": "相",
+      "context": "相送",
+      "candidate_reading": "ㄒㄧㄤ",
+      "reason": "相送"
+    },
+    {
+      "poem_id": 138,
+      "field": "author",
+      "line_no": 0,
+      "character": "綸",
+      "context": "盧綸",
+      "candidate_reading": "ㄌㄨㄣˊ",
+      "reason": "教育部人名：盧綸"
+    },
+    {
+      "poem_id": 138,
+      "field": "content",
+      "line_no": 3,
+      "character": "少",
+      "context": "少孤",
+      "candidate_reading": "ㄕㄠˋ",
+      "reason": "年少"
+    },
+    {
+      "poem_id": 138,
+      "field": "content",
+      "line_no": 3,
+      "character": "為",
+      "context": "為客",
+      "candidate_reading": "ㄨㄟˊ",
+      "reason": "為=作為"
+    },
+    {
+      "poem_id": 138,
+      "field": "content",
+      "line_no": 4,
+      "character": "相",
+      "context": "相向",
+      "candidate_reading": "ㄒㄧㄤ",
+      "reason": "相向"
+    },
+    {
+      "poem_id": 138,
+      "field": "content",
+      "line_no": 4,
+      "character": "處",
+      "context": "何處",
+      "candidate_reading": "ㄔㄨˋ",
+      "reason": "地方"
+    },
+    {
+      "poem_id": 146,
+      "field": "content",
+      "line_no": 4,
+      "character": "繫",
+      "context": "繫釣魚船",
+      "candidate_reading": "ㄒㄧˋ",
+      "reason": "繫住"
+    },
+    {
+      "poem_id": 149,
+      "field": "content",
+      "line_no": 2,
+      "character": "更",
+      "context": "五更",
+      "candidate_reading": "ㄍㄥ",
+      "reason": "更次"
+    },
+    {
+      "poem_id": 149,
+      "field": "content",
+      "line_no": 4,
+      "character": "相",
+      "context": "相警",
+      "candidate_reading": "ㄒㄧㄤ",
+      "reason": "相互"
+    },
+    {
+      "poem_id": 150,
+      "field": "content",
+      "line_no": 4,
+      "character": "斗",
+      "context": "斗幾千",
+      "candidate_reading": "ㄉㄡˇ",
+      "reason": "容量單位"
+    },
+    {
+      "poem_id": 151,
+      "field": "content",
+      "line_no": 2,
+      "character": "參",
+      "context": "參差",
+      "candidate_reading": "ㄘㄣ",
+      "reason": "教育部：參差"
+    },
+    {
+      "poem_id": 151,
+      "field": "content",
+      "line_no": 2,
+      "character": "差",
+      "context": "參差",
+      "candidate_reading": "ㄘ",
+      "reason": "教育部：參差"
+    },
+    {
+      "poem_id": 151,
+      "field": "content",
+      "line_no": 2,
+      "character": "曲",
+      "context": "曲陌",
+      "candidate_reading": "ㄑㄩ",
+      "reason": "彎曲"
+    },
+    {
+      "poem_id": 152,
+      "field": "content",
+      "line_no": 4,
+      "character": "占",
+      "context": "占夢",
+      "candidate_reading": "ㄓㄢ",
+      "reason": "教育部：占夢"
+    },
+    {
+      "poem_id": 152,
+      "field": "content",
+      "line_no": 4,
+      "character": "數",
+      "context": "占夢數",
+      "candidate_reading": "ㄕㄨㄛˋ",
+      "reason": "數=屢次"
+    },
+    {
+      "poem_id": 153,
+      "field": "content",
+      "line_no": 2,
+      "character": "幾",
+      "context": "幾層",
+      "candidate_reading": "ㄐㄧˇ",
+      "reason": "幾層"
+    },
+    {
+      "poem_id": 153,
+      "field": "content",
+      "line_no": 4,
+      "character": "寧",
+      "context": "吾寧",
+      "candidate_reading": "ㄋㄧㄥˋ",
+      "reason": "寧=豈/難道"
+    },
+    {
+      "poem_id": 163,
+      "field": "author",
+      "line_no": 0,
+      "character": "顥",
+      "context": "崔顥",
+      "candidate_reading": "ㄏㄠˋ",
+      "reason": "教育部人名：崔顥"
+    },
+    {
+      "poem_id": 163,
+      "field": "content",
+      "line_no": 2,
+      "character": "載",
+      "context": "千載",
+      "candidate_reading": "ㄗㄞˇ",
+      "reason": "年歲"
+    },
+    {
+      "poem_id": 175,
+      "field": "title",
+      "line_no": 0,
+      "character": "相",
+      "context": "蜀相",
+      "candidate_reading": "ㄒㄧㄤˋ",
+      "reason": "宰相"
+    },
+    {
+      "poem_id": 175,
+      "field": "content",
+      "line_no": 1,
+      "character": "處",
+      "context": "何處",
+      "candidate_reading": "ㄔㄨˋ",
+      "reason": "地方"
+    },
+    {
+      "poem_id": 175,
+      "field": "content",
+      "line_no": 3,
+      "character": "朝",
+      "context": "兩朝",
+      "candidate_reading": "ㄔㄠˊ",
+      "reason": "朝廷/朝代"
+    },
+    {
+      "poem_id": 175,
+      "field": "content",
+      "line_no": 4,
+      "character": "長",
+      "context": "長使",
+      "candidate_reading": "ㄔㄤˊ",
+      "reason": "長久"
+    },
+    {
+      "poem_id": 178,
+      "field": "content",
+      "line_no": 2,
+      "character": "捲",
+      "context": "漫捲",
+      "candidate_reading": "ㄐㄩㄢˇ",
+      "reason": "捲起"
+    },
+    {
+      "poem_id": 178,
+      "field": "content",
+      "line_no": 3,
+      "character": "還",
+      "context": "還鄉",
+      "candidate_reading": "ㄏㄨㄢˊ",
+      "reason": "返回"
+    },
+    {
+      "poem_id": 246,
+      "field": "content",
+      "line_no": 1,
+      "character": "處",
+      "context": "何處",
+      "candidate_reading": "ㄔㄨˋ",
+      "reason": "地方"
+    },
+    {
+      "poem_id": 247,
+      "field": "title",
+      "line_no": 0,
+      "character": "長",
+      "context": "長干行",
+      "candidate_reading": "ㄔㄤˊ",
+      "reason": "長干地名"
+    },
+    {
+      "poem_id": 247,
+      "field": "title",
+      "line_no": 0,
+      "character": "行",
+      "context": "長干行",
+      "candidate_reading": "ㄒㄧㄥˊ",
+      "reason": "樂府題名「行」"
+    },
+    {
+      "poem_id": 249,
+      "field": "author",
+      "line_no": 0,
+      "character": "綸",
+      "context": "盧綸",
+      "candidate_reading": "ㄌㄨㄣˊ",
+      "reason": "教育部人名：盧綸"
+    },
+    {
+      "poem_id": 250,
+      "field": "author",
+      "line_no": 0,
+      "character": "綸",
+      "context": "盧綸",
+      "candidate_reading": "ㄌㄨㄣˊ",
+      "reason": "教育部人名：盧綸"
+    },
+    {
+      "poem_id": 251,
+      "field": "author",
+      "line_no": 0,
+      "character": "綸",
+      "context": "盧綸",
+      "candidate_reading": "ㄌㄨㄣˊ",
+      "reason": "教育部人名：盧綸"
+    },
+    {
+      "poem_id": 252,
+      "field": "author",
+      "line_no": 0,
+      "character": "綸",
+      "context": "盧綸",
+      "candidate_reading": "ㄌㄨㄣˊ",
+      "reason": "教育部人名：盧綸"
+    },
+    {
+      "poem_id": 249,
+      "field": "title",
+      "line_no": 0,
+      "character": "塞",
+      "context": "塞下曲",
+      "candidate_reading": "ㄙㄞˋ",
+      "reason": "邊塞"
+    },
+    {
+      "poem_id": 250,
+      "field": "title",
+      "line_no": 0,
+      "character": "塞",
+      "context": "塞下曲",
+      "candidate_reading": "ㄙㄞˋ",
+      "reason": "邊塞"
+    },
+    {
+      "poem_id": 251,
+      "field": "title",
+      "line_no": 0,
+      "character": "塞",
+      "context": "塞下曲",
+      "candidate_reading": "ㄙㄞˋ",
+      "reason": "邊塞"
+    },
+    {
+      "poem_id": 252,
+      "field": "title",
+      "line_no": 0,
+      "character": "塞",
+      "context": "塞下曲",
+      "candidate_reading": "ㄙㄞˋ",
+      "reason": "邊塞"
+    },
+    {
+      "poem_id": 250,
+      "field": "content",
+      "line_no": 1,
+      "character": "將",
+      "context": "將軍",
+      "candidate_reading": "ㄐㄧㄤˋ",
+      "reason": "將領"
+    },
+    {
+      "poem_id": 251,
+      "field": "content",
+      "line_no": 1,
+      "character": "單",
+      "context": "單于",
+      "candidate_reading": "ㄔㄢˊ",
+      "reason": "教育部：單于"
+    },
+    {
+      "poem_id": 251,
+      "field": "content",
+      "line_no": 2,
+      "character": "將",
+      "context": "欲將",
+      "candidate_reading": "ㄐㄧㄤ",
+      "reason": "將=帶領/要"
+    },
+    {
+      "poem_id": 251,
+      "field": "content",
+      "line_no": 2,
+      "character": "騎",
+      "context": "輕騎",
+      "candidate_reading": "ㄐㄧˋ",
+      "reason": "教育部：輕騎"
+    },
+    {
+      "poem_id": 253,
+      "field": "content",
+      "line_no": 1,
+      "character": "賈",
+      "context": "瞿塘賈",
+      "candidate_reading": "ㄍㄨˇ",
+      "reason": "賈=商人"
+    },
+    {
+      "poem_id": 253,
+      "field": "content",
+      "line_no": 1,
+      "character": "朝",
+      "context": "朝朝",
+      "candidate_reading": "ㄓㄠ",
+      "reason": "每天"
+    },
+    {
+      "poem_id": 258,
+      "field": "content",
+      "line_no": 2,
+      "character": "教",
+      "context": "悔教",
+      "candidate_reading": "ㄐㄧㄠˋ",
+      "reason": "教=使/讓"
+    },
+    {
+      "poem_id": 268,
+      "field": "content",
+      "line_no": 1,
+      "character": "更",
+      "context": "更深",
+      "candidate_reading": "ㄍㄥ",
+      "reason": "更次深夜"
+    },
+    {
+      "poem_id": 268,
+      "field": "content",
+      "line_no": 2,
+      "character": "斗",
+      "context": "北斗",
+      "candidate_reading": "ㄉㄡˇ",
+      "reason": "北斗"
+    },
+    {
+      "poem_id": 268,
+      "field": "content",
+      "line_no": 2,
+      "character": "斗",
+      "context": "南斗",
+      "candidate_reading": "ㄉㄡˇ",
+      "reason": "南斗"
+    },
+    {
+      "poem_id": 270,
+      "field": "content",
+      "line_no": 2,
+      "character": "朝",
+      "context": "朝朝",
+      "candidate_reading": "ㄓㄠ",
+      "reason": "每天"
+    },
+    {
+      "poem_id": 274,
+      "field": "content",
+      "line_no": 3,
+      "character": "行",
+      "context": "行到",
+      "candidate_reading": "ㄒㄧㄥˊ",
+      "reason": "行走"
+    },
+    {
+      "poem_id": 274,
+      "field": "content",
+      "line_no": 3,
+      "character": "數",
+      "context": "數花朵",
+      "candidate_reading": "ㄕㄨˇ",
+      "reason": "計數"
+    },
+    {
+      "poem_id": 278,
+      "field": "author",
+      "line_no": 0,
+      "character": "祜",
+      "context": "張祜",
+      "candidate_reading": "ㄏㄨˋ",
+      "reason": "人名張祜"
+    },
+    {
+      "poem_id": 279,
+      "field": "author",
+      "line_no": 0,
+      "character": "祜",
+      "context": "張祜",
+      "candidate_reading": "ㄏㄨˋ",
+      "reason": "人名張祜"
+    },
+    {
+      "poem_id": 278,
+      "field": "content",
+      "line_no": 2,
+      "character": "騎",
+      "context": "騎馬",
+      "candidate_reading": "ㄑㄧˊ",
+      "reason": "騎馬動詞"
+    },
+    {
+      "poem_id": 278,
+      "field": "content",
+      "line_no": 4,
+      "character": "朝",
+      "context": "朝至尊",
+      "candidate_reading": "ㄔㄠˊ",
+      "reason": "朝見"
+    },
+    {
+      "poem_id": 279,
+      "field": "content",
+      "line_no": 2,
+      "character": "行",
+      "context": "行人",
+      "candidate_reading": "ㄒㄧㄥˊ",
+      "reason": "行人"
+    },
+    {
+      "poem_id": 283,
+      "field": "content",
+      "line_no": 1,
+      "character": "將",
+      "context": "自將磨洗",
+      "candidate_reading": "ㄐㄧㄤ",
+      "reason": "將=拿"
+    },
+    {
+      "poem_id": 283,
+      "field": "content",
+      "line_no": 1,
+      "character": "朝",
+      "context": "前朝",
+      "candidate_reading": "ㄔㄠˊ",
+      "reason": "朝代"
+    },
+    {
+      "poem_id": 288,
+      "field": "content",
+      "line_no": 4,
+      "character": "卷",
+      "context": "卷上珠簾",
+      "candidate_reading": "ㄐㄩㄢˇ",
+      "reason": "捲起"
+    },
+    {
+      "poem_id": 289,
+      "field": "content",
+      "line_no": 3,
+      "character": "還",
+      "context": "還惜別",
+      "candidate_reading": "ㄏㄞˊ",
+      "reason": "仍然"
+    },
+    {
+      "poem_id": 294,
+      "field": "content",
+      "line_no": 1,
+      "character": "興",
+      "context": "乘興",
+      "candidate_reading": "ㄒㄧㄥˋ",
+      "reason": "興致"
+    },
+    {
+      "poem_id": 294,
+      "field": "content",
+      "line_no": 1,
+      "character": "重",
+      "context": "九重",
+      "candidate_reading": "ㄔㄨㄥˊ",
+      "reason": "九重宮闕"
+    },
+    {
+      "poem_id": 294,
+      "field": "content",
+      "line_no": 1,
+      "character": "省",
+      "context": "誰省",
+      "candidate_reading": "ㄒㄧㄥˇ",
+      "reason": "察看/理會"
+    },
+    {
+      "poem_id": 299,
+      "field": "author",
+      "line_no": 0,
+      "character": "畋",
+      "context": "鄭畋",
+      "candidate_reading": "ㄊㄧㄢˊ",
+      "reason": "人名鄭畋"
+    },
+    {
+      "poem_id": 306,
+      "field": "content",
+      "line_no": 1,
+      "character": "更",
+      "context": "未更衣",
+      "candidate_reading": "ㄍㄥ",
+      "reason": "教育部：更衣"
+    },
+    {
+      "poem_id": 310,
+      "field": "title",
+      "line_no": 0,
+      "character": "調",
+      "context": "清平調",
+      "candidate_reading": "ㄉㄧㄠˋ",
+      "reason": "曲調"
+    },
+    {
+      "poem_id": 311,
+      "field": "title",
+      "line_no": 0,
+      "character": "調",
+      "context": "清平調",
+      "candidate_reading": "ㄉㄧㄠˋ",
+      "reason": "曲調"
+    },
+    {
+      "poem_id": 312,
+      "field": "title",
+      "line_no": 0,
+      "character": "調",
+      "context": "清平調",
+      "candidate_reading": "ㄉㄧㄠˋ",
+      "reason": "曲調"
+    },
+    {
+      "poem_id": 312,
+      "field": "content",
+      "line_no": 2,
+      "character": "沈",
+      "context": "沈香亭",
+      "candidate_reading": "ㄔㄣˊ",
+      "reason": "沈香=沉香"
+    },
+    {
+      "poem_id": 312,
+      "field": "content",
+      "line_no": 2,
+      "character": "觧",
+      "context": "觧釋",
+      "candidate_reading": "ㄐㄧㄝˇ",
+      "reason": "觧為解的異體字"
+    }
+  ],
+  "listening_qa_required": "all pronunciation-sensitive assets after source and font gates"
+}
