@@ -981,3 +981,52 @@ dry_run=True
 ~~~
 
 The 11 existing production backgrounds are p006 (4), p040 (3), p085 (4). They are excluded from the Batch JSONL. The submit gate is PASS; next action is one real Batch API submission for the remaining 116 images.
+
+
+## 23. Age 7 image production COMPLETE（2026-10-08）
+
+Gemini Batch API production completed successfully for the remaining 116 backgrounds:
+
+~~~text
+batch_requests=116
+generated_now=116
+already_processed=0
+collected_total=116
+failed_total=0
+estimated_cost_usd_now=1.962680125
+~~~
+
+Together with the 11 synchronous smoke-test backgrounds:
+
+~~~text
+existing synchronous backgrounds  11
+batch-collected backgrounds       116
+-------------------------------------
+Age 7 backgrounds total           127 / 127
+~~~
+
+Human visual QA was then performed on the complete Age 7 background set.
+
+Six images were found to contain unwanted generated Chinese text:
+
+~~~text
+p121_s01
+p224_s01
+p260_s01
+p272_s01
+p295_s01
+p300_s01
+~~~
+
+All six were regenerated individually through the synchronous production generator with `--force`, then rechecked. Final human QA result:
+
+~~~text
+Age 7 background completeness  127 / 127
+obvious text contamination        0
+human visual QA                  PASS
+image resource gate              COMPLETE
+~~~
+
+The Batch API remains the preferred high-volume production path. Synchronous generation remains the targeted retry path for individual defective images.
+
+Next gate: full Age 7 timeline + composer preflight via `render_video_batch.py --age 7 --style B --preflight-only`.
