@@ -38,6 +38,10 @@ from typing import Any
 
 try:
     from fontTools.ttLib import TTFont
+    from fontTools.ttLib.tables._g_l_y_f import (
+        Glyph,
+        GlyphComponent,
+    )
 except ImportError as exc:
     raise SystemExit(
         "fonttools is required. Run: "
@@ -399,6 +403,205 @@ def add_unicode_alias(
     return mapped_tables
 
 
+def base_glyph_name_for_codepoint(
+    font: TTFont,
+    codepoint: int,
+) -> str:
+    annotated_name = annotated_glyph_for_codepoint(
+        font,
+        codepoint,
+    )
+    _phonetic, bases = split_components(
+        font,
+        annotated_name,
+    )
+    if len(bases) != 1:
+        raise ValueError(
+            f"U+{codepoint:04X}: expected one base Han component, "
+            f"got {len(bases)}"
+        )
+    return str(bases[0].glyphName)
+
+
+def make_lr_component(
+    *,
+    glyph_name: str,
+    scale_x: float,
+    x_units: int,
+) -> Any:
+    component = GlyphComponent()
+    component.glyphName = glyph_name
+    component.x = int(x_units)
+    component.y = 0
+    component.flags = 0
+    component.transform = [
+        [float(scale_x), 0.0],
+        [0.0, 1.0],
+    ]
+    return component
+
+
+def add_synthesized_glyphs(
+    font: TTFont,
+    spec: dict[str, Any],
+) -> list[dict[str, Any]]:
+    results = []
+    glyf = font["glyf"]
+    best_cmap = font.getBestCmap() or {}
+    units_per_em = int(font["head"].unitsPerEm)
+
+    for item in spec.get("synthesized_glyphs", []):
+        char = str(item["character"])
+        codepoint = parse_uplus(str(item["codepoint"]))
+        prototype_char = str(item["prototype_character"])
+        prototype_codepoint = parse_uplus(
+            str(item["prototype_codepoint"])
+        )
+        left_char = str(item["left_character"])
+        left_codepoint = parse_uplus(
+            str(item["left_codepoint"])
+        )
+        right_char = str(item["right_character"])
+        right_codepoint = parse_uplus(
+            str(item["right_codepoint"])
+        )
+
+        for actual_char, actual_cp, label in (
+            (char, codepoint, "target"),
+            (prototype_char, prototype_codepoint, "prototype"),
+            (left_char, left_codepoint, "left"),
+            (right_char, right_codepoint, "right"),
+        ):
+            if ord(actual_char) != actual_cp:
+                raise ValueError(
+                    f"{label} {actual_char}: codepoint mismatch "
+                    f"U+{actual_cp:04X}"
+                )
+
+        existing = best_cmap.get(codepoint)
+        if existing:
+            results.append(
+                {
+                    **item,
+                    "glyph": existing,
+                    "status": "native",
+                }
+            )
+            continue
+
+        left_base = base_glyph_name_for_codepoint(
+            font,
+            left_codepoint,
+        )
+        right_base = base_glyph_name_for_codepoint(
+            font,
+            right_codepoint,
+        )
+        prototype_name = annotated_glyph_for_codepoint(
+            font,
+            prototype_codepoint,
+        )
+        prototype_phonetic, prototype_base = split_components(
+            font,
+            prototype_name,
+        )
+        if len(prototype_base) != 1:
+            raise ValueError(
+                f"{prototype_char}: expected one base component, "
+                f"got {len(prototype_base)}"
+            )
+
+        layout = item["layout"]
+        left_scale_x = float(layout["left_scale_x"])
+        right_scale_x = float(layout["right_scale_x"])
+        right_x = int(
+            round(
+                units_per_em
+                * float(layout["right_x_em"])
+            )
+        )
+
+        base_name = f"poem300.base.{codepoint:04X}"
+        annotated_name = f"poem300.annotated.{codepoint:04X}"
+
+        if base_name not in glyf:
+            base_glyph = Glyph()
+            base_glyph.numberOfContours = -1
+            base_glyph.components = [
+                make_lr_component(
+                    glyph_name=left_base,
+                    scale_x=left_scale_x,
+                    x_units=0,
+                ),
+                make_lr_component(
+                    glyph_name=right_base,
+                    scale_x=right_scale_x,
+                    x_units=right_x,
+                ),
+            ]
+            glyf[base_name] = base_glyph
+            ensure_glyph_order(font, base_name)
+
+            if "hmtx" in font:
+                font["hmtx"].metrics[base_name] = (
+                    font["hmtx"].metrics[prototype_name]
+                )
+            if (
+                "vmtx" in font
+                and prototype_name in font["vmtx"].metrics
+            ):
+                font["vmtx"].metrics[base_name] = (
+                    font["vmtx"].metrics[prototype_name]
+                )
+
+        if annotated_name not in glyf:
+            annotated_glyph = copy.deepcopy(
+                glyf[prototype_name]
+            )
+            target_base = copy.deepcopy(
+                prototype_base[0]
+            )
+            target_base.glyphName = base_name
+            annotated_glyph.components = (
+                prototype_phonetic + [target_base]
+            )
+            glyf[annotated_name] = annotated_glyph
+            ensure_glyph_order(font, annotated_name)
+
+            if "hmtx" in font:
+                font["hmtx"].metrics[annotated_name] = (
+                    font["hmtx"].metrics[prototype_name]
+                )
+            if (
+                "vmtx" in font
+                and prototype_name in font["vmtx"].metrics
+            ):
+                font["vmtx"].metrics[annotated_name] = (
+                    font["vmtx"].metrics[prototype_name]
+                )
+
+        mapped = add_unicode_alias(
+            font,
+            codepoint=codepoint,
+            glyph_name=annotated_name,
+        )
+        best_cmap[codepoint] = annotated_name
+
+        results.append(
+            {
+                **item,
+                "glyph": annotated_name,
+                "base_glyph": base_name,
+                "left_base_glyph": left_base,
+                "right_base_glyph": right_base,
+                "mapped_cmap_tables": mapped,
+                "status": "synthesized",
+            }
+        )
+
+    return results
+
+
 def add_compatibility_aliases(
     font: TTFont,
     spec: dict[str, Any],
@@ -577,6 +780,59 @@ def verify_output(
             )
 
         best_cmap = font.getBestCmap() or {}
+        synthesized_results = []
+
+        for item in spec.get("synthesized_glyphs", []):
+            target = parse_uplus(str(item["codepoint"]))
+            glyph_name = best_cmap.get(target)
+            if not glyph_name:
+                raise ValueError(
+                    f"{item['character']}: synthesized glyph missing "
+                    "from output font"
+                )
+            glyph = font["glyf"][glyph_name]
+            if not glyph.isComposite():
+                raise ValueError(
+                    f"{item['character']}: synthesized annotated "
+                    "glyph is not composite"
+                )
+            actual_phonetic, _ = split_components(
+                font,
+                glyph_name,
+            )
+
+            prototype_name = annotated_glyph_for_codepoint(
+                font,
+                parse_uplus(
+                    str(item["prototype_codepoint"])
+                ),
+            )
+            expected_phonetic, _ = split_components(
+                font,
+                prototype_name,
+            )
+            actual_names = [
+                component.glyphName
+                for component in actual_phonetic
+            ]
+            expected_names = [
+                component.glyphName
+                for component in expected_phonetic
+            ]
+            if actual_names != expected_names:
+                raise ValueError(
+                    f"{item['character']}: synthesized pronunciation "
+                    f"layout differs from prototype "
+                    f"{item['prototype_character']}"
+                )
+
+            synthesized_results.append(
+                {
+                    **item,
+                    "glyph": glyph_name,
+                }
+            )
+
         compatibility_results = []
 
         for item in spec.get("compatibility_aliases", []):
@@ -634,6 +890,7 @@ def verify_output(
             )
 
         return {
+            "synthesized_glyphs": synthesized_results,
             "compatibility_aliases": compatibility_results,
             "extensions": extension_results,
             "aliases": alias_results,
@@ -708,6 +965,10 @@ def main() -> int:
     print(f"input={input_path.as_posix()}")
     print(f"output={output_path.as_posix()}")
     print(
+        "synthesized_glyphs="
+        + str(len(spec.get("synthesized_glyphs", [])))
+    )
+    print(
         "compatibility_aliases="
         + str(len(spec.get("compatibility_aliases", [])))
     )
@@ -715,6 +976,17 @@ def main() -> int:
     print(f"render_aliases={len(aliases)}")
 
     if args.dry_run:
+        print("\nSynthesized glyphs")
+        for item in spec.get("synthesized_glyphs", []):
+            print(
+                "  "
+                f"{item['character']} = "
+                f"{item['left_character']} + "
+                f"{item['right_character']} "
+                f"reading={item['reading']} "
+                f"prototype={item['prototype_character']}"
+            )
+
         print("\nCompatibility aliases")
         for item in spec.get("compatibility_aliases", []):
             print(
@@ -751,6 +1023,10 @@ def main() -> int:
     try:
         uvs_table = find_uvs_table(font)
 
+        patched_synthesized = add_synthesized_glyphs(
+            font,
+            spec,
+        )
         patched_compatibility = add_compatibility_aliases(
             font,
             spec,
@@ -779,6 +1055,17 @@ def main() -> int:
         spec,
         overrides,
     )
+
+    print("\nPatched synthesized glyphs")
+    for item in patched_synthesized:
+        print(
+            "  "
+            f"{item['character']} = "
+            f"{item['left_character']} + "
+            f"{item['right_character']} "
+            f"reading={item['reading']} "
+            f"status={item['status']}"
+        )
 
     print("\nPatched compatibility aliases")
     for item in patched_compatibility:
@@ -810,6 +1097,10 @@ def main() -> int:
         )
 
     print("\nVerified")
+    print(
+        "  synthesized_glyphs="
+        + str(len(verified["synthesized_glyphs"]))
+    )
     print(
         "  compatibility_aliases="
         + str(len(verified["compatibility_aliases"]))

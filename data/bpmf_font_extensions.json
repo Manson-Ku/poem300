@@ -1,5 +1,5 @@
 {
-  "version": "bpmf_font_extensions_v2",
+  "version": "bpmf_font_extensions_v3",
   "base_font": {
     "expected_filename": "BpmfHuninn-Regular.ttf",
     "upstream": "ButTaiwan/bpmfvs",
@@ -111,6 +111,48 @@
         "比隣"
       ],
       "note": "renderer-only; canonical text remains 隣"
+    }
+  ],
+  "synthesized_glyphs": [
+    {
+      "character": "螘",
+      "codepoint": "U+8798",
+      "reading": "ㄧˇ",
+      "prototype_character": "蟻",
+      "prototype_codepoint": "U+87FB",
+      "left_character": "虫",
+      "left_codepoint": "U+866B",
+      "right_character": "豈",
+      "right_codepoint": "U+8C48",
+      "layout": {
+        "left_scale_x": 0.42,
+        "right_scale_x": 0.62,
+        "right_x_em": 0.38
+      },
+      "contexts": [
+        "綠螘新醅酒"
+      ],
+      "evidence_note": "教育部《異體字字典》確認螘與蟻互為異體；仍以同字體虫+豈部件合成 canonical 螘字形。"
+    },
+    {
+      "character": "蟢",
+      "codepoint": "U+87E2",
+      "reading": "ㄒㄧˇ",
+      "prototype_character": "喜",
+      "prototype_codepoint": "U+559C",
+      "left_character": "虫",
+      "left_codepoint": "U+866B",
+      "right_character": "喜",
+      "right_codepoint": "U+559C",
+      "layout": {
+        "left_scale_x": 0.42,
+        "right_scale_x": 0.62,
+        "right_x_em": 0.38
+      },
+      "contexts": [
+        "今朝蟢子飛"
+      ],
+      "evidence_note": "教育部《重編國語辭典修訂本》收蟢 ㄒㄧˇ；Huninn binary 缺字時，以同字體虫+喜部件合成 canonical 蟢字形。"
     }
   ]
 }
