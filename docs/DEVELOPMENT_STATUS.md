@@ -1211,3 +1211,32 @@ It checks:
 - exact remote/local byte-size equality.
 
 Bulk Age 7 upload should remain paused until p006 returns either `PASS_UPLOAD`, `PASS_UPLOAD_STATUS`, or full processing `PASS`. A remote-size mismatch or processing/upload failure is a hard stop.
+
+
+## 30. p006 upload completeness verified（2026-10-08）
+
+Read-only verification of the first scheduled Age 7 upload:
+
+~~~text
+video_id=6W_px5PXLVI
+poem=p006 望嶽
+local_size=82377762
+remote_size=82377762
+size_match=true
+upload_status=uploaded
+processing_status=processing
+file_details_availability=inProgress
+~~~
+
+Conclusion:
+
+~~~text
+binary upload completeness   PASS
+remote/local byte equality   PASS
+YouTube processing           IN PROGRESS
+scheduled publish path       PASS
+~~~
+
+The earlier HTTP 410 was therefore a client-side ambiguous completion after the remote upload had already committed successfully; it did not truncate the MP4.
+
+The Age 7 uploader may continue using the repaired ambiguous-completion reconciliation path. If p006 is checked again later, expected terminal processing state is `processing_status=succeeded`.
