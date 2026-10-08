@@ -1,5 +1,5 @@
 {
-  "version": "bpmf_font_extensions_v3",
+  "version": "bpmf_font_extensions_v4",
   "base_font": {
     "expected_filename": "BpmfHuninn-Regular.ttf",
     "upstream": "ButTaiwan/bpmfvs",
@@ -42,6 +42,20 @@
       "prototype_character": "影",
       "prototype_codepoint": "U+5F71",
       "prototype_reading": "ㄧㄥˇ"
+    },
+    {
+      "character": "沈",
+      "codepoint": "U+6C88",
+      "default_reading": "ㄕㄣˇ",
+      "added_reading": "ㄔㄣˊ",
+      "selector": "U+E01E1",
+      "contexts": [
+        "沈香亭"
+      ],
+      "evidence_note": "Age 8 p312 uses 沈香 as the historical spelling of 沉香; preserve canonical 沈 and add renderer-only ㄔㄣˊ pronunciation IVS.",
+      "prototype_character": "沉",
+      "prototype_codepoint": "U+6C89",
+      "prototype_reading": "ㄔㄣˊ"
     }
   ],
   "compatibility_aliases": [
@@ -111,6 +125,118 @@
         "比隣"
       ],
       "note": "renderer-only; canonical text remains 隣"
+    },
+    {
+      "character": "幷",
+      "codepoint": "U+5E77",
+      "source_character": "并",
+      "source_codepoint": "U+5E76",
+      "reading": "ㄅㄧㄥ",
+      "contexts": [
+        "p034 塞上曲：幽幷客"
+      ],
+      "note": "historical/variant glyph; renderer-only alias, canonical text remains 幷"
+    },
+    {
+      "character": "满",
+      "codepoint": "U+6EE1",
+      "source_character": "滿",
+      "source_codepoint": "U+6EFF",
+      "reading": "ㄇㄢˇ",
+      "contexts": [
+        "p077 行路難"
+      ],
+      "note": "simplified/variant glyph in canonical source; renderer-only alias, canonical text remains 满"
+    },
+    {
+      "character": "猨",
+      "codepoint": "U+7328",
+      "source_character": "猿",
+      "source_codepoint": "U+733F",
+      "reading": "ㄩㄢˊ",
+      "contexts": [
+        "p130 新年作"
+      ],
+      "note": "historical variant; renderer-only alias, canonical text remains 猨"
+    },
+    {
+      "character": "疎",
+      "codepoint": "U+758E",
+      "source_character": "疏",
+      "source_codepoint": "U+758F",
+      "reading": "ㄕㄨ",
+      "contexts": [
+        "p120 歲暮歸南山",
+        "p133 淮上喜會梁州故人"
+      ],
+      "note": "historical variant; renderer-only alias, canonical text remains 疎"
+    },
+    {
+      "character": "竈",
+      "codepoint": "U+7AC8",
+      "source_character": "灶",
+      "source_codepoint": "U+7076",
+      "reading": "ㄗㄠˋ",
+      "contexts": [
+        "p119 宴梅道士山房"
+      ],
+      "note": "historical variant; renderer-only alias, canonical text remains 竈"
+    },
+    {
+      "character": "筯",
+      "codepoint": "U+7B6F",
+      "source_character": "箸",
+      "source_codepoint": "U+7BB8",
+      "reading": "ㄓㄨˋ",
+      "contexts": [
+        "p077 行路難"
+      ],
+      "note": "historical variant; renderer-only alias, canonical text remains 筯"
+    },
+    {
+      "character": "羣",
+      "codepoint": "U+7FA3",
+      "source_character": "群",
+      "source_codepoint": "U+7FA4",
+      "reading": "ㄑㄩㄣˊ",
+      "contexts": [
+        "p310 清平調三首之一"
+      ],
+      "note": "historical variant; renderer-only alias, canonical text remains 羣"
+    },
+    {
+      "character": "荆",
+      "codepoint": "U+8346",
+      "source_character": "荊",
+      "source_codepoint": "U+834A",
+      "reading": "ㄐㄧㄥ",
+      "contexts": [
+        "p027 寄全椒山中道士",
+        "p094 渡荊門送別"
+      ],
+      "note": "variant glyph; renderer-only alias, canonical text remains 荆"
+    },
+    {
+      "character": "褭",
+      "codepoint": "U+892D",
+      "source_character": "裊",
+      "source_codepoint": "U+88CA",
+      "reading": "ㄋㄧㄠˇ",
+      "contexts": [
+        "p288 贈別二首之一"
+      ],
+      "note": "historical variant; renderer-only alias, canonical text remains 褭"
+    },
+    {
+      "character": "觧",
+      "codepoint": "U+89E7",
+      "source_character": "解",
+      "source_codepoint": "U+89E3",
+      "reading": "ㄐㄧㄝˇ",
+      "contexts": [
+        "p312 清平調三首之三：觧釋"
+      ],
+      "note": "historical variant; renderer-only alias, canonical text remains 觧"
     }
   ],
   "synthesized_glyphs": [
@@ -153,6 +279,66 @@
         "今朝蟢子飛"
       ],
       "evidence_note": "教育部《重編國語辭典修訂本》收蟢 ㄒㄧˇ；Huninn binary 缺字時，以同字體虫+喜部件合成 canonical 蟢字形。"
+    },
+    {
+      "character": "輞",
+      "codepoint": "U+8F1E",
+      "reading": "ㄨㄤˇ",
+      "prototype_character": "網",
+      "prototype_codepoint": "U+7DB2",
+      "left_character": "車",
+      "left_codepoint": "U+8ECA",
+      "right_character": "罔",
+      "right_codepoint": "U+7F54",
+      "layout": {
+        "left_scale_x": 0.48,
+        "right_scale_x": 0.58,
+        "right_x_em": 0.42
+      },
+      "contexts": [
+        "p108 輞川閒居贈裴秀才迪"
+      ],
+      "evidence_note": "Pinned BpmfVS phonetic table records 輞 ㄨㄤˇ, while the Huninn source glyph is absent; synthesize canonical 輞 from same-font 車+罔 and borrow ㄨㄤˇ annotation geometry from 網."
+    },
+    {
+      "character": "鄜",
+      "codepoint": "U+911C",
+      "reading": "ㄈㄨ",
+      "prototype_character": "夫",
+      "prototype_codepoint": "U+592B",
+      "left_character": "鹿",
+      "left_codepoint": "U+9E7F",
+      "right_character": "邑",
+      "right_codepoint": "U+9091",
+      "layout": {
+        "left_scale_x": 0.64,
+        "right_scale_x": 0.4,
+        "right_x_em": 0.6
+      },
+      "contexts": [
+        "p099 月夜：鄜州"
+      ],
+      "evidence_note": "Pinned BpmfVS phonetic table records 鄜 ㄈㄨ, while the Huninn source glyph is absent; synthesize a readable canonical 鄜 approximation from same-font 鹿+邑 and borrow ㄈㄨ annotation geometry from 夫."
+    },
+    {
+      "character": "雊",
+      "codepoint": "U+96CA",
+      "reading": "ㄍㄡˋ",
+      "prototype_character": "夠",
+      "prototype_codepoint": "U+5920",
+      "left_character": "句",
+      "left_codepoint": "U+53E5",
+      "right_character": "隹",
+      "right_codepoint": "U+96B9",
+      "layout": {
+        "left_scale_x": 0.46,
+        "right_scale_x": 0.6,
+        "right_x_em": 0.4
+      },
+      "contexts": [
+        "p014 渭川田家"
+      ],
+      "evidence_note": "Pinned BpmfVS phonetic table records 雊 ㄍㄡˋ, while the Huninn source glyph is absent; synthesize canonical 雊 from same-font 句+隹 and borrow ㄍㄡˋ annotation geometry from 夠."
     }
   ]
 }
