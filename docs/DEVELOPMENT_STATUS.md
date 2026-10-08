@@ -1072,3 +1072,40 @@ py scripts\render_video_batch.py --age 7 --style B
 ~~~
 
 Do not use `--force`; the batch runner is resume-safe and will skip completed MP4s if interrupted.
+
+
+## 25. Age 7 video render COMPLETE（2026-10-08）
+
+Full approved Age 7 MP4 render completed successfully:
+
+~~~text
+age=7
+selected_total=50
+existing_skipped=0
+rendered=50
+render_failed=0
+elapsed=1h19m40s
+PASS
+~~~
+
+Therefore the Age 7 local video gate is COMPLETE:
+
+~~~text
+approved poems     50
+local MP4 ready    50 / 50
+render failures     0
+~~~
+
+Next gate is YouTube channel inventory / reconciliation dry-run:
+
+~~~powershell
+py scripts\youtube_upload_batch.py --age 7 --style B --dry-run
+~~~
+
+Expected production conditions before upload:
+
+~~~text
+duplicate_conflicts = 0
+missing_local       = 0
+ready_to_upload + already_uploaded = 50
+~~~
