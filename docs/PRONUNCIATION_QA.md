@@ -233,3 +233,78 @@ py scripts\build_video_timeline.py --poem-id 226 --style B
 py scripts\render_video.py --poem-id 226 --style B --force
 ```
 
+
+
+## Age 7 pronunciation / font gate
+
+Age 7 reviewed pronunciation inventory:
+
+~~~text
+data/pronunciation_candidates_age7.json
+version = pronunciation_candidates_age7_v2
+authority_check = 0
+~~~
+
+Authority decisions for the previously unresolved cases:
+
+- p006 「岱宗夫如何」：夫 = ㄈㄨˊ。
+- p085 「城闕」：闕 = ㄑㄩㄝˋ。
+- p221 「寒梅着花未」：着 = ㄓㄨㄛˊ。
+- p292 「令狐郎中」：令 = ㄌㄧㄥˋ。
+- p303 author 「張泌」：production target 暫採泌 = ㄇㄧˋ，並保留 human listening QA。
+
+Age 7 canonical text 另有以下 historical / variant Han codepoints：
+
+~~~text
+㡬 却 爲 藁 螘 蟢 衆 隣
+~~~
+
+處理原則：
+
+1. canonical poem text 不改字。
+2. 先同步 pinned upstream BpmfHuninn。
+3. upstream 已直接支援 `螘`、`蟢`。
+4. project derivative 對其他缺字建立 renderer-only compatibility aliases：
+
+~~~text
+㡬 -> 幾
+却 -> 卻
+爲 -> 為
+藁 -> 稿
+衆 -> 眾
+隣 -> 鄰
+~~~
+
+5. p293 canonical 「爲有」需要 ㄨㄟˋ；此 occurrence 不使用 `爲 -> 為` 的 default ㄨㄟˊ glyph，而是使用 PUA pronunciation alias，來源為 `為 + U+E01E1`。
+6. renderer proxy / PUA / compatibility alias 都不回寫 canonical source。
+
+Pinned base-font sync：
+
+~~~powershell
+py scripts\sync_bpmf_font.py --force
+~~~
+
+Pin：
+
+~~~text
+upstream repo   ButTaiwan/bpmfvs
+upstream commit fa20c2bb5e2986856974f00c93a662d0805c92a0
+font blob SHA1  38c3f0ea596bf4bbf6488cd1c7b5e77925a2199f
+~~~
+
+完整 local rebuild / QA：
+
+~~~powershell
+py scripts\sync_bpmf_font.py --force
+py scripts\patch_bpmf_font.py --force
+py scripts\inventory_pronunciation.py
+py scripts\qa_font_coverage.py --age 7
+py scripts\qa_pronunciation.py
+~~~
+
+TTS：
+
+- reviewed Age 7 pronunciation assets 已寫入 `data/tts_pronunciation_overrides.json`。
+- 目前只登錄 pronunciation instruction，不預先新增 synthesis proxy。
+- 只有 human listening QA 證明模型仍念錯時，才新增 homophonic `synthesis_text`。
+- p303 author 張泌為必要 listening QA case。

@@ -144,6 +144,7 @@ poem300/
 │  ├─ build_scenes.py
 │  ├─ generate_images.py
 │  ├─ generate_tts_assets.py
+│  ├─ sync_bpmf_font.py
 │  ├─ patch_bpmf_font.py
 │  ├─ qa_age_production.py
 │  ├─ qa_pronunciation.py

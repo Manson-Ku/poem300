@@ -80,14 +80,14 @@ total scenes = 1,626
 | Age | Poems | Approved | Draft | Scenes | Nonblank | Blank |
 |---:|---:|---:|---:|---:|---:|---:|
 | 6 | 25 | 25 | 0 | 54 | 54 | 0 |
-| 7 | 50 | 0 | 50 | 127 | 127 | 0 |
+| 7 | 50 | 50 | 0 | 127 | 127 | 0 |
 | 8 | 100 | 0 | 100 | 395 | 395 | 0 |
 | 9 | 138 | 0 | 138 | 1,050 | 1,044 | 6 |
 
 重要含義：
 
 - 6 歲組是目前唯一已 approved 且完成 production delivery 的 age group。
-- 7 / 8 / 9 歲目前 visual plans 全部仍是 draft。
+- 7 歲 visual plans 已完成 source-grounded visual_plan_v2 並 approved；8 / 9 歲仍為 draft。
 - 9 歲資料含 6 個 blank separator Scenes；這些是既有 Scene 結構，不應在重建時被默默刪除。
 
 ---
@@ -693,12 +693,16 @@ Age 7 現況：
 
 ~~~text
 poems            50
-approved          0
-draft            50
+approved         50
+draft             0
 scenes          127
 nonblank scenes 127
 blank scenes      0
+visual_plan      visual_plan_v2
+semantic gate    PASS
 ~~~
+
+Age 7 visual plan 已採 source-grounded Scene semantics，不再使用 v1 規則式 entity 猜測。
 
 因此下一步不是直接組影片，而是先完成 Age 7 resource production gate。
 
@@ -783,3 +787,49 @@ docs/YOUTUBE_BATCH_UPLOAD.md
 ~~~
 
 本文件只記錄「目前開發到哪裡」；細部 contract 以各專門文件、config 與 script 為準。
+
+
+## 19. Age 7 pronunciation / font gate（2026-10-08）
+
+目前 semantic/image production gate 已 PASS。下一個唯一 blocking gate 是本機 project font + pronunciation validation。
+
+Repo 已完成：
+
+~~~text
+pronunciation candidates       43
+authority_check remaining       0
+Age 7 TTS override assets      40
+new BPMF override occurrences  32
+compatibility aliases           6
+~~~
+
+新增 local font sync：
+
+~~~text
+scripts/sync_bpmf_font.py
+~~~
+
+使用 pinned upstream BpmfHuninn 後，`螘` / `蟢` 由 upstream 直接提供；project derivative 再處理：
+
+~~~text
+㡬 -> 幾
+却 -> 卻
+爲 -> 為
+藁 -> 稿
+衆 -> 眾
+隣 -> 鄰
+~~~
+
+canonical CSV 不因字型 coverage 而改字。
+
+下一個 gate 必須在本機依序通過：
+
+~~~powershell
+py scripts\sync_bpmf_font.py --force
+py scripts\patch_bpmf_font.py --force
+py scripts\inventory_pronunciation.py
+py scripts\qa_font_coverage.py --age 7
+py scripts\qa_pronunciation.py
+~~~
+
+上述 PASS 前，不開始 Age 7 大量 TTS / image generation。
