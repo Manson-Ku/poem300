@@ -1,7 +1,7 @@
 # Age 8 Pre-production Data Gate
 
 Date: 2026-10-08
-Status: PREPROCESSING — API generation not started
+Status: PREPRODUCTION DATA/CONTRACT READY — API generation not started
 
 ## Cohort inventory
 
@@ -141,21 +141,36 @@ No Age 8 TTS API request has been made.
 
 ## Bopomofo / project-font gate
 
-No Age 8-specific bopomofo override has been added yet.
-
-Reason: a pronunciation candidate does not automatically imply that the project font needs an override. The project font must first be checked for:
-
-1. canonical Han glyph coverage;
-2. whether an already-established pronunciation alias can be reused;
-3. whether a new IVS/PUA pronunciation alias or synthesized glyph is genuinely required.
-
-Current Repo-side count:
+Age 8 pronunciation-sensitive display occurrences are now formally registered at the renderer/font boundary.
 
 ~~~text
-Age 8 bopomofo overrides  0
+Age 8 BPMF override occurrences added   90
+new unique pronunciation aliases        24
+canonical text changes                   0
 ~~~
 
-This is an intentional pending gate, not a PASS.
+Existing Age 6/7 aliases are reused when the same character/reading pair already exists.
+
+The initial Age 8 project-font coverage check found 13 canonical Han glyph gaps:
+
+~~~text
+幷 满 猨 疎 竈 筯 羣 荆 褭 觧 輞 鄜 雊
+~~~
+
+Resolution is renderer-only:
+
+- compatibility aliases: 幷→并, 满→滿, 猨→猿, 疎→疏, 竈→灶, 筯→箸, 羣→群, 荆→荊, 褭→裊, 觧→解;
+- synthesized canonical glyphs: 輞, 鄜, 雊;
+- new IVS pronunciation extension: 沈 ㄔㄣˊ for 沈香亭, borrowing pronunciation geometry from 沉.
+
+The project font binary remains local/gitignored and is reproducibly rebuilt from the pinned upstream font with:
+
+~~~powershell
+py scripts\sync_bpmf_font.py
+py scripts\patch_bpmf_font.py --force
+~~~
+
+Canonical poem text remains unchanged.
 
 ## Required local gates before TTS or image generation
 
@@ -181,7 +196,18 @@ Age 8 pronunciation inventory:
   SOURCE PASS
 ~~~
 
-Font/pronunciation QA output determines the next preprocessing action. Do not start Age 8 TTS or image generation until the font/bopomofo gate is resolved.
+Expected terminal preprocessing state after rebuilding the project font:
+
+~~~text
+structural gate       PASS
+visual plan           PASS
+pronunciation source  PASS
+authority_check       0
+font missing          0
+pronunciation QA      PASS
+~~~
+
+A reproducible non-API GitHub Actions workflow is also checked in at `.github/workflows/preproduction_qa.yml`. It rebuilds the pinned project font and runs the same four gates. It does not call TTS or image APIs.
 
 ## API boundary
 

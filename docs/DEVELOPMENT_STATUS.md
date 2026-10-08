@@ -1,6 +1,6 @@
 # 開發狀態與 Production Baseline
 
-更新日期：2026-10-07
+更新日期：2026-10-08
 
 本文件是 poem300 專案的當前開發狀態 / 下一階段筆記。功能細節仍以各專門文件與 config / script 為 SSOT；本文件負責記錄目前已驗證到哪裡、哪些決策已進入 production baseline、下一批內容應如何推進。
 
@@ -81,13 +81,13 @@ total scenes = 1,626
 |---:|---:|---:|---:|---:|---:|---:|
 | 6 | 25 | 25 | 0 | 54 | 54 | 0 |
 | 7 | 50 | 50 | 0 | 127 | 127 | 0 |
-| 8 | 100 | 0 | 100 | 395 | 395 | 0 |
+| 8 | 100 | 100 | 0 | 395 | 395 | 0 |
 | 9 | 138 | 0 | 138 | 1,050 | 1,044 | 6 |
 
 重要含義：
 
-- 6 歲組是目前唯一已 approved 且完成 production delivery 的 age group。
-- 7 歲 visual plans 已完成 source-grounded visual_plan_v2 並 approved；8 / 9 歲仍為 draft。
+- 6 歲與 7 歲 production 已完成；Age 7 是目前完整跨階段 compatibility baseline。
+- 8 歲 visual plans 已完成 source-grounded visual_plan_v2 並 approved；9 歲仍為 draft。
 - 9 歲資料含 6 個 blank separator Scenes；這些是既有 Scene 結構，不應在重建時被默默刪除。
 
 ---
@@ -1340,7 +1340,9 @@ pronunciation candidates      156
 pronunciation-sensitive TTS   123 assets
 authority_check               0
 Age 8 synthesis proxies       0
-Age 8 bopomofo overrides      0 (font gate pending)
+Age 8 BPMF override occurrences 90 registered
+new pronunciation aliases      24
+initial font gaps               13 resolved in font spec
 ~~~
 
 Changes:
@@ -1354,4 +1356,12 @@ Changes:
 
 No Age 8 TTS/image API production has started.
 
-Next blocking gate is local project-font/pronunciation QA. See `docs/AGE8_PREPROCESS.md`.
+Age 8 preprocessing registration is complete:
+- 13 initial canonical glyph gaps are resolved at the renderer/font boundary;
+- 10 use compatibility aliases;
+- 3 use synthesized canonical glyphs;
+- 沈香亭 adds one project-font IVS pronunciation extension for 沈 ㄔㄣˊ;
+- canonical text and Scene boundaries remain immutable;
+- no Age 8 synthesis proxy is pre-authorized.
+
+The project font binary remains local/gitignored and is reproducibly rebuilt from the pinned upstream font. See `docs/AGE8_PREPROCESS.md` and `.github/workflows/preproduction_qa.yml`.

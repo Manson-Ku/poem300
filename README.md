@@ -4,13 +4,13 @@
 
 ## 目前狀態
 
-截至 2026-10-07：
+截至 2026-10-08：
 
 ~~~text
 Age 6  COMPLETE  25 poems / 54 scenes / 25 channel videos
-Age 7  ACTIVE    50 poems / 127 scenes / approved / TTS complete / image production
-Age 8  PENDING  100 poems / 395 scenes / visual plans still draft
-Age 9  PENDING  138 poems / 1,050 scenes / visual plans still draft
+Age 7  COMPLETE  50 poems / 127 scenes / full production baseline
+Age 8  ACTIVE    100 poems / 395 scenes / preprocessing data-contract ready
+Age 9  PENDING   138 poems / 1,050 scenes / visual plans still draft
 ~~~
 
 Age 6 已完成從資料、資源生成、影片組裝到 YouTube batch upload 的完整 production cycle。
