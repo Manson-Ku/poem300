@@ -174,6 +174,98 @@ def build_schedule_plan(
     }
 
 
+def extend_schedule_plan(
+    *,
+    plan: dict[str, Any],
+    ready: list[tuple[dict[str, str], Path]],
+    age: int,
+    style: str,
+) -> int:
+    assignments = plan.setdefault("assignments", [])
+    existing_ids = {
+        int(item["poem_id"])
+        for item in assignments
+    }
+    missing = [
+        poem
+        for poem, _video_path in ready
+        if int(poem["poem_id"]) not in existing_ids
+    ]
+    if not missing:
+        return 0
+
+    windows = plan.get("windows") or []
+    if not windows:
+        raise ValueError("existing schedule plan has no windows")
+
+    timezone_name = str(
+        plan.get("timezone", "Asia/Taipei")
+    )
+    tz = ZoneInfo(timezone_name)
+    seed = str(
+        plan.get(
+            "random_seed",
+            "poem300-youtube-schedule-v1",
+        )
+    )
+    start_date = date.fromisoformat(
+        str(plan["start_date"])
+    )
+    next_index = (
+        max(
+            (
+                int(item.get("slot_index", index))
+                for index, item in enumerate(assignments)
+            ),
+            default=-1,
+        )
+        + 1
+    )
+
+    for offset, poem in enumerate(missing):
+        index = next_index + offset
+        window = windows[index % len(windows)]
+        target_date = start_date + timedelta(
+            days=index // len(windows)
+        )
+        start = parse_hhmm(str(window["start"]))
+        end = parse_hhmm(str(window["end"]))
+        pid = int(poem["poem_id"])
+        minute_of_day = deterministic_minute(
+            seed=seed,
+            age=age,
+            style=style,
+            poem_id=pid,
+            target_date=target_date,
+            slot_name=str(window["name"]),
+            start=start,
+            end=end,
+        )
+        local_dt = datetime.combine(
+            target_date,
+            dt_time(
+                hour=minute_of_day // 60,
+                minute=minute_of_day % 60,
+            ),
+            tzinfo=tz,
+        )
+        utc_dt = local_dt.astimezone(timezone.utc)
+        assignments.append(
+            {
+                "poem_id": pid,
+                "title": poem["title"],
+                "slot_index": index,
+                "window": str(window["name"]),
+                "publish_at_local": local_dt.isoformat(),
+                "publish_at_utc": (
+                    utc_dt.isoformat().replace("+00:00", "Z")
+                ),
+            }
+        )
+
+    return len(missing)
+
+
 def resolve_schedule_plan(
     *,
     ready: list[tuple[dict[str, str], Path]],
@@ -205,6 +297,17 @@ def resolve_schedule_plan(
                 "existing schedule plan start_date differs from "
                 f"--schedule-start: {plan_path}"
             )
+
+        extended = extend_schedule_plan(
+            plan=plan,
+            ready=ready,
+            age=age,
+            style=style,
+        )
+        if extended:
+            print(f"schedule_plan_extended={extended}")
+            if persist:
+                write_schedule_plan(plan_path, plan)
     else:
         timezone_name = str(schedule.get("timezone", "Asia/Taipei"))
         tz = ZoneInfo(timezone_name)
