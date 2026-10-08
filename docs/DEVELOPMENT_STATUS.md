@@ -963,3 +963,21 @@ batch_requests     116
 ~~~
 
 The actual local filesystem remains authoritative for this count.
+
+
+### Age 7 Batch image dry-run PASS（2026-10-08）
+
+Local dry-run result:
+
+~~~text
+delivery_mode=gemini_batch_api
+model=gemini-3.1-flash-lite-image
+selected_scenes=127
+skipped_existing=11
+batch_requests=116
+estimated_image_output_cost_usd=1.948800000
+force=False
+dry_run=True
+~~~
+
+The 11 existing production backgrounds are p006 (4), p040 (3), p085 (4). They are excluded from the Batch JSONL. The submit gate is PASS; next action is one real Batch API submission for the remaining 116 images.
