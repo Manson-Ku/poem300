@@ -1322,3 +1322,36 @@ Legacy title-only campaign tracking caused a false match during Age 7 reconcilia
 ### Next production target
 
 Reuse the validated Age 7 pipeline for Age 8. Do not redesign Age 6/7-proven stages unless Age 8 exposes a genuine cross-age contract gap.
+
+
+## 33. Age 8 data preprocessing started（2026-10-08）
+
+Age 8 is now the active production cohort. Age 7 remains the compatibility baseline.
+
+Repo-side inventory and deterministic preprocessing:
+
+~~~text
+poems                         100
+scenes                        395
+source/explanation alignment  PASS
+visual_plan_v2 approved       100 / 100
+visual plan Scene-order audit PASS
+pronunciation candidates      156
+pronunciation-sensitive TTS   123 assets
+authority_check               0
+Age 8 synthesis proxies       0
+Age 8 bopomofo overrides      0 (font gate pending)
+~~~
+
+Changes:
+
+- added `scripts/upgrade_age8_visual_plans.py`;
+- upgraded checked-in Age 8 visual plans to source-grounded v2;
+- generalized `scripts/inventory_pronunciation.py` for age cohorts;
+- added `data/pronunciation_candidates_age8.json`;
+- registered 123 Age 8 pronunciation-sensitive assets in the TTS override SSOT without synthesis proxies;
+- added `docs/AGE8_PREPROCESS.md`.
+
+No Age 8 TTS/image API production has started.
+
+Next blocking gate is local project-font/pronunciation QA. See `docs/AGE8_PREPROCESS.md`.
