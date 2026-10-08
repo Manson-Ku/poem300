@@ -1265,3 +1265,60 @@ p269 春怨    2026-11-02 17:30 Asia/Taipei
 Therefore the schedule self-healing contract is validated: corrected reconciliation can add a missing poem without reshuffling existing publication times.
 
 Next production action is the full Age 7 upload using the same persisted schedule plan.
+
+
+## 32. Age 7 phase COMPLETE / handoff baseline（2026-10-08）
+
+Founder/operator confirmed the Age 7 phase is complete.
+
+### Final Age 7 production baseline
+
+~~~text
+poems                         50
+scenes                       127
+pronunciation-sensitive QA    40 / 40 PASS
+audio assets                 354 complete
+background images            127 / 127 complete
+manual image QA              PASS
+video preflight               50 / 50 PASS
+local MP4 render              50 / 50 PASS
+YouTube schedule dry-run      PASS
+scheduled publication path   PASS
+~~~
+
+### YouTube production decisions retained for later ages
+
+- Batch scheduling remains **local age-group based**, not whole-channel capacity based.
+- Default schedule policy:
+  - timezone: Asia/Taipei
+  - morning window: 06:00-08:59
+  - evening window: 17:00-19:59
+  - 2 videos/day per local age-group batch
+- New scheduled uploads use `privacyStatus=private` + `status.publishAt`.
+- `notifySubscribers=false`.
+- Recommended-age playlist routing remains enabled.
+- Existing channel matches are not re-uploaded.
+- Persisted schedule plans remain under `output/youtube_schedules/` and keep existing slots stable across resume runs.
+
+### Important Age 7 fixes that become cross-age baseline
+
+1. Resumable upload HTTP 404/410 is treated as ambiguous completion.
+2. Ambiguous completion is reconciled against the authenticated channel before deciding failure.
+3. Channel presence alone is not proof of binary completeness; `youtube_verify_upload.py` can compare remote/local file size and processing state.
+4. Same-title poems require poem-unique identity. New tracking URLs include `utm_content=pXXX`.
+5. Existing-video postcheck revalidates identity before playlist mutation.
+6. Persisted schedule plans may append newly discovered poems without reshuffling existing publication times.
+7. Targeted playlist repair is available through `youtube_playlist_remove.py`.
+
+### Age 7 duplicate-title incident retained as regression case
+
+~~~text
+p244 春怨 - 金昌緒 - age 6
+p269 春怨 - 劉方平 - age 7
+~~~
+
+Legacy title-only campaign tracking caused a false match during Age 7 reconciliation. This is now a permanent regression case for Age 8/9 production.
+
+### Next production target
+
+Reuse the validated Age 7 pipeline for Age 8. Do not redesign Age 6/7-proven stages unless Age 8 exposes a genuine cross-age contract gap.

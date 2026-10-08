@@ -604,3 +604,32 @@ py scripts\generate_images_batch.py collect
 ~~~
 
 Batch runner 使用與同步 generator 完全相同的 prompt / style / asset contract；只改 delivery mode。現有正式背景圖預設會 SKIP，不重複送出。完整規格見 `docs/IMAGE_PIPELINE.md`。
+
+
+## Age 7 production milestone
+
+Age 7 is now the current production reference after Age 6.
+
+Validated Age 7 scope:
+
+~~~text
+50 poems
+127 scenes
+354 audio assets
+127 backgrounds
+50 local MP4s
+scheduled YouTube publication workflow
+~~~
+
+Age 7 also hardened the YouTube production path with:
+
+- scheduled private uploads via `status.publishAt`;
+- deterministic local-group scheduling for Asia/Taipei;
+- 404/410 ambiguous-completion recovery;
+- remote/local upload-completeness verification;
+- poem-unique tracking via `utm_content=pXXX`;
+- duplicate-title reconciliation protection;
+- persisted schedule self-healing;
+- targeted playlist repair.
+
+For Age 8/9, reuse the same pipeline first. Treat Age 6/7 behavior as the compatibility baseline.

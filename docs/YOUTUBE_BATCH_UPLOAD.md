@@ -124,3 +124,63 @@ Resume behavior:
 5. if a pending poem's scheduled time has already passed, upload stops rather than accidentally publishing it immediately.
 
 Use `--no-schedule` only for an intentional unscheduled batch.
+
+
+## Age 7 production baseline for later groups
+
+Age 7 validated the scheduled batch workflow in production.
+
+The retained contract for Age 8/9 is:
+
+~~~text
+scheduler scope = local age group
+timezone = Asia/Taipei
+morning slot = 06:00-08:59
+evening slot = 17:00-19:59
+2 scheduled videos/day per batch
+scheduled upload privacy = private
+publishAt = future ISO 8601
+notifySubscribers = false
+channel inventory = uploaded-state SSOT
+~~~
+
+The scheduler is intentionally **not** channel-capacity aware. If another age group or a manually scheduled video occupies the same day, this runner does not automatically avoid that slot.
+
+### Ambiguous resumable completion
+
+Terminal HTTP 404/410 at the end of a resumable upload does not automatically mean the file failed. The uploader:
+
+1. inventories the authenticated channel;
+2. looks for exactly one deterministic poem match;
+3. recovers that remote video if found;
+4. fails if no match appears after bounded retries;
+5. stops if multiple matches exist.
+
+Use the read-only verifier when binary completeness is uncertain:
+
+~~~powershell
+py scripts\youtube_verify_upload.py --poem-id POEM_ID --style B
+~~~
+
+### Unique poem identity
+
+Do not use poem title alone as a reconciliation key.
+
+New tracking URLs include:
+
+~~~text
+utm_campaign=<poem title>
+utm_content=pXXX
+~~~
+
+Exact generated title remains a legacy-compatible match path.
+
+### Persisted schedule behavior
+
+Schedule files under:
+
+~~~text
+output/youtube_schedules/
+~~~
+
+are runtime state. Existing assignments are stable. If corrected reconciliation reveals an omitted poem, it is appended to the next unused slot instead of reshuffling already assigned publish times.
