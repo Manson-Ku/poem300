@@ -864,3 +864,18 @@ p308 title  塞 ㄙㄞˋ
 ~~~
 
 這 5 個已升級為 synthesis_text fallback；canonical source 不變。新增 `--synthesis-proxy-only`，只重生 fallback assets，避免覆寫另外 35 個已人工 PASS 的 WAV。
+
+
+### Age 7 TTS listening QA round 2
+
+Round-1 proxies: 4/5 PASS. Only p293_s01 remained wrong because `為有` was still interpreted as ㄨㄟˊ.
+
+Updated TTS-boundary proxy:
+
+~~~text
+canonical       爲有雲屏無限嬌，鳳城寒盡怕春宵。
+synthesis_text  未有雲屏無限嬌，鳳城寒盡怕春宵。
+target          爲 ㄨㄟˋ
+~~~
+
+Only p293_s01 must be regenerated; do not touch the other 39 pronunciation-sensitive assets.

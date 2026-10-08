@@ -367,3 +367,35 @@ py scripts\generate_tts_assets.py --age 7 --types title author poem --synthesis-
 Expected planned API requests: 5.
 
 Do not rerun all 40 pronunciation-sensitive assets after 35 have passed listening QA.
+
+
+## Age 7 TTS listening QA round 2
+
+Round-1 synthesis proxies fixed 4/5 failed assets. The remaining failure is:
+
+~~~text
+p293_s01
+target: 爲 ㄨㄟˋ
+round-1 proxy: 為有雲屏無限嬌，鳳城寒盡怕春宵。
+actual: ㄨㄟˊ
+~~~
+
+Reason: replacing variant `爲` with standard `為` does not remove the lexical ambiguity. Gemini still interprets the literary phrase `為有` and chooses ㄨㄟˊ.
+
+Round-2 deterministic proxy:
+
+~~~text
+source_text    = 爲有雲屏無限嬌，鳳城寒盡怕春宵。
+synthesis_text = 未有雲屏無限嬌，鳳城寒盡怕春宵。
+~~~
+
+`未` is an unambiguous ㄨㄟˋ homophone for the synthesis boundary. Canonical text remains `爲有...`.
+
+Regenerate only this asset:
+
+~~~powershell
+py scripts\generate_tts_assets.py --poem-id 293 --types poem --synthesis-proxy-only --dry-run
+py scripts\generate_tts_assets.py --poem-id 293 --types poem --synthesis-proxy-only --force
+~~~
+
+Expected planned API requests: 1.

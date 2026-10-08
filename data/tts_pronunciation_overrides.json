@@ -1,5 +1,5 @@
 {
-  "version": "tts_pronunciation_overrides_v3",
+  "version": "tts_pronunciation_overrides_v4",
   "instruction_template": "Pronounce the specified character in this exact source text with the requested Taiwan Mandarin reading. Speak only the original source text; do not say the pronunciation instruction or add any words.",
   "items": [
     {
@@ -824,9 +824,9 @@
           "context": "爲有"
         }
       ],
-      "synthesis_text": "為有雲屏無限嬌，鳳城寒盡怕春宵。",
-      "synthesis_proxy_note": "Listening QA: canonical variant 爲 was ㄨㄟˊ instead of ㄨㄟˋ; standard 為 in the title already passed.",
-      "listening_qa_status": "retry_required"
+      "synthesis_text": "未有雲屏無限嬌，鳳城寒盡怕春宵。",
+      "synthesis_proxy_note": "Listening QA round 2: standard 為 still synthesized as ㄨㄟˊ because Gemini inferred the literary phrase 為有. Use unambiguous homophone 未 (ㄨㄟˋ) at the TTS boundary.",
+      "listening_qa_status": "retry_round_2_required"
     }
   ],
   "age7_policy": {
@@ -853,6 +853,13 @@
       "263|author|0",
       "293|poem|1",
       "308|title|0"
-    ]
+    ],
+    "listening_qa_round2": {
+      "passed_from_round1": 4,
+      "failed_again": [
+        "293|poem|1"
+      ],
+      "p293_proxy": "未有雲屏無限嬌，鳳城寒盡怕春宵。"
+    }
   }
 }
