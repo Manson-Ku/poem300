@@ -1189,3 +1189,25 @@ Recovery contract:
 This prevents a remotely successful upload from being reported as a failure, while also preventing blind re-upload/duplication.
 
 p006 already exists remotely. On the next Age 7 batch run, channel inventory will classify it as already uploaded and run the existing idempotent post-upload/playlist repair path rather than upload it again.
+
+
+## 29. YouTube upload-completeness verification gate（2026-10-08）
+
+Because p006 returned HTTP 410 after 91% client-side progress while YouTube Studio showed "Processing will begin shortly", channel presence alone is not treated as proof that the binary upload is complete.
+
+A read-only verifier was added:
+
+~~~powershell
+py scripts\youtube_verify_upload.py --poem-id 6 --style B
+~~~
+
+It checks:
+
+- `status.uploadStatus`;
+- `processingDetails.processingStatus`;
+- `processingFailureReason`;
+- processing errors;
+- remote `fileDetails.fileSize` when available;
+- exact remote/local byte-size equality.
+
+Bulk Age 7 upload should remain paused until p006 returns either `PASS_UPLOAD`, `PASS_UPLOAD_STATUS`, or full processing `PASS`. A remote-size mismatch or processing/upload failure is a hard stop.
