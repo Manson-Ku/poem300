@@ -399,3 +399,27 @@ py scripts\generate_tts_assets.py --poem-id 293 --types poem --synthesis-proxy-o
 ~~~
 
 Expected planned API requests: 1.
+
+
+## Age 7 TTS listening QA final
+
+Human listening QA is complete:
+
+~~~text
+reviewed pronunciation-sensitive assets = 40
+PASS                                  = 40
+FAIL                                   = 0
+synthesis_text fallbacks               = 5
+status                                 = PASS
+~~~
+
+The final p293 retry uses:
+
+~~~text
+source_text    = 爲有雲屏無限嬌，鳳城寒盡怕春宵。
+synthesis_text = 未有雲屏無限嬌，鳳城寒盡怕春宵。
+target         = 爲 ㄨㄟˋ
+result         = PASS
+~~~
+
+These 40 WAV files are now accepted production assets. Subsequent full Age 7 TTS runs must use resume behavior and must not use `--force` unless a new listening-QA defect is found.

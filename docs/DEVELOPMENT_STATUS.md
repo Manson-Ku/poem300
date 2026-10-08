@@ -879,3 +879,19 @@ target          爲 ㄨㄟˋ
 ~~~
 
 Only p293_s01 must be regenerated; do not touch the other 39 pronunciation-sensitive assets.
+
+
+## 21. Age 7 pronunciation-sensitive TTS COMPLETE（2026-10-08）
+
+Human listening QA final:
+
+~~~text
+pronunciation-sensitive assets  40
+PASS                            40
+FAIL                             0
+synthesis_text fallbacks         5
+~~~
+
+p293_s01 round-2 proxy `未有...` 已人工確認為 ㄨㄟˋ。
+
+因此 pronunciation-sensitive TTS gate = PASS。後續全量 Age 7 TTS 必須使用 resume mode，不可用 `--force` 覆寫這 40 個已驗收 WAV。
