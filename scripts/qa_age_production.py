@@ -315,6 +315,10 @@ def main() -> int:
             production_blockers.append(
                 f"p{pid:03d} {title}: visual_plan_status={status}"
             )
+        if version == "visual_plan_v1":
+            production_blockers.append(
+                f"p{pid:03d} {title}: visual_plan_version={version}"
+            )
         if not substantive_world:
             production_blockers.append(
                 f"p{pid:03d} {title}: no substantive poem world"
