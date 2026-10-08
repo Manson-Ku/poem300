@@ -1148,3 +1148,25 @@ youtube_v1.json         -> schedule policy
 ~~~
 
 For 49 new videos, the current plan spans 2026-10-09 through 2026-11-02 (24 full two-video days plus one final morning slot).
+
+
+## 27. Age 7 scheduled YouTube upload smoke test PASS（2026-10-08）
+
+The first scheduled Age 7 upload was verified successfully in YouTube Studio.
+
+Validated behavior:
+
+~~~text
+poem: p006 望嶽
+upload privacy before release: private
+scheduled publication: PASS
+timezone contract: Asia/Taipei
+daily schedule policy: morning/evening windows
+playlist routing: 7歲建議
+made_for_kids: true
+notifySubscribers: false
+~~~
+
+The YouTube Studio UI displayed the uploaded video as scheduled, confirming that `status.publishAt` is accepted by the channel and that the scheduled-publication path works end-to-end.
+
+The persisted local Age 7 schedule plan remains the resume SSOT for the remaining new uploads. The next production action is to rerun the same Age 7 batch command without `--limit`; channel inventory will skip already-uploaded items and continue with the remaining scheduled videos.
