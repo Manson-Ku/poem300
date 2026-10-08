@@ -275,7 +275,7 @@ def validate_render_aliases(
         return 0, []
 
     errors: list[str] = []
-    aliases: dict[tuple[str, str], int] = {}
+    aliases: dict[tuple[str, str], dict[str, Any]] = {}
     pua_owners: dict[int, tuple[str, str]] = {}
 
     for item in bop.get("items", []):
@@ -304,14 +304,34 @@ def validate_render_aliases(
             continue
 
         key = (char, selector_text)
+        source_char = str(
+            item.get("glyph_source_character") or char
+        )
+        source_selector = str(
+            item.get("glyph_source_selector") or selector_text
+        ).upper()
+
         existing = aliases.get(key)
-        if existing is not None and existing != pua:
-            errors.append(
-                f"{key}: inconsistent render aliases "
-                f"U+{existing:04X} vs U+{pua:04X}"
-            )
-            continue
-        aliases[key] = pua
+        if existing is not None:
+            if int(existing["pua"]) != pua:
+                errors.append(
+                    f"{key}: inconsistent render aliases "
+                    f"U+{int(existing['pua']):04X} vs U+{pua:04X}"
+                )
+                continue
+            if (
+                existing["source_char"] != source_char
+                or existing["source_selector"] != source_selector
+            ):
+                errors.append(
+                    f"{key}: inconsistent raster glyph source"
+                )
+                continue
+        aliases[key] = {
+            "pua": pua,
+            "source_char": source_char,
+            "source_selector": source_selector,
+        }
 
         owner = pua_owners.get(pua)
         if owner is not None and owner != key:
@@ -334,25 +354,32 @@ def validate_render_aliases(
 
         best_cmap = font.getBestCmap() or {}
 
-        for (char, selector_text), pua in sorted(
+        for (char, selector_text), meta in sorted(
             aliases.items(),
-            key=lambda pair: pair[1],
+            key=lambda pair: int(pair[1]["pua"]),
         ):
-            selector = parse_uplus(selector_text)
+            pua = int(meta["pua"])
+            source_char = str(meta["source_char"])
+            source_selector_text = str(
+                meta["source_selector"]
+            )
+            selector = parse_uplus(source_selector_text)
             expected_glyph = None
 
             for uv, glyph_name in uvs.uvsDict.get(
                 selector,
                 [],
             ):
-                if uv == ord(char):
+                if uv == ord(source_char):
                     expected_glyph = glyph_name
                     break
 
             if not expected_glyph:
                 errors.append(
                     f"{char} {selector_text}: "
-                    "selected IVS glyph missing from project font"
+                    "selected IVS glyph missing from project font "
+                    f"(source={source_char} "
+                    f"{source_selector_text})"
                 )
                 continue
 

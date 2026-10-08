@@ -1,5 +1,5 @@
 {
-  "version": "tts_pronunciation_overrides_v1",
+  "version": "tts_pronunciation_overrides_v2",
   "instruction_template": "Pronounce the specified character in this exact source text with the requested Taiwan Mandarin reading. Speak only the original source text; do not say the pronunciation instruction or add any words.",
   "items": [
     {
@@ -277,6 +277,548 @@
           "context": "何處"
         }
       ]
+    },
+    {
+      "poem_id": 6,
+      "audio_type": "poem",
+      "scene_no": 1,
+      "source_text": "岱宗夫如何，齊魯青未了。",
+      "pronunciations": [
+        {
+          "character": "夫",
+          "reading": "ㄈㄨˊ",
+          "context": "岱宗夫如何"
+        },
+        {
+          "character": "了",
+          "reading": "ㄌㄧㄠˇ",
+          "context": "青未了"
+        }
+      ]
+    },
+    {
+      "poem_id": 85,
+      "audio_type": "title",
+      "scene_no": 0,
+      "source_text": "杜少府之任蜀州",
+      "pronunciations": [
+        {
+          "character": "少",
+          "reading": "ㄕㄠˋ",
+          "context": "少府"
+        }
+      ]
+    },
+    {
+      "poem_id": 85,
+      "audio_type": "poem",
+      "scene_no": 1,
+      "source_text": "城闕輔三秦，風煙望五津。",
+      "pronunciations": [
+        {
+          "character": "闕",
+          "reading": "ㄑㄩㄝˋ",
+          "context": "城闕"
+        }
+      ]
+    },
+    {
+      "poem_id": 121,
+      "audio_type": "poem",
+      "scene_no": 4,
+      "source_text": "待到重陽日，還來就菊花。",
+      "pronunciations": [
+        {
+          "character": "重",
+          "reading": "ㄔㄨㄥˊ",
+          "context": "重陽"
+        }
+      ]
+    },
+    {
+      "poem_id": 218,
+      "audio_type": "poem",
+      "scene_no": 1,
+      "source_text": "獨坐幽篁裏，彈琴復長嘯。",
+      "pronunciations": [
+        {
+          "character": "彈",
+          "reading": "ㄊㄢˊ",
+          "context": "彈琴"
+        }
+      ]
+    },
+    {
+      "poem_id": 221,
+      "audio_type": "poem",
+      "scene_no": 2,
+      "source_text": "來日綺窗前，寒梅着花未。",
+      "pronunciations": [
+        {
+          "character": "着",
+          "reading": "ㄓㄨㄛˊ",
+          "context": "寒梅着花未"
+        }
+      ]
+    },
+    {
+      "poem_id": 236,
+      "audio_type": "poem",
+      "scene_no": 2,
+      "source_text": "今朝蟢子飛。",
+      "pronunciations": [
+        {
+          "character": "朝",
+          "reading": "ㄓㄠ",
+          "context": "今朝"
+        },
+        {
+          "character": "蟢",
+          "reading": "ㄒㄧˇ",
+          "context": "蟢子"
+        }
+      ]
+    },
+    {
+      "poem_id": 255,
+      "audio_type": "poem",
+      "scene_no": 2,
+      "source_text": "桃花盡日隨流水，洞在清谿何處邊。",
+      "pronunciations": [
+        {
+          "character": "處",
+          "reading": "ㄔㄨˋ",
+          "context": "何處"
+        }
+      ]
+    },
+    {
+      "poem_id": 257,
+      "audio_type": "poem",
+      "scene_no": 2,
+      "source_text": "洛陽親友如相問，一片冰心在玉壺。",
+      "pronunciations": [
+        {
+          "character": "相",
+          "reading": "ㄒㄧㄤ",
+          "context": "如相問"
+        }
+      ]
+    },
+    {
+      "poem_id": 262,
+      "audio_type": "poem",
+      "scene_no": 1,
+      "source_text": "朝辭白帝彩雲間，",
+      "pronunciations": [
+        {
+          "character": "朝",
+          "reading": "ㄓㄠ",
+          "context": "朝辭"
+        }
+      ]
+    },
+    {
+      "poem_id": 262,
+      "audio_type": "poem",
+      "scene_no": 2,
+      "source_text": "千里江陵一日還。",
+      "pronunciations": [
+        {
+          "character": "還",
+          "reading": "ㄏㄨㄢˊ",
+          "context": "一日還"
+        }
+      ]
+    },
+    {
+      "poem_id": 262,
+      "audio_type": "poem",
+      "scene_no": 4,
+      "source_text": "輕舟已過萬重山。",
+      "pronunciations": [
+        {
+          "character": "重",
+          "reading": "ㄔㄨㄥˊ",
+          "context": "萬重山"
+        }
+      ]
+    },
+    {
+      "poem_id": 267,
+      "audio_type": "poem",
+      "scene_no": 1,
+      "source_text": "春城無處不飛花，寒食東風御柳斜。",
+      "pronunciations": [
+        {
+          "character": "處",
+          "reading": "ㄔㄨˋ",
+          "context": "無處"
+        }
+      ]
+    },
+    {
+      "poem_id": 271,
+      "audio_type": "poem",
+      "scene_no": 2,
+      "source_text": "月殿影開聞夜漏，水晶簾卷近銀河。",
+      "pronunciations": [
+        {
+          "character": "卷",
+          "reading": "ㄐㄩㄢˇ",
+          "context": "水晶簾卷"
+        }
+      ]
+    },
+    {
+      "poem_id": 272,
+      "audio_type": "title",
+      "scene_no": 0,
+      "source_text": "夜上受降城聞笛",
+      "pronunciations": [
+        {
+          "character": "降",
+          "reading": "ㄒㄧㄤˊ",
+          "context": "受降城"
+        }
+      ]
+    },
+    {
+      "poem_id": 272,
+      "audio_type": "poem",
+      "scene_no": 1,
+      "source_text": "回樂峰前沙似雪，受降城下月如霜。",
+      "pronunciations": [
+        {
+          "character": "降",
+          "reading": "ㄒㄧㄤˊ",
+          "context": "受降城"
+        }
+      ]
+    },
+    {
+      "poem_id": 272,
+      "audio_type": "poem",
+      "scene_no": 2,
+      "source_text": "不知何處吹蘆管，一夜征人盡望鄉。",
+      "pronunciations": [
+        {
+          "character": "處",
+          "reading": "ㄔㄨˋ",
+          "context": "何處"
+        }
+      ]
+    },
+    {
+      "poem_id": 285,
+      "audio_type": "poem",
+      "scene_no": 4,
+      "source_text": "玉人何處教吹簫？",
+      "pronunciations": [
+        {
+          "character": "處",
+          "reading": "ㄔㄨˋ",
+          "context": "何處"
+        }
+      ]
+    },
+    {
+      "poem_id": 293,
+      "audio_type": "title",
+      "scene_no": 0,
+      "source_text": "為有",
+      "pronunciations": [
+        {
+          "character": "為",
+          "reading": "ㄨㄟˋ",
+          "context": "為有"
+        }
+      ]
+    },
+    {
+      "poem_id": 295,
+      "audio_type": "poem",
+      "scene_no": 2,
+      "source_text": "八駿日行三萬裏，穆王何事不重來。",
+      "pronunciations": [
+        {
+          "character": "重",
+          "reading": "ㄔㄨㄥˊ",
+          "context": "不重來"
+        }
+      ]
+    },
+    {
+      "poem_id": 297,
+      "audio_type": "title",
+      "scene_no": 0,
+      "source_text": "賈生",
+      "pronunciations": [
+        {
+          "character": "賈",
+          "reading": "ㄐㄧㄚˇ",
+          "context": "賈生"
+        }
+      ]
+    },
+    {
+      "poem_id": 297,
+      "audio_type": "poem",
+      "scene_no": 1,
+      "source_text": "宣室求賢訪逐臣，賈生才調更無倫。",
+      "pronunciations": [
+        {
+          "character": "賈",
+          "reading": "ㄐㄧㄚˇ",
+          "context": "賈生"
+        },
+        {
+          "character": "調",
+          "reading": "ㄉㄧㄠˋ",
+          "context": "才調"
+        }
+      ]
+    },
+    {
+      "poem_id": 302,
+      "audio_type": "poem",
+      "scene_no": 1,
+      "source_text": "誓掃匈奴不顧身，五千貂錦喪胡塵。",
+      "pronunciations": [
+        {
+          "character": "喪",
+          "reading": "ㄙㄤˋ",
+          "context": "喪胡塵"
+        }
+      ]
+    },
+    {
+      "poem_id": 303,
+      "audio_type": "poem",
+      "scene_no": 2,
+      "source_text": "多情只有春庭月，猶為離人照落花。",
+      "pronunciations": [
+        {
+          "character": "為",
+          "reading": "ㄨㄟˋ",
+          "context": "猶為離人"
+        }
+      ]
+    },
+    {
+      "poem_id": 305,
+      "audio_type": "poem",
+      "scene_no": 1,
+      "source_text": "渭城朝雨浥輕塵，客舍青青柳色新。",
+      "pronunciations": [
+        {
+          "character": "朝",
+          "reading": "ㄓㄠ",
+          "context": "朝雨"
+        }
+      ]
+    },
+    {
+      "poem_id": 308,
+      "audio_type": "title",
+      "scene_no": 0,
+      "source_text": "出塞",
+      "pronunciations": [
+        {
+          "character": "塞",
+          "reading": "ㄙㄞˋ",
+          "context": "出塞"
+        }
+      ]
+    },
+    {
+      "poem_id": 308,
+      "audio_type": "poem",
+      "scene_no": 2,
+      "source_text": "但使龍城飛將在，不教胡馬度陰山。",
+      "pronunciations": [
+        {
+          "character": "將",
+          "reading": "ㄐㄧㄤˋ",
+          "context": "飛將"
+        }
+      ]
+    },
+    {
+      "poem_id": 309,
+      "audio_type": "title",
+      "scene_no": 0,
+      "source_text": "出塞",
+      "pronunciations": [
+        {
+          "character": "塞",
+          "reading": "ㄙㄞˋ",
+          "context": "出塞"
+        }
+      ]
+    },
+    {
+      "poem_id": 313,
+      "audio_type": "poem",
+      "scene_no": 2,
+      "source_text": "勸君惜取少年時。",
+      "pronunciations": [
+        {
+          "character": "少",
+          "reading": "ㄕㄠˋ",
+          "context": "少年"
+        }
+      ]
+    },
+    {
+      "poem_id": 263,
+      "audio_type": "author",
+      "scene_no": 0,
+      "source_text": "岑參",
+      "pronunciations": [
+        {
+          "character": "參",
+          "reading": "ㄕㄣ",
+          "context": "岑參"
+        }
+      ]
+    },
+    {
+      "poem_id": 292,
+      "audio_type": "title",
+      "scene_no": 0,
+      "source_text": "寄令狐郎中",
+      "pronunciations": [
+        {
+          "character": "令",
+          "reading": "ㄌㄧㄥˋ",
+          "context": "令狐郎中"
+        }
+      ]
+    },
+    {
+      "poem_id": 303,
+      "audio_type": "author",
+      "scene_no": 0,
+      "source_text": "張泌",
+      "pronunciations": [
+        {
+          "character": "泌",
+          "reading": "ㄇㄧˋ",
+          "context": "張泌"
+        }
+      ]
+    },
+    {
+      "poem_id": 264,
+      "audio_type": "poem",
+      "scene_no": 1,
+      "source_text": "岐王宅裏尋常見，崔九堂前㡬度聞。",
+      "pronunciations": [
+        {
+          "character": "㡬",
+          "reading": "ㄐㄧˇ",
+          "context": "㡬度聞"
+        }
+      ]
+    },
+    {
+      "poem_id": 6,
+      "audio_type": "poem",
+      "scene_no": 4,
+      "source_text": "會當凌絕頂，一覽衆山小。",
+      "pronunciations": [
+        {
+          "character": "衆",
+          "reading": "ㄓㄨㄥˋ",
+          "context": "衆山"
+        }
+      ]
+    },
+    {
+      "poem_id": 85,
+      "audio_type": "poem",
+      "scene_no": 3,
+      "source_text": "海內存知己，天涯若比隣。",
+      "pronunciations": [
+        {
+          "character": "隣",
+          "reading": "ㄌㄧㄣˊ",
+          "context": "比隣"
+        }
+      ]
+    },
+    {
+      "poem_id": 85,
+      "audio_type": "poem",
+      "scene_no": 4,
+      "source_text": "無爲在岐路，兒女共霑巾。",
+      "pronunciations": [
+        {
+          "character": "爲",
+          "reading": "ㄨㄟˊ",
+          "context": "無爲"
+        }
+      ]
+    },
+    {
+      "poem_id": 236,
+      "audio_type": "poem",
+      "scene_no": 4,
+      "source_text": "莫是藁砧歸。",
+      "pronunciations": [
+        {
+          "character": "藁",
+          "reading": "ㄍㄠˇ",
+          "context": "藁砧"
+        }
+      ]
+    },
+    {
+      "poem_id": 239,
+      "audio_type": "poem",
+      "scene_no": 1,
+      "source_text": "綠螘新醅酒，",
+      "pronunciations": [
+        {
+          "character": "螘",
+          "reading": "ㄧˇ",
+          "context": "綠螘"
+        }
+      ]
+    },
+    {
+      "poem_id": 248,
+      "audio_type": "poem",
+      "scene_no": 2,
+      "source_text": "却下水晶簾，玲瓏望秋月。",
+      "pronunciations": [
+        {
+          "character": "却",
+          "reading": "ㄑㄩㄝˋ",
+          "context": "却下"
+        }
+      ]
+    },
+    {
+      "poem_id": 293,
+      "audio_type": "poem",
+      "scene_no": 1,
+      "source_text": "爲有雲屏無限嬌，鳳城寒盡怕春宵。",
+      "pronunciations": [
+        {
+          "character": "爲",
+          "reading": "ㄨㄟˋ",
+          "context": "爲有"
+        }
+      ]
     }
-  ]
+  ],
+  "age7_policy": {
+    "status": "reviewed_inventory_registered",
+    "synthesis_proxy_policy": "Only add synthesis_text after listening QA proves instruction-only synthesis is insufficient.",
+    "special_listening_qa": [
+      "p303 author 張泌"
+    ]
+  }
 }

@@ -1,5 +1,5 @@
 {
-  "version": "pronunciation_candidates_age7_v1",
+  "version": "pronunciation_candidates_age7_v2",
   "scope": {
     "recommended_age": 7,
     "poems": 50
@@ -11,8 +11,10 @@
       "line_no": 1,
       "character": "夫",
       "context": "岱宗夫如何",
-      "candidate_reading": "authority_check",
-      "reason": "文言語氣字"
+      "candidate_reading": "ㄈㄨˊ",
+      "reason": "文言語氣字",
+      "authority_note": "教育部《重編國語辭典修訂本》：文言發語/語助用法讀ㄈㄨˊ。",
+      "authority_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=1776&la=0&powerMode=0"
     },
     {
       "poem_id": 6,
@@ -38,8 +40,10 @@
       "line_no": 1,
       "character": "闕",
       "context": "城闕",
-      "candidate_reading": "authority_check",
-      "reason": "古典詞義多音"
+      "candidate_reading": "ㄑㄩㄝˋ",
+      "reason": "古典詞義多音",
+      "authority_note": "教育部《重編國語辭典修訂本》：「城闕」讀ㄔㄥˊ ㄑㄩㄝˋ。",
+      "authority_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=124390&la=0&powerMode=0"
     },
     {
       "poem_id": 121,
@@ -65,8 +69,10 @@
       "line_no": 2,
       "character": "着",
       "context": "寒梅着花未",
-      "candidate_reading": "authority_check",
-      "reason": "古典着花讀音"
+      "candidate_reading": "ㄓㄨㄛˊ",
+      "reason": "古典着花讀音",
+      "authority_note": "教育部辭典「著花」讀ㄓㄨㄛˊ ㄏㄨㄚ；canonical 使用異體「着」，bpmfvs 同收此讀音。",
+      "authority_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=118952&la=0&powerMode=0"
     },
     {
       "poem_id": 236,
@@ -299,8 +305,10 @@
       "line_no": 0,
       "character": "令",
       "context": "令狐郎中",
-      "candidate_reading": "authority_check",
-      "reason": "複姓令狐，需確認姓名讀音與字型支援"
+      "candidate_reading": "ㄌㄧㄥˋ",
+      "reason": "複姓令狐，需確認姓名讀音與字型支援",
+      "authority_note": "教育部《重編國語辭典修訂本》：複姓「令狐」讀ㄌㄧㄥˋ ㄏㄨˊ。",
+      "authority_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=65785&la=0&powerMode=0"
     },
     {
       "poem_id": 303,
@@ -308,8 +316,11 @@
       "line_no": 0,
       "character": "泌",
       "context": "張泌",
-      "candidate_reading": "authority_check",
-      "reason": "作者姓名，TTS-only"
+      "candidate_reading": "ㄇㄧˋ",
+      "reason": "作者姓名，TTS-only",
+      "authority_note": "教育部辭典以ㄇㄧˋ為「泌」主音；張泌人名仍保留 production listening QA。",
+      "authority_url": "https://dict.revised.moe.edu.tw/dictView.jsp?ID=1381&la=0&powerMode=0",
+      "listening_qa_required": true
     },
     {
       "poem_id": 264,
@@ -319,6 +330,88 @@
       "context": "㡬度聞",
       "candidate_reading": "ㄐㄧˇ",
       "reason": "異體字，優先檢查 project font glyph/BPMF coverage"
+    },
+    {
+      "poem_id": 6,
+      "field": "content",
+      "line_no": 4,
+      "character": "衆",
+      "context": "衆山",
+      "candidate_reading": "ㄓㄨㄥˋ",
+      "reason": "canonical historical variant; renderer compatibility alias"
+    },
+    {
+      "poem_id": 85,
+      "field": "content",
+      "line_no": 3,
+      "character": "隣",
+      "context": "比隣",
+      "candidate_reading": "ㄌㄧㄣˊ",
+      "reason": "canonical historical variant; renderer compatibility alias"
+    },
+    {
+      "poem_id": 85,
+      "field": "content",
+      "line_no": 4,
+      "character": "爲",
+      "context": "無爲",
+      "candidate_reading": "ㄨㄟˊ",
+      "reason": "canonical historical variant; renderer compatibility alias"
+    },
+    {
+      "poem_id": 236,
+      "field": "content",
+      "line_no": 2,
+      "character": "蟢",
+      "context": "蟢子",
+      "candidate_reading": "ㄒㄧˇ",
+      "reason": "rare glyph; current pinned upstream font includes it"
+    },
+    {
+      "poem_id": 236,
+      "field": "content",
+      "line_no": 4,
+      "character": "藁",
+      "context": "藁砧",
+      "candidate_reading": "ㄍㄠˇ",
+      "reason": "canonical historical variant; renderer compatibility alias"
+    },
+    {
+      "poem_id": 239,
+      "field": "content",
+      "line_no": 1,
+      "character": "螘",
+      "context": "綠螘",
+      "candidate_reading": "ㄧˇ",
+      "reason": "rare glyph; current pinned upstream font includes it"
+    },
+    {
+      "poem_id": 248,
+      "field": "content",
+      "line_no": 2,
+      "character": "却",
+      "context": "却下",
+      "candidate_reading": "ㄑㄩㄝˋ",
+      "reason": "canonical historical variant; renderer compatibility alias"
+    },
+    {
+      "poem_id": 293,
+      "field": "content",
+      "line_no": 1,
+      "character": "爲",
+      "context": "爲有",
+      "candidate_reading": "ㄨㄟˋ",
+      "reason": "canonical historical variant; explicit non-default PUA pronunciation alias"
+    }
+  ],
+  "authority_checks_resolved": 5,
+  "listening_qa_required": [
+    {
+      "poem_id": 303,
+      "audio_type": "author",
+      "source_text": "張泌",
+      "target_reading": "張 ㄓㄤ；泌 ㄇㄧˋ",
+      "reason": "教育部主音採ㄇㄧˋ；人名需 production listening QA。"
     }
   ]
 }

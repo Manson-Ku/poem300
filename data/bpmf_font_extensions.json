@@ -1,9 +1,12 @@
 {
-  "version": "bpmf_font_extensions_v1",
+  "version": "bpmf_font_extensions_v2",
   "base_font": {
     "expected_filename": "BpmfHuninn-Regular.ttf",
     "upstream": "ButTaiwan/bpmfvs",
-    "license": "SIL Open Font License 1.1"
+    "license": "SIL Open Font License 1.1",
+    "upstream_commit": "fa20c2bb5e2986856974f00c93a662d0805c92a0",
+    "upstream_font_blob_sha1": "38c3f0ea596bf4bbf6488cd1c7b5e77925a2199f",
+    "sync_script": "scripts/sync_bpmf_font.py"
   },
   "output_font": {
     "filename": "BpmfHuninn-Poem300-Regular.ttf",
@@ -39,6 +42,75 @@
       "prototype_character": "影",
       "prototype_codepoint": "U+5F71",
       "prototype_reading": "ㄧㄥˇ"
+    }
+  ],
+  "compatibility_aliases": [
+    {
+      "character": "㡬",
+      "codepoint": "U+386C",
+      "source_character": "幾",
+      "source_codepoint": "U+5E7E",
+      "reading": "ㄐㄧˇ",
+      "contexts": [
+        "㡬度聞"
+      ],
+      "note": "renderer-only; canonical text remains 㡬"
+    },
+    {
+      "character": "却",
+      "codepoint": "U+5374",
+      "source_character": "卻",
+      "source_codepoint": "U+537B",
+      "reading": "ㄑㄩㄝˋ",
+      "contexts": [
+        "却下水晶簾"
+      ],
+      "note": "renderer-only; canonical text remains 却"
+    },
+    {
+      "character": "爲",
+      "codepoint": "U+7232",
+      "source_character": "為",
+      "source_codepoint": "U+70BA",
+      "reading": "ㄨㄟˊ",
+      "contexts": [
+        "無爲在岐路",
+        "爲有雲屏無限嬌"
+      ],
+      "note": "default renderer alias is 為 ㄨㄟˊ; p293 爲有 uses explicit PUA alias for ㄨㄟˋ"
+    },
+    {
+      "character": "藁",
+      "codepoint": "U+85C1",
+      "source_character": "稿",
+      "source_codepoint": "U+7A3F",
+      "reading": "ㄍㄠˇ",
+      "contexts": [
+        "藁砧"
+      ],
+      "note": "renderer-only; canonical text remains 藁"
+    },
+    {
+      "character": "衆",
+      "codepoint": "U+8846",
+      "source_character": "眾",
+      "source_codepoint": "U+773E",
+      "reading": "ㄓㄨㄥˋ",
+      "contexts": [
+        "衆山"
+      ],
+      "note": "renderer-only; canonical text remains 衆"
+    },
+    {
+      "character": "隣",
+      "codepoint": "U+96A3",
+      "source_character": "鄰",
+      "source_codepoint": "U+9130",
+      "reading": "ㄌㄧㄣˊ",
+      "contexts": [
+        "比隣"
+      ],
+      "note": "renderer-only; canonical text remains 隣"
     }
   ]
 }

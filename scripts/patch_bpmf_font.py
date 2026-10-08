@@ -7,7 +7,12 @@ Two related problems are solved here:
    Those readings are added as normal IVS variants by copying the phonetic
    layout from an existing prototype character with the same reading.
 
-2. Pillow/FreeType rasterization does not reliably consume the IVS
+2. Canonical poems contain a small number of historical/variant Han
+   codepoints not present in the selected upstream base font. The local
+   derivative maps those codepoints to reviewed annotated compatibility
+   glyphs without changing canonical poem text.
+
+3. Pillow/FreeType rasterization does not reliably consume the IVS
    selector sequence used by bpmfvs. For deterministic PNG rendering,
    every pronunciation override used by poem300 also receives a stable
    Private Use Area (PUA) alias that points directly at the intended
@@ -345,6 +350,12 @@ def unique_render_aliases(
             "expected_reading": str(
                 item.get("expected_reading", "")
             ),
+            "glyph_source_character": str(
+                item.get("glyph_source_character", "")
+            ),
+            "glyph_source_selector": str(
+                item.get("glyph_source_selector", "")
+            ),
         }
 
     return sorted(
@@ -388,6 +399,66 @@ def add_unicode_alias(
     return mapped_tables
 
 
+def add_compatibility_aliases(
+    font: TTFont,
+    spec: dict[str, Any],
+) -> list[dict[str, Any]]:
+    results = []
+    best_cmap = font.getBestCmap() or {}
+
+    for item in spec.get("compatibility_aliases", []):
+        char = str(item["character"])
+        source_char = str(item["source_character"])
+        codepoint = parse_uplus(str(item["codepoint"]))
+        source_codepoint = parse_uplus(
+            str(item["source_codepoint"])
+        )
+
+        if ord(char) != codepoint:
+            raise ValueError(
+                f"{char}: compatibility codepoint mismatch"
+            )
+        if ord(source_char) != source_codepoint:
+            raise ValueError(
+                f"{source_char}: source codepoint mismatch"
+            )
+
+        existing = best_cmap.get(codepoint)
+        if existing:
+            results.append(
+                {
+                    **item,
+                    "glyph": existing,
+                    "status": "native",
+                }
+            )
+            continue
+
+        source_glyph = best_cmap.get(source_codepoint)
+        if not source_glyph:
+            raise ValueError(
+                f"{source_char} {item['source_codepoint']}: "
+                "source compatibility glyph missing"
+            )
+
+        mapped = add_unicode_alias(
+            font,
+            codepoint=codepoint,
+            glyph_name=source_glyph,
+        )
+        best_cmap[codepoint] = source_glyph
+        results.append(
+            {
+                **item,
+                "glyph": source_glyph,
+                "mapped_cmap_tables": mapped,
+                "status": "compatibility_alias",
+            }
+        )
+
+    return results
+
+
 def add_render_aliases(
     font: TTFont,
     uvs_table: Any,
@@ -397,19 +468,26 @@ def add_render_aliases(
 
     for item in unique_render_aliases(overrides):
         char = item["character"]
-        codepoint = ord(char)
-        selector = parse_uplus(item["selector"])
+        source_char = (
+            item.get("glyph_source_character")
+            or char
+        )
+        source_selector_text = (
+            item.get("glyph_source_selector")
+            or item["selector"]
+        )
+        selector = parse_uplus(source_selector_text)
         pua = parse_uplus(item["render_codepoint"])
 
         glyph_name = uvs_glyph(
             uvs_table,
-            codepoint=codepoint,
+            codepoint=ord(source_char),
             selector=selector,
         )
         if not glyph_name:
             raise ValueError(
-                f"{char} {item['selector']}: no IVS glyph exists "
-                "after applying project extensions"
+                f"{char}: no IVS glyph exists for raster source "
+                f"{source_char} {source_selector_text}"
             )
 
         mapped_tables = add_unicode_alias(
@@ -498,16 +576,41 @@ def verify_output(
                 }
             )
 
-        alias_results = []
         best_cmap = font.getBestCmap() or {}
+        compatibility_results = []
+
+        for item in spec.get("compatibility_aliases", []):
+            target = parse_uplus(str(item["codepoint"]))
+            actual_glyph = best_cmap.get(target)
+            if not actual_glyph:
+                raise ValueError(
+                    f"{item['character']}: compatibility glyph missing "
+                    "from output font"
+                )
+            compatibility_results.append(
+                {
+                    **item,
+                    "glyph": actual_glyph,
+                }
+            )
+
+        alias_results = []
 
         for item in unique_render_aliases(overrides):
             char = item["character"]
-            selector = parse_uplus(item["selector"])
+            source_char = (
+                item.get("glyph_source_character")
+                or char
+            )
+            source_selector_text = (
+                item.get("glyph_source_selector")
+                or item["selector"]
+            )
+            selector = parse_uplus(source_selector_text)
             pua = parse_uplus(item["render_codepoint"])
             expected_glyph = uvs_glyph(
                 uvs_table,
-                codepoint=ord(char),
+                codepoint=ord(source_char),
                 selector=selector,
             )
             actual_glyph = best_cmap.get(pua)
@@ -531,6 +634,7 @@ def verify_output(
             )
 
         return {
+            "compatibility_aliases": compatibility_results,
             "extensions": extension_results,
             "aliases": alias_results,
         }
@@ -603,10 +707,23 @@ def main() -> int:
 
     print(f"input={input_path.as_posix()}")
     print(f"output={output_path.as_posix()}")
+    print(
+        "compatibility_aliases="
+        + str(len(spec.get("compatibility_aliases", [])))
+    )
     print(f"extensions={len(spec.get('extensions', []))}")
     print(f"render_aliases={len(aliases)}")
 
     if args.dry_run:
+        print("\nCompatibility aliases")
+        for item in spec.get("compatibility_aliases", []):
+            print(
+                "  "
+                f"{item['character']} -> "
+                f"{item['source_character']} "
+                f"reading={item['reading']}"
+            )
+
         print("\nExtensions")
         for item in spec.get("extensions", []):
             print(
@@ -634,6 +751,10 @@ def main() -> int:
     try:
         uvs_table = find_uvs_table(font)
 
+        patched_compatibility = add_compatibility_aliases(
+            font,
+            spec,
+        )
         patched_extensions = [
             add_extension(font, uvs_table, item)
             for item in spec["extensions"]
@@ -659,6 +780,16 @@ def main() -> int:
         overrides,
     )
 
+    print("\nPatched compatibility aliases")
+    for item in patched_compatibility:
+        print(
+            "  "
+            f"{item['character']} -> "
+            f"{item['source_character']} "
+            f"reading={item['reading']} "
+            f"status={item['status']}"
+        )
+
     print("\nPatched extensions")
     for item in patched_extensions:
         print(
@@ -679,6 +810,10 @@ def main() -> int:
         )
 
     print("\nVerified")
+    print(
+        "  compatibility_aliases="
+        + str(len(verified["compatibility_aliases"]))
+    )
     print(
         f"  extensions={len(verified['extensions'])}"
     )
