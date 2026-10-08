@@ -1030,3 +1030,45 @@ image resource gate              COMPLETE
 The Batch API remains the preferred high-volume production path. Synchronous generation remains the targeted retry path for individual defective images.
 
 Next gate: full Age 7 timeline + composer preflight via `render_video_batch.py --age 7 --style B --preflight-only`.
+
+
+## 24. Age 7 video preflight PASS（2026-10-08）
+
+Full approved Age 7 video batch preflight completed successfully:
+
+~~~text
+age=7
+style=B
+selected=50
+approved_only=true
+
+preflight_summary=passed:50 failed:0
+
+PASS preflight_only=true
+ready_to_render=50
+existing_skipped=0
+elapsed=18s
+~~~
+
+The final checked poem p313 also passed timeline + composer validation:
+
+~~~text
+p313 金縷衣
+events=41
+timeline=124.240s
+frame_snapped_duration=124.233s
+frames=3727
+motion=PASS
+bgm=空山滴翠.mp3
+render_video dry-run=PASS
+~~~
+
+Therefore the full Age 7 local resource/timeline/composer gate is PASS.
+
+Next action:
+
+~~~powershell
+py scripts\render_video_batch.py --age 7 --style B
+~~~
+
+Do not use `--force`; the batch runner is resume-safe and will skip completed MP4s if interrupted.
