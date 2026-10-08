@@ -8,7 +8,7 @@
 
 ~~~text
 Age 6  COMPLETE  25 poems / 54 scenes / 25 channel videos
-Age 7  NEXT      50 poems / 127 scenes / visual plans still draft
+Age 7  ACTIVE    50 poems / 127 scenes / approved / TTS complete / image production
 Age 8  PENDING  100 poems / 395 scenes / visual plans still draft
 Age 9  PENDING  138 poems / 1,050 scenes / visual plans still draft
 ~~~
@@ -143,6 +143,7 @@ poem300/
 ├─ scripts/
 │  ├─ build_scenes.py
 │  ├─ generate_images.py
+│  ├─ generate_images_batch.py
 │  ├─ generate_tts_assets.py
 │  ├─ sync_bpmf_font.py
 │  ├─ patch_bpmf_font.py
@@ -193,12 +194,12 @@ Age 7 目前：
 
 ~~~text
 poems            50
-approved          0
-draft            50
+approved         50
+draft             0
 scenes          127
 ~~~
 
-因此先做 Age 7 inventory / visual-plan approval / pronunciation QA，再依序產 TTS、文字、圖片、timeline、MP4，最後走 YouTube batch reconciliation。
+Age 7 inventory / visual-plan approval / pronunciation QA / full TTS 已完成；目前進入圖片資源 production，之後接 timeline、MP4 與 YouTube batch reconciliation。
 
 Image style generalization 已完成：production 預設使用 age-neutral Style B registry；Age 6 仍保留原 config / asset namespace 相容。
 
@@ -589,3 +590,17 @@ py scripts\youtube_upload_batch.py --age 7 --style B
 YouTube channel 是 runtime uploaded-state SSOT。已存在的影片不重傳；只做 idempotent playlist postcheck。未完成本機 MP4 會標成 WAIT_LOCAL；重跑同一命令即可 resume。
 
 完整規格：`docs/YOUTUBE_BATCH_UPLOAD.md`。
+
+
+### Gemini Batch image production
+
+大量背景圖正式 production 可使用較低價的 Gemini Batch API：
+
+~~~powershell
+py scripts\generate_images_batch.py submit --age 7 --approved-only --styles B --dry-run
+py scripts\generate_images_batch.py submit --age 7 --approved-only --styles B
+py scripts\generate_images_batch.py status
+py scripts\generate_images_batch.py collect
+~~~
+
+Batch runner 使用與同步 generator 完全相同的 prompt / style / asset contract；只改 delivery mode。現有正式背景圖預設會 SKIP，不重複送出。完整規格見 `docs/IMAGE_PIPELINE.md`。

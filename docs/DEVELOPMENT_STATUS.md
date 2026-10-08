@@ -895,3 +895,71 @@ synthesis_text fallbacks         5
 p293_s01 round-2 proxy `未有...` 已人工確認為 ㄨㄟˋ。
 
 因此 pronunciation-sensitive TTS gate = PASS。後續全量 Age 7 TTS 必須使用 resume mode，不可用 `--force` 覆寫這 40 個已驗收 WAV。
+
+
+## 22. Age 7 full TTS + Batch image production（2026-10-08）
+
+Age 7 full TTS production result reported from local runtime:
+
+~~~text
+selected_poems       50
+scenes              127
+audio_assets_total  354
+generated           314
+skipped_existing     40
+failed                0
+~~~
+
+Therefore Age 7 audio resource gate = COMPLETE.
+
+Image smoke production succeeded for the first 11 backgrounds before the synchronous process was interrupted manually:
+
+~~~text
+p006  4/4
+p040  3/3
+p085  4/4
+----------------
+existing backgrounds = 11
+Age 7 total          = 127
+expected remaining   = 116
+~~~
+
+The interruption was `KeyboardInterrupt`, not an API generation failure.
+
+For the remaining high-volume image production, the production path is changed from synchronous one-request-at-a-time delivery to Gemini Batch API:
+
+~~~text
+scripts/generate_images_batch.py
+~~~
+
+The batch path:
+
+1. uses the exact same `build_prompt()` semantics and Style B config;
+2. checks local production backgrounds before submission;
+3. creates one JSONL file containing only missing requests;
+4. uploads it and creates one Gemini Batch API job;
+5. saves job state under `output/image_batches/`;
+6. downloads the completed result JSONL;
+7. writes images back to the existing production asset paths;
+8. records Batch-tier usage/cost in `data/image_usage.csv`.
+
+Current official Batch pricing for `gemini-3.1-flash-lite-image` is 50% of standard API pricing, approximately US$0.0168 image-output cost per 1K image plus discounted input text tokens.
+
+Normal Age 7 command:
+
+~~~powershell
+py scripts\generate_images_batch.py submit --age 7 --approved-only --styles B --dry-run
+py scripts\generate_images_batch.py submit --age 7 --approved-only --styles B
+py scripts\generate_images_batch.py status
+py scripts\generate_images_batch.py collect
+~~~
+
+Expected dry-run on the current local runtime is approximately:
+
+~~~text
+selected_scenes    127
+skipped_existing    11
+batch_requests     116
+~~~
+
+The actual local filesystem remains authoritative for this count.
