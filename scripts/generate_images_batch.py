@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
-"""Submit and collect Gemini Batch API image generation jobs.
+# -*- coding: utf-8 -*-
+"""Gemini Batch API image production for poem300.
 
-This is the lower-cost asynchronous production path for poem300 images.
-It reuses the exact poem-world + independent-scene prompt compiler from
-scripts/generate_images.py, submits only missing assets by default, and
-writes collected images back to the same formal asset paths.
-
-Runtime batch files are kept under output/image_batches/ and are ignored
-by Git.
+This script reuses the production prompt compiler and asset contract from
+scripts/generate_images.py. It submits only missing images by default, stores
+runtime job files under output/image_batches/, and collects results back into
+the normal production asset paths.
 """
 
 from __future__ import annotations
@@ -33,13 +31,11 @@ from generate_images import (
     build_prompt,
     copy_to_poc,
     ensure_ledger,
-    jsonable,
     output_paths,
     poc_output_path,
     read_csv,
     resolve_style,
     save_webp,
-    visual_world,
     write_meta,
 )
 
@@ -50,7 +46,6 @@ BATCH_PRICING = {
     "input_text_per_million": 0.125,
     "output_image_per_million": 15.00,
 }
-
 DEFAULT_RUNTIME_ROOT = Path("output/image_batches")
 DEFAULT_LEDGER = Path("data/image_usage.csv")
 IMAGE_TOKENS_1K = 1120
@@ -62,11 +57,11 @@ TERMINAL_STATES = {
 }
 
 
-def now_utc() -> str:
+def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def run_id() -> str:
+def new_run_id() -> str:
     return (
         datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         + "_"
@@ -86,18 +81,22 @@ def write_json(path: Path, payload: dict[str, Any]) -> None:
     )
 
 
-def state_name(batch_job: Any) -> str:
-    state = getattr(batch_job, "state", None)
+def state_name(job: Any) -> str:
+    state = getattr(job, "state", None)
     if state is None:
         return ""
     return str(getattr(state, "name", state))
 
 
-def load_api_client() -> genai.Client:
-    api_key = os.environ.get("GEMINI_API_KEY", "").strip()
-    if not api_key:
+def api_client() -> genai.Client:
+    key = os.environ.get("GEMINI_API_KEY", "").strip()
+    if not key:
         raise RuntimeError("GEMINI_API_KEY is missing")
-    return genai.Client(api_key=api_key)
+    return genai.Client(api_key=key)
+
+
+def normalize_key(scene_id: str, style_key: str) -> str:
+    return f"{scene_id}_{style_key.upper()}"
 
 
 def select_items(args: argparse.Namespace) -> tuple[list[dict[str, Any]], int, int]:
@@ -106,8 +105,7 @@ def select_items(args: argparse.Namespace) -> tuple[list[dict[str, Any]], int, i
 
     if args.poem_id is not None:
         selected_poems = [
-            row for row in poems
-            if int(row["poem_id"]) == args.poem_id
+            row for row in poems if int(row["poem_id"]) == args.poem_id
         ]
         if not selected_poems:
             raise ValueError(f"poem_id={args.poem_id} not found")
@@ -124,16 +122,15 @@ def select_items(args: argparse.Namespace) -> tuple[list[dict[str, Any]], int, i
             ]
 
     selected_poems.sort(key=lambda row: int(row["poem_id"]))
+    if args.limit is not None:
+        selected_poems = selected_poems[: args.limit]
     if not selected_poems:
         raise ValueError("no poems matched selection")
 
-    selected_ages = {
-        int(row["recommended_age"])
-        for row in selected_poems
-    }
-    if len(selected_ages) != 1:
-        raise ValueError("selected poems must belong to exactly one age group")
-    target_age = next(iter(selected_ages))
+    ages = {int(row["recommended_age"]) for row in selected_poems}
+    if len(ages) != 1:
+        raise ValueError("selected poems must belong to one age group")
+    target_age = next(iter(ages))
 
     style_keys = [
         item.strip().upper()
@@ -142,7 +139,6 @@ def select_items(args: argparse.Namespace) -> tuple[list[dict[str, Any]], int, i
     ]
     if not style_keys:
         raise ValueError("--styles must contain at least one style key")
-
     styles = [
         resolve_style(
             key,
@@ -153,14 +149,12 @@ def select_items(args: argparse.Namespace) -> tuple[list[dict[str, Any]], int, i
     ]
 
     requested_scene_ids = {
-        item.strip()
-        for item in args.scene_ids.split(",")
-        if item.strip()
+        item.strip() for item in args.scene_ids.split(",") if item.strip()
     }
-    all_source_scene_ids: set[str] = set()
-    prepared: list[dict[str, Any]] = []
-    skipped_existing = 0
+    all_scene_ids: set[str] = set()
     selected_scene_count = 0
+    skipped_existing = 0
+    items: list[dict[str, Any]] = []
 
     for poem in selected_poems:
         raw_plan = (poem.get("visual_plan_json") or "").strip()
@@ -176,15 +170,14 @@ def select_items(args: argparse.Namespace) -> tuple[list[dict[str, Any]], int, i
             ) from exc
 
         poem_scenes = [
-            row for row in scenes
-            if row["poem_id"] == poem["poem_id"]
+            row for row in scenes if row["poem_id"] == poem["poem_id"]
         ]
         poem_scenes.sort(key=lambda row: int(row["scene_no"]))
 
         plan_scene_ids = [
-            item.get("id") or item.get("scene_id")
-            for item in plan.get("scenes", [])
-            if isinstance(item, dict)
+            entry.get("id") or entry.get("scene_id")
+            for entry in plan.get("scenes", [])
+            if isinstance(entry, dict)
         ]
         source_scene_ids = [row["scene_id"] for row in poem_scenes]
         if plan_scene_ids != source_scene_ids:
@@ -193,7 +186,7 @@ def select_items(args: argparse.Namespace) -> tuple[list[dict[str, Any]], int, i
                 f"data/scenes.csv for poem_id={poem['poem_id']}"
             )
 
-        all_source_scene_ids.update(source_scene_ids)
+        all_scene_ids.update(source_scene_ids)
         if requested_scene_ids:
             poem_scenes = [
                 row for row in poem_scenes
@@ -216,6 +209,7 @@ def select_items(args: argparse.Namespace) -> tuple[list[dict[str, Any]], int, i
                     scene_no,
                     style["style_key"],
                 )
+
                 if output_image.exists() and not args.force:
                     if not poc_image.exists():
                         copy_to_poc(
@@ -228,10 +222,11 @@ def select_items(args: argparse.Namespace) -> tuple[list[dict[str, Any]], int, i
                     continue
 
                 prompt = build_prompt(poem, scene, plan, style)
-                key = f"{scene['scene_id']}_{style['style_key']}"
-                prepared.append(
+                items.append(
                     {
-                        "key": key,
+                        "key": normalize_key(
+                            scene["scene_id"], style["style_key"]
+                        ),
                         "poem_id": poem_id,
                         "title": poem["title"],
                         "scene_id": scene["scene_id"],
@@ -248,4 +243,597 @@ def select_items(args: argparse.Namespace) -> tuple[list[dict[str, Any]], int, i
                     }
                 )
 
-    if requested_s²È="24€€€€€€€€É•ÍÁ½¹Í”¹•Ð ‰É•ÍÁ½¹Í•%ˆ¤(€€€€€€€€€€€€€€€½ÈÉ•ÍÁ½¹Í”¹•Ð ‰É•ÍÁ½¹Í•}¥ˆ¤(€€€€€€€€€€€€€€€½È€ˆˆ(€€€€€€€€€€€€¤((€€€€€€€€€€€µ•Ñ„€ôì(€€€€€€€€€€€€€€€€‰…É¡¥Ñ•ÑÕÉ”ˆè€‰Á½•µ}Ý½É±‘}¥¹‘•Á•¹‘•¹Ñ}Í•¹•}ØÄˆ°(€€€€€€€€€€€€€€€€‰‘•±¥Ù•Éå}µ½‘”ˆè€‰•µ¥¹¥}‰…Ñ¡}…Á¥}ØÄˆ°(€€€€€€€€€€€€€€€€‰‰…Ñ¡}©½‰}¹…µ”ˆè©½‰}‘½l‰©½‰}¹…µ”‰t°(€€€€€€€€€€€€€€€€‰‰…Ñ¡}É•ÅÕ•ÍÑ}­•äˆè­•ä°(€€€€€€€€€€€€€€€€‰Á½•µ}¥ˆè¥Ñ•µl‰Á½•µ}¥‰t°(€€€€€€€€€€€€€€€€‰Ñ¥Ñ±”ˆè¥Ñ•µl‰Ñ¥Ñ±”‰t°(€€€€€€€€€€€€€€€€‰Í•¹•}¥ˆè¥Ñ•µl‰Í•¹•}¥‰t°(€€€€€€€€€€€€€€€€‰Í•¹•}¹¼ˆè¥Ñ•µl‰Í•¹•}¹¼‰t°(€€€€€€€€€€€€€€€€‰ÍÑå±•}­•äˆè¥Ñ•µl‰ÍÑå±•}­•ä‰t°(€€€€€€€€€€€€€€€€‰ÍÑå±•}¥ˆè¥Ñ•µl‰ÍÑå±•}¥‰t°(€€€€€€€€€€€€€€€€‰µ½‘•°ˆè©½‰}‘½l‰µ½‘•°‰t°(€€€€€€€€€€€€€€€€‰É•ÍÁ½¹Í•}¥ˆèÉ•ÍÁ½¹Í•}¥°(€€€€€€€€€€€€€€€€‰ÁÉ•Ù¥½ÕÍ}¥¹Ñ•É…Ñ¥½¹}¥ˆè9½¹”°(€€€€€€€€€€€€€€€€‰ÁÉ½µÁÑ}Í¡„ÈÔØˆè¥Ñ•µl‰ÁÉ½µÁÑ}Í¡„ÈÔØ‰t°(€€€€€€€€€€€€€€€€‰µ¥µ•}ÑåÁ”ˆèµ¥µ•}ÑåÁ”°(€€€€€€€€€€€€€€€€‰½ÕÑÁÕÑ}¥µ…”ˆè½ÕÑÁÕÑ}¥µ…”¹…Í}Á½Í¥à ¤°(€€€€€€€€€€€€€€€€‰Á½}¥µ…”ˆèÁ½}¥µ…”¹…Í}Á½Í¥à ¤°(€€€€€€€€€€€€€€€€‰•¹•É…Ñ•‘}…Ñ}ÕÑŒˆè¹½Ý}ÕÑŒ ¤°(€€€€€€€€€€€ô(€€€€€€€€€€€ÝÉ¥Ñ•}µ•Ñ„¡A…Ñ ¡ÍÑÈ¡¥Ñ•µl‰µ•Ñ…}©Í½¸‰t¤¤°µ•Ñ„¤((€€€€€€€€€€€…ÁÁ•¹‘}±•‘•È (€€€€€€€€€€€€€€€±•‘•È°(€€€€€€€€€€€€€€€ì(€€€€€€€€€€€€€€€€€€€€‰ÕÍ…•}¥ˆèÍÑÈ¡ÕÕ¥¹ÕÕ¥Ð ¤¤°(€€€€€€€€€€€€€€€€€€€€‰ÉÕ¹}¥ˆè©½‰}‘½l‰ÉÕ¹}¥‰t°(€€€€€€€€€€€€€€€€€€€€‰É•…Ñ•‘}…Ñ}ÕÑŒˆè¹½Ý}ÕÑŒ ¤°(€€€€€€€€€€€€€€€€€€€€‰Í•¹•}¥ˆè¥Ñ•µl‰Í•¹•}¥‰t°(€€€€€€€€€€€€€€€€€€€€‰Í•¹•}¹¼ˆè¥Ñ•µl‰Í•¹•}¹¼‰t°(€€€€€€€€€€€€€€€€€€€€‰Á½•µ}¥ˆè¥Ñ•µl‰Á½•µ}¥‰t°(€€€€€€€€€€€€€€€€€€€€‰Ñ¥Ñ±”ˆè¥Ñ•µl‰Ñ¥Ñ±”‰t°(€€€€€€€€€€€€€€€€€€€€‰µ½‘•°ˆè©½‰}‘½l‰µ½‘•°‰t°(€€€€€€€€€€€€€€€€€€€€‰ÍÑå±•}­•äˆè¥Ñ•µl‰ÍÑå±•}­•ä‰t°(€€€€€€€€€€€€€€€€€€€€‰ÍÑå±•}¥ˆè¥Ñ•µl‰ÍÑå±•}¥‰t°(€€€€€€€€€€€€€€€€€€€€‰ÁÉ½µÁÑ}Í¡„ÈÔØˆè¥Ñ•µl‰ÁÉ½µÁÑ}Í¡„ÈÔØ‰t°(€€€€€€€€€€€€€€€€€€€€‰¥¹Ñ•É…Ñ¥½¹}¥ˆèÉ•ÍÁ½¹Í•}¥°(€€€€€€€€€€€€€€€€€€€€‰ÁÉ•Ù¥½ÕÍ}¥¹Ñ•É…Ñ¥½¹}¥ˆè€ˆˆ°(€€€€€€€€€€€€€€€€€€€€‰ÍÑ…ÑÕÌˆè€‰½µÁ±•Ñ•ˆ°(€€€€€€€€€€€€€€€€€€€€‰±…Ñ•¹å}µÌˆè€ˆˆ°(€€€€€€€€€€€€€€€€€€€€‰¥¹ÁÕÑ}Ñ•áÑ}Ñ½­•¹Ìˆè¥¹ÁÕÑ}Ñ•áÑ}Ñ½­•¹Ì°(€€€€€€€€€€€€€€€€€€€€‰¥¹ÁÕÑ}¥µ…•}Ñ½­•¹Ìˆè€À°(€€€€€€€€€€€€€€€€€€€€‰Ñ½Ñ…±}¥¹ÁÕÑ}Ñ½­•¹ÌˆèÑ½Ñ…±}¥¹ÁÕÑ}Ñ½­•¹Ì°(€€€€€€€€€€€€€€€€€€€€‰½ÕÑÁÕÑ}¥µ…•}Ñ½­•¹Ìˆè½ÕÑÁÕÑ}¥µ…•}Ñ½­•¹Ì°(€€€€€€€€€€€€€€€€€€€€‰½ÕÑÁÕÑ}¹½¹}¥µ…•}Ñ½­•¹Ìˆè½ÕÑÁÕÑ}¹½¹}¥µ…•}Ñ½­•¹Ì°(€€€€€€€€€€€€€€€€€€€€‰Ñ½Ñ…±}½ÕÑÁÕÑ}Ñ½­•¹ÌˆèÑ½Ñ…±}½ÕÑÁÕÑ}Ñ½­•¹Ì°(€€€€€€€€€€€€€€€€€€€€‰Ñ½Ñ…±}Ñ½­•¹ÌˆèÑ½Ñ…±}Ñ½­•¹Ì°(€€€€€€€€€€€€€€€€€€€€‰•ÍÑ¥µ…Ñ•‘}¥¹ÁÕÑ}½ÍÑ}ÕÍˆè˜‰í¥¹ÁÕÑ}½ÍÐè¸å™ôˆ°(€€€€€€€€€€€€€€€€€€€€‰•ÍÑ¥µ…Ñ•‘}½ÕÑÁÕÑ}¥µ…•}½ÍÑ}ÕÍˆè˜‰í¥µ…•}½ÍÐè¸å™ôˆ°(€€€€€€€€€€€€€€€€€€€€‰•ÍÑ¥µ…Ñ•‘}½ÕÑÁÕÑ}¹½¹}¥µ…•}½ÍÑ}ÕÍˆè€ˆÀ¸ÀÀÀÀÀÀÀÀÀˆ°(€€€€€€€€€€€€€€€€€€€€‰•ÍÑ¥µ…Ñ•‘}Ñ½Ñ…±}½ÍÑ}ÕÍˆè˜‰íÉ•ÅÕ•ÍÑ}½ÍÐè¸å™ôˆ°(€€€€€€€€€€€€€€€€€€€€‰ÁÉ¥¥¹}…Í}½˜ˆè	Q!}AI%%9l‰ÁÉ¥¥¹}…Í}½˜‰t°(€€€€€€€€€€€€€€€€€€€€‰ÁÉ¥¥¹}‰…Í¥Ìˆè	Q!}AI%%9l‰ÁÉ¥¥¹}‰…Í¥Ì‰t°(€€€€€€€€€€€€€€€€€€€€‰¥µ…•}Ý¥‘Ñ ˆèÝ¥‘Ñ °(€€€€€€€€€€€€€€€€€€€€‰¥µ…•}¡•¥¡Ðˆè¡•¥¡Ð°(€€€€€€€€€€€€€€€€€€€€‰¥µ…•}Í¥é•}‰åÑ•ÌˆèÍ¥é•}‰åÑ•Ì°(€€€€€€€€€€€€€€€€€€€€‰½ÕÑÁÕÑ}¥µ…”ˆè½ÕÑÁÕÑ}¥µ…”¹…Í}Á½Í¥à ¤°(€€€€€€€€€€€€€€€€€€€€‰Á½}¥µ…”ˆèÁ½}¥µ…”¹…Í}Á½Í¥à ¤°(€€€€€€€€€€€€€€€€€€€€‰µ•Ñ…}©Í½¸ˆè¥Ñ•µl‰µ•Ñ…}©Í½¸‰t°(€€€€€€€€€€€€€€€€€€€€‰ÕÍ…•}É…Ý}©Í½¸ˆè©Í½¸¹‘ÕµÁÌ (€€€€€€€€€€€€€€€€€€€€€€€ÕÍ…”°(€€€€€€€€€€€€€€€€€€€€€€€•¹ÍÕÉ•}…Í¥¤õ…±Í”°(€€€€€€€€€€€€€€€€€€€€€€€Í•Á…É…Ñ½ÉÌô ˆ°ˆ°€ˆèˆ¤°(€€€€€€€€€€€€€€€€€€€€¤°(€€€€€€€€€€€€€€€€€€€€‰•ÉÉ½É}µ•ÍÍ…”ˆè€ˆˆ°(€€€€€€€€€€€€€€€ô°(€€€€€€€€€€€€¤((€€€€€€€€€€€½±±•Ñ•¹…‘¡­•ä¤(€€€€€€€€€€€©½‰}‘½l‰½±±•Ñ•‘}­•åÌ‰t€ôÍ½ÉÑ•¡½±±•Ñ•¤(€€€€€€€€€€€©½‰}‘½l‰™…¥±•‘}­•åÌ‰t€ôÍ½ÉÑ•¡™…¥±•‘}­•åÌ¤(€€€€€€€€€€€©½‰}‘½l‰½±±•Ñ•‘}…Ñ}ÕÑŒ‰t€ô¹½Ý}ÕÑŒ ¤(€€€€€€€€€€€ÝÉ¥Ñ•}©Í½¸¡©½‰}Á…Ñ °©½‰}‘½Œ¤(€€€€€€€€€€€•¹•É…Ñ•€¬ô€Ä(€€€€€€€€€€€ÁÉ¥¹Ð (€€€€€€€€€€€€€€€˜‰í­•åôè=11QíÝ¥‘Ñ¡õáí¡•¥¡Ñô€ˆ(€€€€€€€€€€€€€€€˜‰¥µ…•}Ñ½­•¹Ìõí½ÕÑÁÕÑ}¥µ…•}Ñ½­•¹Íô€ˆ(€€€€€€€€€€€€€€€˜‰•ÍÑ}ÕÍõíÉ•ÅÕ•ÍÑ}½ÍÐè¸å™ô€ˆ(€€€€€€€€€€€€€€€˜ˆ´øí½ÕÑÁÕÑ}¥µ…”¹…Í}Á½Í¥à ¥ôˆ(€€€€€€€€€€€€¤(€€€€€€€•á•ÁÐá•ÁÑ¥½¸…Ì•áŒè(€€€€€€€€€€€…ÁÁ•¹‘}™…¥±•‘}±•‘•È (€€€€€€€€€€€€€€€±•‘•È°(€€€€€€€€€€€€€€€©½‰}‘½Œ°(€€€€€€€€€€€€€€€¥Ñ•´°(€€€€€€€€€€€€€€€ì‰µ•ÍÍ…”ˆè˜‰íÑåÁ”¡•áŒ¤¹}}¹…µ•}}ôèí•áô‰ô°(€€€€€€€€€€€€¤(€€€€€€€€€€€™…¥±•‘}­•åÌ¹…‘¡­•ä¤(€€€€€€€€€€€©½‰}‘½l‰™…¥±•‘}­•åÌ‰t€ôÍ½ÉÑ•¡™…¥±•‘}­•åÌ¤(€€€€€€€€€€€ÝÉ¥Ñ•}©Í½¸¡©½‰}Á…Ñ °©½‰}‘½Œ¤(€€€€€€€€€€€ÁÉ¥¹Ð (€€€€€€€€€€€€€€€˜‰í­•åôè%1íÑåÁ”¡•áŒ¤¹}}¹…µ•}}ôèí•áôˆ°(€€€€€€€€€€€€€€€™¥±”õÍåÌ¹ÍÑ‘•ÉÈ°(€€€€€€€€€€€€¤(€€€€€€€€€€€™…¥±•€¬ô€Ä((€€€µ¥ÍÍ¥¹}É•ÍÕ±Ñ}­•åÌ€ôÍ•Ð¡µ…¹¥™•ÍÑ}‰å}­•ä¤€´Í••¹}É•ÍÕ±Ñ}­•åÌ(€€€¥˜µ¥ÍÍ¥¹}É•ÍÕ±Ñ}­•åÌè(€€€€€€€ÁÉ¥¹Ð (€€€€€€€€€€€€‰II=Hµ¥ÍÍ¥¹œÉ•ÍÕ±Ð­•åÌè€ˆ(€€€€€€€€€€€€¬€ˆ°ˆ¹©½¥¸¡Í½ÉÑ•¡µ¥ÍÍ¥¹}É•ÍÕ±Ñ}­•åÌ¤¤°(€€€€€€€€€€€™¥±”õÍåÌ¹ÍÑ‘•ÉÈ°(€€€€€€€€¤(€€€€€€€™…¥±•€¬ô±•¸¡µ¥ÍÍ¥¹}É•ÍÕ±Ñ}­•åÌ¤((€€€©½‰}‘½l‰½±±•Ñ•‘}­•åÌ‰t€ôÍ½ÉÑ•¡½±±•Ñ•¤(€€€©½‰}‘½l‰™…¥±•‘}­•åÌ‰t€ôÍ½ÉÑ•¡™…¥±•‘}­•åÌ¤(€€€©½‰}‘½l‰É•ÍÕ±Ñ}™¥±•}¹…µ”‰t€ôÍÑÈ¡É•ÍÕ±Ñ}™¥±•}¹…µ”¤(€€€©½‰}‘½l‰É•ÍÕ±Ñ}©Í½¹°‰t€ôÉ•ÍÕ±Ñ}Á…Ñ ¹…Í}Á½Í¥à ¤(€€€©½‰}‘½l‰±…ÍÑ}½±±•Ñ}…Ñ}ÕÑŒ‰t€ô¹½Ý}ÕÑŒ ¤(€€€ÝÉ¥Ñ•}©Í½¸¡©½‰}Á…Ñ °©½‰}‘½Œ¤((€€€ÁÉ¥¹Ð ‰q¹MÕµµ…Éäˆ¤(€€€ÁÉ¥¹Ð¡˜‰‰…Ñ¡}É•ÅÕ•ÍÑÌõí©½‰}‘½lÉ•ÅÕ•ÍÑ}½Õ¹Ðuôˆ¤(€€€ÁÉ¥¹Ð¡˜‰•¹•É…Ñ•‘}¹½Üõí•¹•É…Ñ•‘ôˆ¤(€€€ÁÉ¥¹Ð¡˜‰…±É•…‘å}ÁÉ½•ÍÍ•õí…±É•…‘å}ÁÉ½•ÍÍ•‘ôˆ¤(€€€ÁÉ¥¹Ð¡˜‰½±±•Ñ•‘}Ñ½Ñ…°õí±•¸¡½±±•Ñ•¥ôˆ¤(€€€ÁÉ¥¹Ð¡˜‰™…¥±•‘}Ñ½Ñ…°õí±•¸¡™…¥±•‘}­•åÌ¥ôˆ¤(€€€ÁÉ¥¹Ð¡˜‰•ÍÑ¥µ…Ñ•‘}½ÍÑ}ÕÍ‘}¹½ÜõíÑ½Ñ…±}½ÍÐè¸å™ôˆ¤(€€€ÁÉ¥¹Ð¡˜‰±•‘•Èõí±•‘•È¹…Í}Á½Í¥à ¥ôˆ¤(€€€É•ÑÕÉ¸€Ä¥˜™…¥±•½È™…¥±•‘}­•åÌ•±Í”€À(()‘•˜…‘‘}Í•±•Ñ¥½¹}…ÉÌ¡Á…ÉÍ•Èè…ÉÁ…ÉÍ”¹ÉÕµ•¹ÑA…ÉÍ•È¤€´ø9½¹”è(€€€Í•±•Ñ½È€ôÁ…ÉÍ•È¹…‘‘}µÕÑÕ…±±å}•á±ÕÍ¥Ù•}É½ÕÀ¡É•ÅÕ¥É•õQÉÕ”¤(€€€Í•±•Ñ½È¹…‘‘}…ÉÕµ•¹Ð ˆ´µÁ½•´µ¥ˆ°ÑåÁ”õ¥¹Ð¤(€€€Í•±•Ñ½È¹…‘‘}…ÉÕµ•¹Ð ˆ´µ…”ˆ°ÑåÁ”õ¥¹Ð°¡½¥•Ìô Ø°€Ü°€à°€ä¤¤(€€€Á…ÉÍ•È¹…‘‘}…ÉÕµ•¹Ð ˆ´µ…ÁÁÉ½Ù•µ½¹±äˆ°…Ñ¥½¸ô‰ÍÑ½É•}ÑÉÕ”ˆ¤(€€€Á…ÉÍ•È¹…‘‘}…ÉÕµ•¹Ð ˆ´µÍÑå±•Ìˆ°‘•™…Õ±Ðô‰ˆ¤(€€€Á…ÉÍ•È¹…‘‘}…ÉÕµ•¹Ð ˆ´µÍ•¹”µ¥‘Ìˆ°‘•™…Õ±Ðôˆˆ¤(€€€Á…ÉÍ•È¹…‘‘}…ÉÕµ•¹Ð ˆ´µÁ½•µÌˆ°‘•™…Õ±Ðô‰‘…Ñ„½Á½•µÌ¹ÍØˆ¤(€€€Á…ÉÍ•È¹…‘‘}…ÉÕµ•¹Ð ˆ´µÍ•¹•Ìˆ°‘•™…Õ±Ðô‰‘…Ñ„½Í•¹•Ì¹ÍØˆ¤(€€€Á…ÉÍ•È¹…‘‘}…ÉÕµ•¹Ð (€€€€€€€€ˆ´µÉ•¥ÍÑÉäˆ°(€€€€€€€‘•™…Õ±Ðô‰½¹™¥œ½¥µ…•}ÍÑå±•Í}ÁÉ½‘ÕÑ¥½¹}ØÄ¹©Í½¸ˆ°(€€€€¤(€€€Á…ÉÍ•È¹…‘‘}…ÉÕµ•¹Ð ˆ´µµ½‘•°ˆ°‘•™…Õ±ÐõU1Q}5=0¤(€€€Á…ÉÍ•È¹…‘‘}…ÉÕµ•¹Ð ˆ´µ™½É”ˆ°…Ñ¥½¸ô‰ÍÑ½É•}ÑÉÕ”ˆ¤(€€€Á…ÉÍ•È¹…‘‘}…ÉÕµ•¹Ð ˆ´µ‘ÉäµÉÕ¸ˆ°…Ñ¥½¸ô‰ÍÑ½É•}ÑÉÕ”ˆ¤(()‘•˜µ…¥¸ ¤€´ø¥¹Ðè(€€€±½…‘}‘½Ñ•¹Ø ¤(€€€Á…ÉÍ•È€ô…ÉÁ…ÉÍ”¹ÉÕµ•¹ÑA…ÉÍ•È (€€€€€€€‘•ÍÉ¥ÁÑ¥½¸ô‰•µ¥¹¤	…Ñ A$¥µ…”ÁÉ½‘ÕÑ¥½¸™½ÈÁ½•´ÌÀÀ¸ˆ(€€€€¤(€€€Á…ÉÍ•È¹…‘‘}…ÉÕµ•¹Ð (€€€€€€€€ˆ´µÉÕ¹Ñ¥µ”µÉ½½Ðˆ°(€€€€€€€‘•™…Õ±ÐõU1Q}IU9Q%5}I==P¹…Í}Á½Í¥à ¤°(€€€€¤(€€€ÍÕˆ€ôÁ…ÉÍ•È¹…‘‘}ÍÕ‰Á…ÉÍ•ÉÌ¡‘•ÍÐô‰½µµ…¹ˆ°É•ÅÕ¥É•õQÉÕ”¤((€€€ÍÕ‰µ¥Ñ}Á…ÉÍ•È€ôÍÕˆ¹…‘‘}Á…ÉÍ•È (€€€€€€€€‰ÍÕ‰µ¥Ðˆ°(€€€€€€€¡•±Àô‰	Õ¥±„)M=90™¥±”°ÕÁ±½…¥Ð°…¹É•…Ñ”½¹”	…Ñ A$©½ˆ¸ˆ°(€€€€¤(€€€…‘‘}Í•±•Ñ¥½¹}…ÉÌ¡ÍÕ‰µ¥Ñ}Á…ÉÍ•È¤((€€€ÍÑ…ÑÕÍ}Á…ÉÍ•È€ôÍÕˆ¹…‘‘}Á…ÉÍ•È (€€€€€€€€‰ÍÑ…ÑÕÌˆ°(€€€€€€€¡•±Àô‰¡•¬„ÍÕ‰µ¥ÑÑ•	…Ñ A$©½ˆ¸ˆ°(€€€€¤(€€€ÍÑ…ÑÕÍ}Á…ÉÍ•È¹…‘‘}…ÉÕµ•¹Ð ˆ´µ©½ˆˆ¤((€€€½±±•Ñ}Á…ÉÍ•È€ôÍÕˆ¹…‘‘}Á…ÉÍ•È (€€€€€€€€‰½±±•Ðˆ°(€€€€€€€¡•±Àô‰½Ý¹±½…„½µÁ±•Ñ•‰…Ñ …¹ÝÉ¥Ñ”¥µ…•ÌÑ¼…ÍÍ•ÐÁ…Ñ¡Ì¸ˆ°(€€€€¤(€€€½±±•Ñ}Á…ÉÍ•È¹…‘‘}…ÉÕµ•¹Ð ˆ´µ©½ˆˆ¤(€€€½±±•Ñ}Á…ÉÍ•È¹…‘‘}…ÉÕµ•¹Ð (€€€€€€€€ˆ´µ±•‘•Èˆ°(€€€€€€€‘•™…Õ±ÐõU1Q}1H¹…Í}Á½Í¥à ¤°(€€€€¤((€€€…ÉÌ€ôÁ…ÉÍ•È¹Á…ÉÍ•}…ÉÌ ¤(€€€ÑÉäè(€€€€€€€¥˜…ÉÌ¹½µµ…¹€ôô€‰ÍÕ‰µ¥Ðˆè(€€€€€€€€€€€É•ÑÕÉ¸ÍÕ‰µ¥Ð¡…ÉÌ¤(€€€€€€€¥˜…ÉÌ¹½µµ…¹€ôô€‰ÍÑ…ÑÕÌˆè(€€€€€€€€€€€É•ÑÕÉ¸ÍÑ…ÑÕÌ¡…ÉÌ¤(€€€€€€€¥˜…ÉÌ¹½µµ…¹€ôô€‰½±±•Ðˆè(€€€€€€€€€€€É•ÑÕÉ¸½±±•Ð¡…ÉÌ¤(€€€•á•ÁÐ€¡Y…±Õ•ÉÉ½È°¥±•9½Ñ½Õ¹‘ÉÉ½È°IÕ¹Ñ¥µ•ÉÉ½È¤…Ì•áŒè(€€€€€€€ÁÉ¥¹Ð¡˜‰II=Hèí•áôˆ°™¥±”õÍåÌ¹ÍÑ‘•ÉÈ¤(€€€€€€€É•ÑÕÉ¸€È(€€€É•ÑÕÉ¸€È(()¥˜}}¹…µ•}|€ôô€‰}}µ…¥¹}|ˆè(€€€É…¥Í”MåÍÑ•µá¥Ð¡µ…¥¸ ¤¤(
+    if requested_scene_ids:
+        unknown = requested_scene_ids - all_scene_ids
+        if unknown:
+            raise ValueError(
+                "unknown scene IDs: " + ",".join(sorted(unknown))
+            )
+
+    return items, selected_scene_count, skipped_existing
+
+
+def request_json(item: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "key": item["key"],
+        "request": {
+            "contents": [
+                {
+                    "role": "user",
+                    "parts": [{"text": item["prompt"]}],
+                }
+            ],
+            "generation_config": {
+                "responseModalities": ["IMAGE"],
+                "imageConfig": {
+                    "aspectRatio": "16:9",
+                    "imageSize": "1K",
+                },
+            },
+        },
+    }
+
+
+def batch_output_cost(request_count: int) -> float:
+    return (
+        request_count
+        * IMAGE_TOKENS_1K
+        * BATCH_PRICING["output_image_per_million"]
+        / 1_000_000
+    )
+
+
+def latest_job_path(runtime_root: Path) -> Path:
+    latest = runtime_root / "latest.json"
+    if not latest.exists():
+        raise FileNotFoundError(
+            f"No latest batch pointer found: {latest.as_posix()}"
+        )
+    pointer = read_json(latest)
+    path = pointer.get("job_state")
+    if not path:
+        raise ValueError(f"Invalid latest pointer: {latest.as_posix()}")
+    return Path(path)
+
+
+def resolve_job_path(runtime_root: Path, explicit: str | None) -> Path:
+    if explicit:
+        return Path(explicit)
+    return latest_job_path(runtime_root)
+
+
+def submit(args: argparse.Namespace) -> int:
+    items, selected_scenes, skipped_existing = select_items(args)
+    request_count = len(items)
+
+    print("delivery_mode=gemini_batch_api")
+    print(f"model={args.model}")
+    print(f"selected_scenes={selected_scenes}")
+    print(f"skipped_existing={skipped_existing}")
+    print(f"batch_requests={request_count}")
+    print(
+        "estimated_image_output_cost_usd="
+        f"{batch_output_cost(request_count):.9f}"
+    )
+    print(f"force={args.force} dry_run={args.dry_run}")
+
+    if not items:
+        print("Nothing to submit; all selected image assets already exist.")
+        return 0
+
+    if args.dry_run:
+        for item in items:
+            print(
+                f"{item['key']}: SUBMIT -> {item['output_image']} "
+                f"prompt={item['prompt_sha256'][:12]}"
+            )
+        print("dry_run=true; no upload or Batch API job was created.")
+        return 0
+
+    client = api_client()
+    run = new_run_id()
+    runtime_root = Path(args.runtime_root)
+    run_dir = runtime_root / run
+    run_dir.mkdir(parents=True, exist_ok=True)
+    request_path = run_dir / "requests.jsonl"
+    manifest_path = run_dir / "manifest.json"
+    job_path = run_dir / "job.json"
+
+    with request_path.open("w", encoding="utf-8", newline="\n") as handle:
+        for item in items:
+            handle.write(
+                json.dumps(
+                    request_json(item),
+                    ensure_ascii=False,
+                    separators=(",", ":"),
+                )
+                + "\n"
+            )
+
+    manifest = {
+        "run_id": run,
+        "created_at_utc": utc_now(),
+        "model": args.model,
+        "request_count": request_count,
+        "selected_scenes": selected_scenes,
+        "skipped_existing": skipped_existing,
+        "items": items,
+    }
+    write_json(manifest_path, manifest)
+
+    uploaded = client.files.upload(
+        file=str(request_path),
+        config=types.UploadFileConfig(
+            display_name=f"poem300-image-batch-{run}",
+            mime_type="jsonl",
+        ),
+    )
+    uploaded_name = str(getattr(uploaded, "name", "") or "")
+    if not uploaded_name:
+        raise RuntimeError("File API upload completed without a file name")
+
+    job = client.batches.create(
+        model=args.model,
+        src=uploaded_name,
+        config={"display_name": f"poem300-image-batch-{run}"},
+    )
+    job_name = str(getattr(job, "name", "") or "")
+    if not job_name:
+        raise RuntimeError("Batch API create completed without a job name")
+
+    job_doc = {
+        "run_id": run,
+        "created_at_utc": utc_now(),
+        "model": args.model,
+        "job_name": job_name,
+        "state": state_name(job),
+        "input_file_name": uploaded_name,
+        "request_jsonl": request_path.as_posix(),
+        "manifest": manifest_path.as_posix(),
+        "request_count": request_count,
+        "selected_scenes": selected_scenes,
+        "skipped_existing": skipped_existing,
+        "collected_keys": [],
+        "failed_keys": [],
+    }
+    write_json(job_path, job_doc)
+    write_json(
+        runtime_root / "latest.json",
+        {
+            "run_id": run,
+            "job_state": job_path.as_posix(),
+            "job_name": job_name,
+        },
+    )
+
+    print(f"request_jsonl={request_path.as_posix()}")
+    print(f"manifest={manifest_path.as_posix()}")
+    print(f"input_file_name={uploaded_name}")
+    print(f"job_name={job_name}")
+    print(f"state={state_name(job)}")
+    print(f"job_state={job_path.as_posix()}")
+    print("SUBMITTED")
+    return 0
+
+
+def status(args: argparse.Namespace) -> int:
+    runtime_root = Path(args.runtime_root)
+    job_path = resolve_job_path(runtime_root, args.job)
+    job_doc = read_json(job_path)
+    client = api_client()
+    job = client.batches.get(name=job_doc["job_name"])
+    state = state_name(job)
+    job_doc["state"] = state
+    job_doc["last_checked_at_utc"] = utc_now()
+    if getattr(job, "error", None):
+        job_doc["job_error"] = str(job.error)
+    write_json(job_path, job_doc)
+
+    print(f"run_id={job_doc['run_id']}")
+    print(f"job_name={job_doc['job_name']}")
+    print(f"state={state}")
+    print(f"request_count={job_doc['request_count']}")
+    print(f"collected={len(job_doc.get('collected_keys', []))}")
+    print(f"failed={len(job_doc.get('failed_keys', []))}")
+    print(f"collect_ready={str(state == 'JOB_STATE_SUCCEEDED').lower()}")
+    if getattr(job, "error", None):
+        print(f"job_error={job.error}")
+    return 1 if state in (TERMINAL_STATES - {"JOB_STATE_SUCCEEDED"}) else 0
+
+
+def modality_tokens(details: Any, modality: str) -> int:
+    if not isinstance(details, list):
+        return 0
+    for item in details:
+        if not isinstance(item, dict):
+            continue
+        if str(item.get("modality", "")).upper() != modality.upper():
+            continue
+        return int(item.get("tokenCount") or item.get("tokens") or 0)
+    return 0
+
+
+def usage_numbers(response: dict[str, Any]) -> tuple[int, int, int, int, int]:
+    usage = response.get("usageMetadata") or response.get("usage_metadata") or {}
+    input_total = int(
+        usage.get("promptTokenCount")
+        or usage.get("prompt_token_count")
+        or 0
+    )
+    output_total = int(
+        usage.get("candidatesTokenCount")
+        or usage.get("candidates_token_count")
+        or 0
+    )
+    total = int(
+        usage.get("totalTokenCount")
+        or usage.get("total_token_count")
+        or (input_total + output_total)
+    )
+    input_text = modality_tokens(
+        usage.get("promptTokensDetails")
+        or usage.get("prompt_tokens_details")
+        or [],
+        "TEXT",
+    )
+    output_image = modality_tokens(
+        usage.get("candidatesTokensDetails")
+        or usage.get("candidates_tokens_details")
+        or [],
+        "IMAGE",
+    )
+    if input_text == 0:
+        input_text = input_total
+    if output_image == 0:
+        output_image = output_total or IMAGE_TOKENS_1K
+    return input_text, input_total, output_image, output_total, total
+
+
+def image_from_response(response: dict[str, Any]) -> tuple[bytes, str]:
+    candidates = response.get("candidates") or []
+    if not candidates:
+        raise ValueError("response has no candidates")
+    content = candidates[0].get("content") or {}
+    parts = content.get("parts") or []
+    for part in parts:
+        inline = part.get("inlineData") or part.get("inline_data")
+        if not inline:
+            continue
+        data = inline.get("data")
+        if not data:
+            continue
+        mime = str(inline.get("mimeType") or inline.get("mime_type") or "")
+        return base64.b64decode(data), mime
+    raise ValueError("response has no inline image data")
+
+
+def append_failed_ledger(
+    ledger: Path,
+    job_doc: dict[str, Any],
+    item: dict[str, Any],
+    error: Any,
+) -> None:
+    append_ledger(
+        ledger,
+        {
+            "usage_id": str(uuid.uuid4()),
+            "run_id": job_doc["run_id"],
+            "created_at_utc": utc_now(),
+            "scene_id": item["scene_id"],
+            "scene_no": item["scene_no"],
+            "poem_id": item["poem_id"],
+            "title": item["title"],
+            "model": job_doc["model"],
+            "style_key": item["style_key"],
+            "style_id": item["style_id"],
+            "prompt_sha256": item["prompt_sha256"],
+            "status": "batch_failed",
+            "pricing_as_of": BATCH_PRICING["pricing_as_of"],
+            "pricing_basis": BATCH_PRICING["pricing_basis"],
+            "output_image": item["output_image"],
+            "poc_image": item["poc_image"],
+            "meta_json": item["meta_json"],
+            "error_message": json.dumps(error, ensure_ascii=False),
+        },
+    )
+
+
+def collect(args: argparse.Namespace) -> int:
+    runtime_root = Path(args.runtime_root)
+    job_path = resolve_job_path(runtime_root, args.job)
+    job_doc = read_json(job_path)
+    manifest = read_json(Path(job_doc["manifest"]))
+    items = manifest["items"]
+    items_by_key = {item["key"]: item for item in items}
+
+    client = api_client()
+    job = client.batches.get(name=job_doc["job_name"])
+    state = state_name(job)
+    job_doc["state"] = state
+    job_doc["last_checked_at_utc"] = utc_now()
+    write_json(job_path, job_doc)
+    if state != "JOB_STATE_SUCCEEDED":
+        print(f"ERROR: job is not ready for collection: {state}", file=sys.stderr)
+        return 2
+
+    dest = getattr(job, "dest", None)
+    result_file_name = str(getattr(dest, "file_name", "") or "")
+    if not result_file_name:
+        raise RuntimeError("Succeeded batch job has no dest.file_name")
+
+    content = client.files.download(file=result_file_name)
+    result_path = job_path.parent / "results.jsonl"
+    result_path.write_bytes(content)
+
+    ledger = Path(args.ledger)
+    ensure_ledger(ledger)
+    collected = set(job_doc.get("collected_keys", []))
+    failed_keys = set(job_doc.get("failed_keys", []))
+    seen_keys: set[str] = set()
+    generated_now = 0
+    failed_now = 0
+    already_processed = 0
+    total_cost = 0.0
+
+    lines = [
+        line for line in content.decode("utf-8").splitlines() if line.strip()
+    ]
+
+    for index, line in enumerate(lines):
+        parsed = json.loads(line)
+        key = str(parsed.get("key") or "")
+        if not key and index < len(items):
+            key = items[index]["key"]
+        if key not in items_by_key:
+            print(f"ERROR: unknown result key {key!r}", file=sys.stderr)
+            failed_now += 1
+            continue
+        seen_keys.add(key)
+        item = items_by_key[key]
+
+        if key in collected or key in failed_keys:
+            already_processed += 1
+            continue
+
+        if parsed.get("error"):
+            append_failed_ledger(ledger, job_doc, item, parsed["error"])
+            failed_keys.add(key)
+            failed_now += 1
+            print(f"{key}: FAILED {parsed['error']}", file=sys.stderr)
+            job_doc["failed_keys"] = sorted(failed_keys)
+            write_json(job_path, job_doc)
+            continue
+
+        response = parsed.get("response")
+        if not isinstance(response, dict):
+            error = {"message": "result has no response object"}
+            append_failed_ledger(ledger, job_doc, item, error)
+            failed_keys.add(key)
+            failed_now += 1
+            job_doc["failed_keys"] = sorted(failed_keys)
+            write_json(job_path, job_doc)
+            continue
+
+        try:
+            image_bytes, mime_type = image_from_response(response)
+            output_image = Path(item["output_image"])
+            width, height, size_bytes = save_webp(image_bytes, output_image)
+            poc_image = copy_to_poc(
+                output_image,
+                poem_id=int(item["poem_id"]),
+                scene_no=int(item["scene_no"]),
+                style_key=item["style_key"],
+            )
+
+            input_text, input_total, output_image_tokens, output_total, total = (
+                usage_numbers(response)
+            )
+            output_non_image = max(output_total - output_image_tokens, 0)
+            input_cost = (
+                input_text
+                * BATCH_PRICING["input_text_per_million"]
+                / 1_000_000
+            )
+            image_cost = (
+                output_image_tokens
+                * BATCH_PRICING["output_image_per_million"]
+                / 1_000_000
+            )
+            request_cost = input_cost + image_cost
+            total_cost += request_cost
+            response_id = str(
+                response.get("responseId")
+                or response.get("response_id")
+                or ""
+            )
+            usage_raw = response.get("usageMetadata") or response.get(
+                "usage_metadata"
+            ) or {}
+
+            write_meta(
+                Path(item["meta_json"]),
+                {
+                    "architecture": "poem_world_independent_scene_v1",
+                    "delivery_mode": "gemini_batch_api_v1",
+                    "batch_job_name": job_doc["job_name"],
+                    "batch_request_key": key,
+                    "poem_id": item["poem_id"],
+                    "title": item["title"],
+                    "scene_id": item["scene_id"],
+                    "scene_no": item["scene_no"],
+                    "style_key": item["style_key"],
+                    "style_id": item["style_id"],
+                    "model": job_doc["model"],
+                    "response_id": response_id,
+                    "previous_interaction_id": None,
+                    "prompt_sha256": item["prompt_sha256"],
+                    "mime_type": mime_type,
+                    "output_image": output_image.as_posix(),
+                    "poc_image": poc_image.as_posix(),
+                    "generated_at_utc": utc_now(),
+                },
+            )
+
+            append_ledger(
+                ledger,
+                {
+                    "usage_id": str(uuid.uuid4()),
+                    "run_id": job_doc["run_id"],
+                    "created_at_utc": utc_now(),
+                    "scene_id": item["scene_id"],
+                    "scene_no": item["scene_no"],
+                    "poem_id": item["poem_id"],
+                    "title": item["title"],
+                    "model": job_doc["model"],
+                    "style_key": item["style_key"],
+                    "style_id": item["style_id"],
+                    "prompt_sha256": item["prompt_sha256"],
+                    "interaction_id": response_id,
+                    "previous_interaction_id": "",
+                    "status": "completed",
+                    "latency_ms": "",
+                    "input_text_tokens": input_text,
+                    "input_image_tokens": 0,
+                    "total_input_tokens": input_total,
+                    "output_image_tokens": output_image_tokens,
+                    "output_non_image_tokens": output_non_image,
+                    "total_output_tokens": output_total,
+                    "total_tokens": total,
+                    "estimated_input_cost_usd": f"{input_cost:.9f}",
+                    "estimated_output_image_cost_usd": f"{image_cost:.9f}",
+                    "estimated_output_non_image_cost_usd": "0.000000000",
+                    "estimated_total_cost_usd": f"{request_cost:.9f}",
+                    "pricing_as_of": BATCH_PRICING["pricing_as_of"],
+                    "pricing_basis": BATCH_PRICING["pricing_basis"],
+                    "image_width": width,
+                    "image_height": height,
+                    "image_size_bytes": size_bytes,
+                    "output_image": output_image.as_posix(),
+                    "poc_image": poc_image.as_posix(),
+                    "meta_json": item["meta_json"],
+                    "usage_raw_json": json.dumps(
+                        usage_raw,
+                        ensure_ascii=False,
+                        separators=(",", ":"),
+                    ),
+                    "error_message": "",
+                },
+            )
+
+            collected.add(key)
+            generated_now += 1
+            job_doc["collected_keys"] = sorted(collected)
+            write_json(job_path, job_doc)
+            print(
+                f"{key}: COLLECTED {width}x{height} "
+                f"image_tokens={output_image_tokens} "
+                f"est_usd={request_cost:.9f} -> {output_image.as_posix()}"
+            )
+        except Exception as exc:
+            error = {"message": f"{type(exc).__name__}: {exc}"}
+            append_failed_ledger(ledger, job_doc, item, error)
+            failed_keys.add(key)
+            failed_now += 1
+            job_doc["failed_keys"] = sorted(failed_keys)
+            write_json(job_path, job_doc)
+            print(f"{key}: FAILED {error['message']}", file=sys.stderr)
+
+    missing_result_keys = set(items_by_key) - seen_keys
+    if missing_result_keys:
+        print(
+            "ERROR: result file is missing keys: "
+            + ",".join(sorted(missing_result_keys)),
+            file=sys.stderr,
+        )
+        failed_now += len(missing_result_keys)
+
+    job_doc["result_file_name"] = result_file_name
+    job_doc["result_jsonl"] = result_path.as_posix()
+    job_doc["collected_keys"] = sorted(collected)
+    job_doc["failed_keys"] = sorted(failed_keys)
+    job_doc["last_collect_at_utc"] = utc_now()
+    write_json(job_path, job_doc)
+
+    print("\nSummary")
+    print(f"batch_requests={len(items)}")
+    print(f"generated_now={generated_now}")
+    print(f"already_processed={already_processed}")
+    print(f"collected_total={len(collected)}")
+    print(f"failed_total={len(failed_keys)}")
+    print(f"estimated_cost_usd_now={total_cost:.9f}")
+    print(f"result_jsonl={result_path.as_posix()}")
+    print(f"ledger={ledger.as_posix()}")
+    return 1 if failed_now or failed_keys or missing_result_keys else 0
+
+
+def add_selection_args(parser: argparse.ArgumentParser) -> None:
+    selector = parser.add_mutually_exclusive_group(required=True)
+    selector.add_argument("--poem-id", type=int)
+    selector.add_argument("--age", type=int, choices=(6, 7, 8, 9))
+    parser.add_argument("--approved-only", action="store_true")
+    parser.add_argument("--styles", default="B")
+    parser.add_argument("--scene-ids", default="")
+    parser.add_argument("--limit", type=int)
+    parser.add_argument("--poems", default="data/poems.csv")
+    parser.add_argument("--scenes", default="data/scenes.csv")
+    parser.add_argument(
+        "--registry",
+        default="config/image_styles_production_v1.json",
+    )
+    parser.add_argument("--model", default=DEFAULT_MODEL)
+    parser.add_argument("--force", action="store_true")
+    parser.add_argument("--dry-run", action="store_true")
+
+
+def main() -> int:
+    load_dotenv()
+    parser = argparse.ArgumentParser(
+        description="Gemini Batch API image production for poem300."
+    )
+    parser.add_argument(
+        "--runtime-root",
+        default=DEFAULT_RUNTIME_ROOT.as_posix(),
+    )
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    submit_parser = sub.add_parser(
+        "submit",
+        help="Build JSONL, upload it, and create one Batch API job.",
+    )
+    add_selection_args(submit_parser)
+
+    status_parser = sub.add_parser(
+        "status",
+        help="Check the latest or specified Batch API job.",
+    )
+    status_parser.add_argument("--job")
+
+    collect_parser = sub.add_parser(
+        "collect",
+        help="Download a completed result JSONL and write image assets.",
+    )
+    collect_parser.add_argument("--job")
+    collect_parser.add_argument(
+        "--ledger",
+        default=DEFAULT_LEDGER.as_posix(),
+    )
+
+    args = parser.parse_args()
+    if args.command == "submit" and args.limit is not None and args.limit <= 0:
+        parser.error("--limit must be > 0")
+
+    try:
+        if args.command == "submit":
+            return submit(args)
+        if args.command == "status":
+            return status(args)
+        if args.command == "collect":
+            return collect(args)
+    except (ValueError, FileNotFoundError, RuntimeError) as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
+    return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
