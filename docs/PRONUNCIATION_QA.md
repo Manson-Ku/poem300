@@ -309,3 +309,61 @@ TTS：
 - 目前只登錄 pronunciation instruction，不預先新增 synthesis proxy。
 - 只有 human listening QA 證明模型仍念錯時，才新增 homophonic `synthesis_text`。
 - p303 author 張泌為必要 listening QA case。
+
+
+## Age 7 TTS listening QA round 1
+
+Production listening QA after generating the 40 pronunciation-sensitive Age 7 assets:
+
+~~~text
+generated = 40
+passed    = 35
+failed     = 5
+~~~
+
+Failed assets and observed output:
+
+~~~text
+p006_s01  夫 ㄈㄨˊ   -> actual ㄈㄨ
+p085_s01  闕 ㄑㄩㄝˋ -> actual ㄑㄩㄝˊ
+p263 author 參 ㄕㄣ  -> actual ㄘㄢ
+p293_s01  爲 ㄨㄟˋ  -> actual ㄨㄟˊ
+p308 title 塞 ㄙㄞˋ -> actual ㄙㄞ
+~~~
+
+These five now use the same deterministic TTS-boundary fallback already validated in Age 6:
+
+~~~text
+p006_s01
+source_text    = 岱宗夫如何，齊魯青未了。
+synthesis_text = 岱宗符如何，齊魯青未瞭。
+
+p085_s01
+source_text    = 城闕輔三秦，風煙望五津。
+synthesis_text = 城卻輔三秦，風煙望五津。
+
+p263 author
+source_text    = 岑參
+synthesis_text = 岑申
+
+p293_s01
+source_text    = 爲有雲屏無限嬌，鳳城寒盡怕春宵。
+synthesis_text = 為有雲屏無限嬌，鳳城寒盡怕春宵。
+
+p308 title
+source_text    = 出塞
+synthesis_text = 出賽
+~~~
+
+Canonical poem / author source remains unchanged. The proxy exists only at the TTS synthesis boundary.
+
+Targeted retry:
+
+~~~powershell
+py scripts\generate_tts_assets.py --age 7 --types title author poem --synthesis-proxy-only --dry-run
+py scripts\generate_tts_assets.py --age 7 --types title author poem --synthesis-proxy-only --force
+~~~
+
+Expected planned API requests: 5.
+
+Do not rerun all 40 pronunciation-sensitive assets after 35 have passed listening QA.

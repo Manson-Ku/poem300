@@ -1,5 +1,5 @@
 {
-  "version": "tts_pronunciation_overrides_v2",
+  "version": "tts_pronunciation_overrides_v3",
   "instruction_template": "Pronounce the specified character in this exact source text with the requested Taiwan Mandarin reading. Speak only the original source text; do not say the pronunciation instruction or add any words.",
   "items": [
     {
@@ -294,7 +294,10 @@
           "reading": "ㄌㄧㄠˇ",
           "context": "青未了"
         }
-      ]
+      ],
+      "synthesis_text": "岱宗符如何，齊魯青未瞭。",
+      "synthesis_proxy_note": "Listening QA: 夫 was ㄈㄨ instead of ㄈㄨˊ; proxy also fixes 未了 as 未瞭 so proxy mode preserves both sensitive readings.",
+      "listening_qa_status": "retry_required"
     },
     {
       "poem_id": 85,
@@ -320,7 +323,10 @@
           "reading": "ㄑㄩㄝˋ",
           "context": "城闕"
         }
-      ]
+      ],
+      "synthesis_text": "城卻輔三秦，風煙望五津。",
+      "synthesis_proxy_note": "Listening QA: 闕 was ㄑㄩㄝˊ instead of ㄑㄩㄝˋ.",
+      "listening_qa_status": "retry_required"
     },
     {
       "poem_id": 121,
@@ -629,7 +635,10 @@
           "reading": "ㄙㄞˋ",
           "context": "出塞"
         }
-      ]
+      ],
+      "synthesis_text": "出賽",
+      "synthesis_proxy_note": "Listening QA: 出塞 was ㄙㄞ instead of ㄙㄞˋ.",
+      "listening_qa_status": "retry_required"
     },
     {
       "poem_id": 308,
@@ -681,7 +690,10 @@
           "reading": "ㄕㄣ",
           "context": "岑參"
         }
-      ]
+      ],
+      "synthesis_text": "岑申",
+      "synthesis_proxy_note": "Listening QA: 岑參 was pronounced 岑ㄘㄢ instead of 岑ㄕㄣ.",
+      "listening_qa_status": "retry_required"
     },
     {
       "poem_id": 292,
@@ -811,7 +823,10 @@
           "reading": "ㄨㄟˋ",
           "context": "爲有"
         }
-      ]
+      ],
+      "synthesis_text": "為有雲屏無限嬌，鳳城寒盡怕春宵。",
+      "synthesis_proxy_note": "Listening QA: canonical variant 爲 was ㄨㄟˊ instead of ㄨㄟˋ; standard 為 in the title already passed.",
+      "listening_qa_status": "retry_required"
     }
   ],
   "age7_policy": {
@@ -819,6 +834,25 @@
     "synthesis_proxy_policy": "Only add synthesis_text after listening QA proves instruction-only synthesis is insufficient.",
     "special_listening_qa": [
       "p303 author 張泌"
+    ],
+    "listening_qa_round1": {
+      "generated_assets": 40,
+      "passed": 35,
+      "failed": 5,
+      "failed_keys": [
+        "6|poem|1",
+        "85|poem|1",
+        "263|author|0",
+        "293|poem|1",
+        "308|title|0"
+      ]
+    },
+    "synthesis_proxy_assets": [
+      "6|poem|1",
+      "85|poem|1",
+      "263|author|0",
+      "293|poem|1",
+      "308|title|0"
     ]
   }
 }

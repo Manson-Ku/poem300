@@ -767,6 +767,15 @@ def main() -> int:
         ),
     )
     parser.add_argument(
+        "--synthesis-proxy-only",
+        action="store_true",
+        help=(
+            "Process only pronunciation override assets that have a "
+            "synthesis_text proxy. Intended for targeted listening-QA "
+            "retries without regenerating already-approved assets."
+        ),
+    )
+    parser.add_argument(
         "--max-retries",
         type=int,
         default=5,
@@ -861,6 +870,12 @@ def main() -> int:
         )
     )
     print(f"force={args.force} dry_run={args.dry_run}")
+    print(
+        "pronunciation_qa_only="
+        f"{args.pronunciation_qa_only} "
+        "synthesis_proxy_only="
+        f"{args.synthesis_proxy_only}"
+    )
 
     if not args.dry_run:
         api_key = os.environ.get("GEMINI_API_KEY", "").strip()
@@ -930,6 +945,14 @@ def main() -> int:
                 (pid, audio_type, 0)
             )
             if args.pronunciation_qa_only and not override:
+                continue
+            if (
+                args.synthesis_proxy_only
+                and not (
+                    override
+                    and override.get("synthesis_text")
+                )
+            ):
                 continue
 
             effective_style = style_with_pronunciation(
@@ -1073,6 +1096,14 @@ def main() -> int:
                     )
                 )
                 if args.pronunciation_qa_only and not override:
+                    continue
+                if (
+                    args.synthesis_proxy_only
+                    and not (
+                        override
+                        and override.get("synthesis_text")
+                    )
+                ):
                     continue
 
                 effective_style = style_with_pronunciation(

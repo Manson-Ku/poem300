@@ -842,3 +842,25 @@ py scripts\qa_pronunciation.py
 ### Age 7 font binary coverage correction
 
 第一次 pinned-font rebuild 的實測結果：pronunciation QA PASS，但 generic font coverage 仍缺 `螘`、`蟢`。因此新增 `bpmf_font_extensions_v3.synthesized_glyphs`；此 gate 目前等待本機 rebuild 後重新確認 `missing_unique_han=0`。
+
+
+## 20. Age 7 TTS listening QA round 1（2026-10-08）
+
+40 個 pronunciation-sensitive assets 已生成並人工驗收：
+
+~~~text
+PASS 35
+FAIL  5
+~~~
+
+FAIL：
+
+~~~text
+p006_s01   夫 ㄈㄨˊ
+p085_s01   闕 ㄑㄩㄝˋ
+p263 author 參 ㄕㄣ
+p293_s01   爲 ㄨㄟˋ
+p308 title  塞 ㄙㄞˋ
+~~~
+
+這 5 個已升級為 synthesis_text fallback；canonical source 不變。新增 `--synthesis-proxy-only`，只重生 fallback assets，避免覆寫另外 35 個已人工 PASS 的 WAV。
