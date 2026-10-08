@@ -159,6 +159,7 @@ def build_metadata(
                     config["upload"]["utm_medium"]
                 ),
                 "utm_campaign": campaign,
+                "utm_content": f"p{int(poem['poem_id']):03d}",
             }
         )
     )
@@ -923,6 +924,35 @@ def main() -> int:
             youtube=youtube,
             video_id=video_id,
         )
+        existing_snippet = existing.get("snippet", {})
+        existing_title = str(
+            existing_snippet.get("title", "")
+        ).strip()
+        existing_description = str(
+            existing_snippet.get("description", "")
+        )
+        expected_title = str(
+            body["snippet"]["title"]
+        ).strip()
+        tracking_url = str(
+            body.get("_tracking_url", "")
+        ).strip()
+
+        identity_match = (
+            existing_title == expected_title
+            or (
+                bool(tracking_url)
+                and tracking_url in existing_description
+            )
+        )
+        if not identity_match:
+            raise RuntimeError(
+                "existing-video identity mismatch: "
+                f"video_id={video_id} "
+                f"expected_title={expected_title!r} "
+                f"actual_title={existing_title!r}"
+            )
+
         response = existing
         print(
             "existing_video_mode=true "
@@ -930,15 +960,7 @@ def main() -> int:
         )
         print(
             "existing_video_title="
-            + str(
-                existing.get(
-                    "snippet",
-                    {},
-                ).get(
-                    "title",
-                    "",
-                )
-            )
+            + existing_title
         )
     else:
         if not video_path.exists():
