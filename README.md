@@ -123,6 +123,8 @@ poem300/
 │  ├─ tts_usage.csv
 │  └─ image_usage.csv
 ├─ config/
+│  ├─ image_styles_production_v1.json
+│  ├─ image_style_B_3d_fairytale_v1.json
 │  ├─ image_styles_age6.json
 │  ├─ text_overlay_1080p_v2.json
 │  ├─ video_sessions_v1.json
@@ -143,6 +145,7 @@ poem300/
 │  ├─ generate_images.py
 │  ├─ generate_tts_assets.py
 │  ├─ patch_bpmf_font.py
+│  ├─ qa_age_production.py
 │  ├─ qa_pronunciation.py
 │  ├─ render_text_overlays.py
 │  ├─ build_video_timeline.py
@@ -194,7 +197,9 @@ draft            50
 scenes          127
 ~~~
 
-因此先做 Age 7 inventory / visual-plan approval / pronunciation QA / image-style generalization，再依序產 TTS、文字、圖片、timeline、MP4，最後走 YouTube batch reconciliation。
+因此先做 Age 7 inventory / visual-plan approval / pronunciation QA，再依序產 TTS、文字、圖片、timeline、MP4，最後走 YouTube batch reconciliation。
+
+Image style generalization 已完成：production 預設使用 age-neutral Style B registry；Age 6 仍保留原 config / asset namespace 相容。
 
 Age 6 不再視為 POC；其 pipeline 已是後續 7 / 8 / 9 歲的 production baseline。除非 Age 7 出現真正的跨 age contract gap，後續優先複用既有流程而不是重做架構。
 

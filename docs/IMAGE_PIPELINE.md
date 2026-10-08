@@ -99,40 +99,37 @@ Scene 不主動讀取前一幕或下一幕的主要事件。
 
 ### 3. Style preset
 
-畫風獨立存在 `config/`。
+畫風獨立存在 `config/`，不進 visual plan。
 
-Registry：
+Production registry：
+
+```text
+config/image_styles_production_v1.json
+```
+
+Production Style B：
+
+```text
+preset_id = b_3d_fairytale_cinematic_v1
+config    = config/image_style_B_3d_fairytale_v1.json
+ages      = 6, 7, 8, 9
+```
+
+架構決策：
+
+- Style B 的視覺語言本質可跨 6–9 歲共用。
+- Age 7 不另外複製一套 image pipeline，也不因檔名建立假的 age-specific preset。
+- 若未來實際抽查證明某年齡需要不同視覺成熟度，再新增 age-specific preset；Scene / prompt / asset pipeline 不分叉。
+- Age 6 已驗證素材必須保持相容，因此 production registry 對 age=6 仍指向原本的 `config/image_style_age6_B_3d_fairytale_v1.json`，asset namespace 仍為 `age6_b_3d_fairytale_cinematic_v1`。
+- Age 7–9 使用 age-neutral `b_3d_fairytale_cinematic_v1` asset namespace。
+
+歷史 Age 6 A/B registry 保留：
 
 ```text
 config/image_styles_age6.json
 ```
 
-Style A：
-
-```text
-style_id = age6_a_watercolor_ink_v1
-config   = config/image_style_age6_A_watercolor_v1.json
-```
-
-Style B：
-
-```text
-style_id = age6_b_3d_fairytale_cinematic_v1
-config   = config/image_style_age6_B_3d_fairytale_v1.json
-```
-
-A/B test 必須固定：
-
-- 同一 Poem World。
-- 同一 Scene semantics。
-- 同一 image model。
-- 同一 generation parameters。
-
-唯一變因：
-
-```text
-style preset
-```
+它只用於重現既有 Age 6 A/B 實驗；正式批次預設為 Style B。
 
 ## Image model
 
@@ -278,16 +275,16 @@ previous_interaction_id = empty
 py scripts\generate_images.py --poem-id 226 --dry-run
 ```
 
-正式生成 A/B：
+正式生成 production Style B：
 
 ```powershell
 py scripts\generate_images.py --poem-id 226 --force
 ```
 
-只生成 Style A：
+若要重現歷史 Age 6 Style A：
 
 ```powershell
-py scripts\generate_images.py --poem-id 226 --styles A --force
+py scripts\generate_images.py --poem-id 226 --styles A --registry config\image_styles_age6.json --force
 ```
 
 批次生成全部 6 歲 approved 詩，只生成 Style B：
@@ -329,3 +326,14 @@ py scripts\generate_images.py --poem-id 226 --scene-ids p226_s03 --force
 5. A/B 是否只改畫風。
 6. 圖片是否無文字、字幕、注音、Logo、UI、卡片框。
 7. 成本與人工抽查負擔是否適合批量生產。
+
+## Cross-age production gate
+
+大量呼叫 image API 前先跑：
+
+```powershell
+py scripts\qa_age_production.py --age 7
+py scripts\qa_age_production.py --age 7 --production-ready
+```
+
+第一個指令驗證資料 / Scene / visual-plan 結構；第二個額外要求 visual plan 已 approved 且存在 substantive poem world。production gate 不通過時不得開始大量產圖。

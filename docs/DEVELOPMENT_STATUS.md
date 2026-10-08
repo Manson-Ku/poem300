@@ -163,15 +163,67 @@ docs/IMAGE_PIPELINE.md
 
 Age 6 Style B 已完成 25 poems / 54 Scenes 的素材基線。
 
-### Age 7+ architecture check
+### Age 7+ architecture decision
 
-目前 image style registry / file naming 仍明確帶有 age6。進 Age 7 大量生成前，先決定：
+2026-10-07 已完成跨 age 判斷，採 **age-neutral production Style B**：
 
-1. 7–9 歲是否沿用同一 Style B。
-2. 若沿用，是否將 registry 正名為 age-neutral production style。
-3. 若需不同年齡視覺成熟度，新增 age-specific preset，但不要複製整套 pipeline。
+~~~text
+config/image_styles_production_v1.json
+config/image_style_B_3d_fairytale_v1.json
+~~~
 
-不應直接大量呼叫 image API 後才處理這個問題。
+原則：
+
+1. Style B 的視覺語言可直接跨 6–9 歲共用。
+2. Age 7 不新增一套平行 image pipeline。
+3. Age 6 的既有 production config 與 asset namespace 保持不變，避免已完成素材失效。
+4. Age 7–9 使用 neutral `b_3d_fairytale_cinematic_v1` namespace。
+5. 未來只有在抽查證明確實需要不同視覺成熟度時，才新增 age-specific preset。
+
+歷史 Age 6 A/B registry `config/image_styles_age6.json` 保留，只用於重現既有 A/B 實驗。
+
+### Age 7 inventory gate
+
+本輪對 main 的 50 首 / 127 Scenes 完整盤點結果：
+
+~~~text
+poems                         50
+scenes                       127
+nonblank scenes              127
+blank scenes                   0
+scene distribution     2:36 / 3:1 / 4:13
+
+visual_plan_status
+  draft                       50
+  approved                     0
+
+visual_plan_version
+  visual_plan_v1              50
+
+Scene/content mapping errors   0
+invalid visual_plan_json       0
+entity reference errors        0
+placeholder visual_world      50
+plan.world present             0
+all-semantics-empty scenes    12
+~~~
+
+結論：
+
+- **結構層 PASS**：physical line、Scene、解釋、Scene ID、entity reference 都一致。
+- **production BLOCKED**：50 首都仍是 draft，而且 poem-world 全部只是「依各 Scene 視覺計畫」placeholder。
+- v1 plan 雖能 parse，但內容品質不足以直接進 image API；例如部分詩缺主要人物 / 場景，甚至有語意誤判。
+- 先把 Age 7 visual plans 升級成可審核的 substantive poem-world + Scene semantics，再批准。
+- 不因 schema 合法就直接把 draft 改 approved。
+
+可重跑 gate：
+
+~~~powershell
+py scripts\qa_age_production.py --age 7
+py scripts\qa_age_production.py --age 7 --production-ready
+~~~
+
+不應直接大量呼叫 image API 後才處理這些問題。
 
 ---
 

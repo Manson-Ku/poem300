@@ -21,7 +21,7 @@ from typing import Any
 
 DEFAULT_TIMING = Path("config/video_timing_v1.json")
 DEFAULT_SESSIONS = Path("config/video_sessions_v1.json")
-DEFAULT_STYLE_REGISTRY = Path("config/image_styles_age6.json")
+DEFAULT_STYLE_REGISTRY = Path("config/image_styles_production_v1.json")
 
 
 def read_csv(path: Path) -> list[dict[str, str]]:
@@ -89,13 +89,35 @@ def poem_scenes(
 def style_id_for_key(
     registry: dict[str, Any],
     key: str,
+    *,
+    target_age: int,
 ) -> str:
+    supported_ages = registry.get("supported_ages")
+    if supported_ages is not None and target_age not in {
+        int(value) for value in supported_ages
+    }:
+        raise ValueError(
+            f"style registry does not support age {target_age}"
+        )
+
     try:
-        return str(registry["styles"][key]["style_id"])
+        entry = registry["styles"][key]
     except KeyError as exc:
         raise ValueError(
             f"style key {key!r} not found in registry"
         ) from exc
+
+    age_map = entry.get("asset_style_id_by_age") or {}
+    style_id = (
+        age_map.get(str(target_age))
+        or entry.get("asset_style_id")
+        or entry.get("style_id")
+    )
+    if not style_id:
+        raise ValueError(
+            f"style key {key!r} has no asset style id"
+        )
+    return str(style_id)
 
 
 def path_str(path: Path) -> str:
@@ -597,10 +619,6 @@ def main() -> int:
             "timeline builder currently requires video_sessions_v1"
         )
 
-    style_id = style_id_for_key(
-        registry,
-        args.style.upper(),
-    )
     selected = select_poems(
         poems,
         poem_id=args.poem_id,
@@ -615,6 +633,11 @@ def main() -> int:
 
     for poem in selected:
         pid = int(poem["poem_id"])
+        style_id = style_id_for_key(
+            registry,
+            args.style.upper(),
+            target_age=int(poem["recommended_age"]),
+        )
         poem_dir = Path(args.assets_root) / f"p{pid:03d}"
         text_manifest_path = (
             poem_dir / "text" / "manifest.json"

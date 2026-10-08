@@ -162,8 +162,10 @@ Scene 只引用穩定 entity ID，並描述該 Scene 的狀態 / 動作 / 關係
 
 例如同一位主角跨 Scene 都應引用同一個 `character_id`，而不是每次重新用自然語言創造一個新人物。
 
-Style 不屬於 visual plan；Style registry 位於：
+Style 不屬於 visual plan；正式 production registry 位於：
 
 ```text
-config/image_styles_age6.json
+config/image_styles_production_v1.json
 ```
+
+`config/image_styles_age6.json` 僅保留為 Age 6 歷史 A/B 實驗相容層。

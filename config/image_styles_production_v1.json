@@ -1,0 +1,30 @@
+{
+  "registry_version": "image_styles_production_v1",
+  "supported_ages": [
+    6,
+    7,
+    8,
+    9
+  ],
+  "default_style": "B",
+  "styles": {
+    "B": {
+      "preset_id": "b_3d_fairytale_cinematic_v1",
+      "config": "config/image_style_B_3d_fairytale_v1.json",
+      "config_by_age": {
+        "6": "config/image_style_age6_B_3d_fairytale_v1.json"
+      },
+      "asset_style_id": "b_3d_fairytale_cinematic_v1",
+      "asset_style_id_by_age": {
+        "6": "age6_b_3d_fairytale_cinematic_v1"
+      }
+    }
+  },
+  "asset_path_template": "assets/p{poem_id:03d}/s{scene_no:02d}/image/{style_id}/background.webp",
+  "rules": {
+    "production_default": "Style B is shared across ages 6-9 unless an age-specific preset is explicitly justified.",
+    "age6_compatibility": "Age 6 keeps its validated config and existing asset style id.",
+    "scene_semantics": "Style is presentation only; poem world and Scene semantics remain in poems.csv visual plan data."
+  },
+  "legacy_ab_registry": "config/image_styles_age6.json"
+}

@@ -185,9 +185,19 @@ def append_ledger(path: Path, row: dict[str, Any]) -> None:
 def resolve_style(
     style_key: str,
     registry_path: Path,
+    *,
+    target_age: int,
 ) -> dict[str, Any]:
     registry = read_json(registry_path)
     key = style_key.strip().upper()
+
+    supported_ages = registry.get("supported_ages")
+    if supported_ages is not None and target_age not in {
+        int(value) for value in supported_ages
+    }:
+        raise ValueError(
+            f"registry {registry_path} does not support age {target_age}"
+        )
 
     if key not in registry["styles"]:
         raise ValueError(
@@ -196,8 +206,37 @@ def resolve_style(
         )
 
     entry = registry["styles"][key]
-    style = read_json(Path(entry["config"]))
+    config_by_age = entry.get("config_by_age") or {}
+    config_path = (
+        config_by_age.get(str(target_age))
+        or entry.get("config")
+    )
+    if not config_path:
+        raise ValueError(
+            f"style {key!r} has no config for age {target_age}"
+        )
+
+    style = read_json(Path(config_path))
+    age_map = entry.get("asset_style_id_by_age") or {}
+    asset_style_id = (
+        age_map.get(str(target_age))
+        or entry.get("asset_style_id")
+        or entry.get("style_id")
+        or style.get("style_id")
+    )
+    if not asset_style_id:
+        raise ValueError(
+            f"style {key!r} has no asset style id"
+        )
+
+    style["preset_id"] = (
+        entry.get("preset_id")
+        or style.get("preset_id")
+        or style.get("style_id")
+    )
+    style["style_id"] = str(asset_style_id)
     style["style_key"] = key
+    style["target_age"] = target_age
     return style
 
 
@@ -750,8 +789,8 @@ def main() -> int:
     )
     parser.add_argument(
         "--styles",
-        default="A,B",
-        help="Comma-separated style keys. Default: A,B",
+        default="B",
+        help="Comma-separated style keys. Default: B",
     )
     parser.add_argument(
         "--scene-ids",
@@ -765,7 +804,7 @@ def main() -> int:
     parser.add_argument("--scenes", default="data/scenes.csv")
     parser.add_argument(
         "--registry",
-        default="config/image_styles_age6.json",
+        default="config/image_styles_production_v1.json",
     )
     parser.add_argument(
         "--ledger",
@@ -844,8 +883,24 @@ def main() -> int:
     if not style_keys:
         parser.error("--styles must contain at least one style key")
 
+    selected_ages = {
+        int(row["recommended_age"])
+        for row in selected_poems
+    }
+    if len(selected_ages) != 1:
+        print(
+            "ERROR: selected poems must belong to exactly one age group",
+            file=sys.stderr,
+        )
+        return 2
+    target_age = next(iter(selected_ages))
+
     styles = [
-        resolve_style(key, Path(args.registry))
+        resolve_style(
+            key,
+            Path(args.registry),
+            target_age=target_age,
+        )
         for key in style_keys
     ]
 
