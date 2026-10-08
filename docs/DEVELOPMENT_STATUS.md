@@ -1240,3 +1240,28 @@ scheduled publish path       PASS
 The earlier HTTP 410 was therefore a client-side ambiguous completion after the remote upload had already committed successfully; it did not truncate the MP4.
 
 The Age 7 uploader may continue using the repaired ambiguous-completion reconciliation path. If p006 is checked again later, expected terminal processing state is `processing_status=succeeded`.
+
+
+## 31. Age 7 YouTube schedule reconciliation dry-run PASS（2026-10-08）
+
+After fixing duplicate-title reconciliation and the accidental playlist routing, the Age 7 schedule dry-run now contains 48 new uploads.
+
+Key observations:
+
+~~~text
+already uploaded before this batch: p006, p040
+scheduled new uploads: 48
+p269 春怨 - 劉方平: included as a new scheduled upload
+duplicate-title false match: resolved
+~~~
+
+The previously persisted schedule assignments were preserved. The newly recovered p269 assignment was appended to the next unused slot:
+
+~~~text
+p313 金縷衣  2026-11-02 07:02 Asia/Taipei
+p269 春怨    2026-11-02 17:30 Asia/Taipei
+~~~
+
+Therefore the schedule self-healing contract is validated: corrected reconciliation can add a missing poem without reshuffling existing publication times.
+
+Next production action is the full Age 7 upload using the same persisted schedule plan.
