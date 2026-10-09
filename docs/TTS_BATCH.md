@@ -258,3 +258,16 @@ Human listening QA is required only when validating a **new proxy rule**. Use
 one representative asset for that rule. Once validated, reuse the rule across
 all matching assets and later age cohorts. Do not require PASS review for every
 WAV.
+
+## Rule-level pronunciation QA completion
+
+Once every used proxy rule is validated, production readiness is checked with:
+
+~~~powershell
+py scripts\prepare_tts_synthesis_text.py --age 8 --audit-only --require-classified --require-production-ready
+~~~
+
+A PASS means no pending pronunciation rule remains. Full TTS generation can then
+run in normal resume mode without an asset-by-asset pronunciation listening
+queue.
+
