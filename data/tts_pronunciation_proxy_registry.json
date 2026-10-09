@@ -1,12 +1,13 @@
 {
-  "version": "tts_pronunciation_proxy_registry_v1",
+  "version": "tts_pronunciation_proxy_registry_v2",
   "policy": {
     "canonical_text_immutable": true,
     "classification_unit": "character+reading",
-    "production_contract": "Pronunciation is resolved before the TTS API call. Ordinary text uses source_text. Only registered special readings may use a deterministic synthesis proxy.",
-    "listening_qa": "Do not review every WAV. Validate a new special pronunciation rule on one representative asset, then reuse that rule across assets/ages.",
+    "production_contract": "Pronunciation is resolved before the TTS API call. Every character+reading rule is classified once.",
+    "listening_qa": "No per-WAV PASS queue. Only a new proxy rule needs one representative listening-QA asset.",
     "unclassified_rule_policy": "Text-layer classification required before full production for that rule. Classify as canonical or proxy; only proxy rules need representative audio validation.",
-    "proxy_scope": "TTS synthesis boundary only; never write proxies back to canonical poem/title/author text."
+    "proxy_scope": "TTS synthesis boundary only; never write proxies back to canonical poem/title/author text.",
+    "rule_status": "canonical: approved/validated; proxy: pending_validation/validated."
   },
   "rules": [
     {
@@ -333,6 +334,284 @@
       "evidence": [
         "p312_s02 poem"
       ]
+    },
+    {
+      "character": "中",
+      "reading": "ㄓㄨㄥˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "proxy": "仲"
+    },
+    {
+      "character": "使",
+      "reading": "ㄕˇ",
+      "strategy": "canonical",
+      "status": "approved"
+    },
+    {
+      "character": "冠",
+      "reading": "ㄍㄨㄢ",
+      "strategy": "canonical",
+      "status": "approved"
+    },
+    {
+      "character": "勝",
+      "reading": "ㄕㄥ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "proxy": "生"
+    },
+    {
+      "character": "勝",
+      "reading": "ㄕㄥˋ",
+      "strategy": "canonical",
+      "status": "approved"
+    },
+    {
+      "character": "卷",
+      "reading": "ㄐㄩㄢˇ",
+      "strategy": "canonical",
+      "status": "approved"
+    },
+    {
+      "character": "參",
+      "reading": "ㄘㄢ",
+      "strategy": "canonical",
+      "status": "approved"
+    },
+    {
+      "character": "咽",
+      "reading": "ㄧㄝˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "proxy": "夜"
+    },
+    {
+      "character": "寧",
+      "reading": "ㄋㄧㄥˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "proxy": "濘"
+    },
+    {
+      "character": "將",
+      "reading": "ㄐㄧㄤˋ",
+      "strategy": "canonical",
+      "status": "approved"
+    },
+    {
+      "character": "少",
+      "reading": "ㄕㄠˋ",
+      "strategy": "canonical",
+      "status": "approved"
+    },
+    {
+      "character": "峴",
+      "reading": "ㄒㄧㄢˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "proxy": "現"
+    },
+    {
+      "character": "幷",
+      "reading": "ㄅㄧㄥ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "proxy": "冰"
+    },
+    {
+      "character": "幾",
+      "reading": "ㄐㄧˇ",
+      "strategy": "canonical",
+      "status": "approved"
+    },
+    {
+      "character": "彈",
+      "reading": "ㄊㄢˊ",
+      "strategy": "canonical",
+      "status": "approved"
+    },
+    {
+      "character": "應",
+      "reading": "ㄧㄥ",
+      "strategy": "canonical",
+      "status": "approved"
+    },
+    {
+      "character": "捲",
+      "reading": "ㄐㄩㄢˇ",
+      "strategy": "canonical",
+      "status": "approved"
+    },
+    {
+      "character": "教",
+      "reading": "ㄐㄧㄠˋ",
+      "strategy": "canonical",
+      "status": "approved"
+    },
+    {
+      "character": "數",
+      "reading": "ㄕㄨˇ",
+      "strategy": "canonical",
+      "status": "approved"
+    },
+    {
+      "character": "數",
+      "reading": "ㄕㄨˋ",
+      "strategy": "canonical",
+      "status": "approved"
+    },
+    {
+      "character": "斗",
+      "reading": "ㄉㄡˇ",
+      "strategy": "canonical",
+      "status": "approved"
+    },
+    {
+      "character": "更",
+      "reading": "ㄍㄥ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "proxy": "耕"
+    },
+    {
+      "character": "朝",
+      "reading": "ㄔㄠˊ",
+      "strategy": "canonical",
+      "status": "approved"
+    },
+    {
+      "character": "濬",
+      "reading": "ㄐㄩㄣˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "proxy": "俊"
+    },
+    {
+      "character": "為",
+      "reading": "ㄨㄟˊ",
+      "strategy": "canonical",
+      "status": "approved"
+    },
+    {
+      "character": "燕",
+      "reading": "ㄧㄢ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "proxy": "煙"
+    },
+    {
+      "character": "爲",
+      "reading": "ㄨㄟˊ",
+      "strategy": "canonical",
+      "status": "approved"
+    },
+    {
+      "character": "相",
+      "reading": "ㄒㄧㄤ",
+      "strategy": "canonical",
+      "status": "approved"
+    },
+    {
+      "character": "相",
+      "reading": "ㄒㄧㄤˋ",
+      "strategy": "canonical",
+      "status": "approved"
+    },
+    {
+      "character": "省",
+      "reading": "ㄕㄥˇ",
+      "strategy": "canonical",
+      "status": "approved"
+    },
+    {
+      "character": "繫",
+      "reading": "ㄒㄧˋ",
+      "strategy": "canonical",
+      "status": "approved"
+    },
+    {
+      "character": "翫",
+      "reading": "ㄨㄢˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "proxy": "萬"
+    },
+    {
+      "character": "舍",
+      "reading": "ㄕㄜˋ",
+      "strategy": "canonical",
+      "status": "approved"
+    },
+    {
+      "character": "荷",
+      "reading": "ㄏㄜˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "proxy": "賀"
+    },
+    {
+      "character": "著",
+      "reading": "ㄓㄨˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "proxy": "住"
+    },
+    {
+      "character": "處",
+      "reading": "ㄔㄨˋ",
+      "strategy": "canonical",
+      "status": "approved"
+    },
+    {
+      "character": "行",
+      "reading": "ㄒㄧㄥˊ",
+      "strategy": "canonical",
+      "status": "approved"
+    },
+    {
+      "character": "調",
+      "reading": "ㄉㄧㄠˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "proxy": "吊"
+    },
+    {
+      "character": "賈",
+      "reading": "ㄍㄨˇ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "proxy": "谷"
+    },
+    {
+      "character": "載",
+      "reading": "ㄗㄞˇ",
+      "strategy": "canonical",
+      "status": "approved"
+    },
+    {
+      "character": "還",
+      "reading": "ㄏㄞˊ",
+      "strategy": "canonical",
+      "status": "approved"
+    },
+    {
+      "character": "還",
+      "reading": "ㄏㄨㄢˊ",
+      "strategy": "canonical",
+      "status": "approved"
+    },
+    {
+      "character": "重",
+      "reading": "ㄓㄨㄥˋ",
+      "strategy": "canonical",
+      "status": "approved"
+    },
+    {
+      "character": "騎",
+      "reading": "ㄑㄧˊ",
+      "strategy": "canonical",
+      "status": "approved"
     }
   ]
 }
