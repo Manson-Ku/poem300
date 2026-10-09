@@ -37,6 +37,7 @@ jobs:
       - name: Validate TTS SDK retry controls
         run: |
           python -c "from scripts.generate_tts_assets import build_client_http_options; o=build_client_http_options(sdk_max_retries=0, request_timeout_seconds=30); assert o is not None; assert o.retry_options.attempts == 0; assert o.timeout == 30000"
+          python -m py_compile scripts/generate_tts_assets.py
           python scripts/generate_tts_assets.py --help > /dev/null
 
       - name: Rebuild pinned project font

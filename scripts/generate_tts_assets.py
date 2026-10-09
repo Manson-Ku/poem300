@@ -423,6 +423,7 @@ def generate_audio(
     ledger_path: Path,
     max_retries: int,
     retry_base_seconds: float,
+    request_timeout_seconds: float | None,
 ) -> dict[str, Any]:
     usage_id = str(uuid.uuid4())
     created_at = datetime.now(timezone.utc).isoformat()
@@ -454,6 +455,13 @@ def generate_audio(
 
     for attempt in range(max_retries + 1):
         try:
+            interaction_kwargs: dict[str, Any] = {}
+            if request_timeout_seconds is not None:
+                # Interactions exposes a method-level timeout in seconds.
+                # Pass it explicitly so diagnostics do not rely solely on
+                # client-level HttpOptions timeout propagation.
+                interaction_kwargs["timeout"] = request_timeout_seconds
+
             interaction = client.interactions.create(
                 model=MODEL,
                 input=[
@@ -481,6 +489,7 @@ def generate_audio(
                 generation_config={
                     "speech_config": [{"voice": voice}]
                 },
+                **interaction_kwargs,
             )
 
             latency_ms = round(
@@ -1100,6 +1109,7 @@ def main() -> int:
                     retry_base_seconds=(
                         args.retry_base_seconds
                     ),
+                    request_timeout_seconds=args.request_timeout,
                 )
                 generated += 1
                 new_audio_seconds += float(
@@ -1239,6 +1249,7 @@ def main() -> int:
                         ledger_path=ledger_path,
                         max_retries=args.max_retries,
                         retry_base_seconds=args.retry_base_seconds,
+                        request_timeout_seconds=args.request_timeout,
                     )
                     generated += 1
                     new_audio_seconds += float(

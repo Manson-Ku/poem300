@@ -209,7 +209,7 @@ py scripts\generate_tts_assets.py --age 8 --poem-id 29 --types title --pronuncia
 Behavior:
 
 - `--sdk-max-retries 0` disables SDK-internal retry/backoff for this client.
-- `--request-timeout 30` caps one SDK request at 30 seconds.
+- `--request-timeout 30` is applied both to the client HTTP options and directly to each `interactions.create(..., timeout=30)` request, so diagnostics do not rely on client-level timeout propagation alone.
 - `--max-retries 0` also disables the outer poem300 retry layer.
 - omitting the two SDK flags preserves the Google SDK defaults.
 
