@@ -87,7 +87,7 @@ jobs:
         run: python scripts/inventory_pronunciation.py --age 9
 
       - name: Age 9 TTS text-rule audit
-        run: python scripts/prepare_tts_synthesis_text.py --age 9 --audit-only
+        run: python scripts/prepare_tts_synthesis_text.py --age 9 --audit-only --require-classified --require-materialized
 
       - name: Rebuild pinned project font
         run: |
@@ -96,3 +96,6 @@ jobs:
 
       - name: Age 9 project-font coverage
         run: python scripts/qa_font_coverage.py --age 9
+
+      - name: Age 9 pronunciation registry and font contract
+        run: python scripts/qa_pronunciation.py
