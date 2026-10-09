@@ -40,12 +40,13 @@ jobs:
         run: |
           python -c "from scripts.generate_tts_assets import build_client_http_options; o=build_client_http_options(sdk_max_retries=0, request_timeout_seconds=30); assert o is not None; assert o.retry_options.attempts == 0; assert o.timeout == 30000"
           python -m py_compile scripts/generate_tts_assets.py
+          python -m py_compile scripts/prepare_tts_synthesis_text.py
           python scripts/generate_tts_assets.py --help > /dev/null
 
       - name: Audit TTS text-layer pronunciation rules
         run: |
-          python -m py_compile scripts/prepare_tts_synthesis_text.py
-          python scripts/prepare_tts_synthesis_text.py --age 8 --audit-only
+          python scripts/prepare_tts_synthesis_text.py --age 8 --audit-only --require-classified
+          python scripts/prepare_tts_synthesis_text.py --age 8 --pending-proxy-qa-plan
 
       - name: Rebuild pinned project font
         run: |
