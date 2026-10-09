@@ -16,6 +16,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import math
 import os
 import sys
 from pathlib import Path
@@ -467,8 +468,11 @@ def render_text_png(
     extra_x = abs(shadow_dx) + shadow_blur * 2
     extra_y = abs(shadow_dy) + shadow_blur * 2
 
-    width = text_w + padding * 2 + extra_x
-    height = text_h + padding * 2 + extra_y
+    # Pillow's multiline_textbbox may return floating-point bounds.
+    # Canvas dimensions must be integers; ceil preserves every edge pixel
+    # and avoids clipping the long-title multiline fallback.
+    width = int(math.ceil(text_w + padding * 2 + extra_x))
+    height = int(math.ceil(text_h + padding * 2 + extra_y))
 
     image = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)

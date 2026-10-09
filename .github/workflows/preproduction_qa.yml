@@ -61,7 +61,9 @@ jobs:
           python scripts/patch_bpmf_font.py --force
 
       - name: Age 8 text overlay layout gate
-        run: python scripts/render_text_overlays.py --age 8 --approved-only --dry-run
+        run: |
+          python scripts/render_text_overlays.py --age 8 --approved-only --dry-run
+          python scripts/render_text_overlays.py --poem-id 101 --force
 
       - name: Age 8 structural and production gate
         run: python scripts/qa_age_production.py --age 8 --production-ready
