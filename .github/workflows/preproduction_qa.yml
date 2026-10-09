@@ -45,8 +45,7 @@ jobs:
 
       - name: Audit TTS text-layer pronunciation rules
         run: |
-          python scripts/prepare_tts_synthesis_text.py --age 8 --audit-only --require-classified
-          python scripts/prepare_tts_synthesis_text.py --age 8 --pending-proxy-qa-plan
+          python scripts/prepare_tts_synthesis_text.py --age 8 --audit-only --require-classified --require-production-ready
 
       - name: Rebuild pinned project font
         run: |
