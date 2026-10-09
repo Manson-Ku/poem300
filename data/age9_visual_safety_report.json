@@ -1,0 +1,22 @@
+{
+  "version": "age9_visual_safety_report_v1",
+  "policy": "age9_visual_safety_v1",
+  "recommended_age": 9,
+  "poems": 138,
+  "scenes": 1050,
+  "blank_scenes": 6,
+  "tagged_scenes": 380,
+  "scene_overrides": 56,
+  "category_counts": {
+    "adult_relationship": 56,
+    "alcohol": 49,
+    "captivity_or_coercion": 9,
+    "death_grief": 82,
+    "figurative_harm": 10,
+    "supernatural_or_dream": 98,
+    "warfare": 138,
+    "young_person": 25
+  },
+  "status": "PASS",
+  "errors": []
+}
