@@ -11,7 +11,10 @@ on:
       - "data/tts_pronunciation_overrides.json"
       - "data/tts_pronunciation_proxy_registry.json"
       - "data/pronunciation_candidates_age8.json"
+      - "data/age9_text_inventory.json"
+      - "data/pronunciation_candidates_age9.json"
       - "scripts/inventory_pronunciation.py"
+      - "scripts/prepare_age9_text.py"
       - "scripts/generate_tts_assets.py"
       - "scripts/prepare_tts_synthesis_text.py"
       - "scripts/qa_age_production.py"
@@ -63,3 +66,27 @@ jobs:
 
       - name: Pronunciation registry and font contract
         run: python scripts/qa_pronunciation.py
+
+  age9-text:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Age 9 structural text gate
+        run: python scripts/qa_age_production.py --age 9
+
+      - name: Rebuild pinned project font
+        run: |
+          python scripts/sync_bpmf_font.py
+          python scripts/patch_bpmf_font.py --force
+
+      - name: Age 9 project-font coverage
+        run: python scripts/qa_font_coverage.py --age 9
