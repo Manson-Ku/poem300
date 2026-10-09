@@ -1,10 +1,10 @@
 {
-  "version": "tts_pronunciation_proxy_registry_v2",
+  "version": "tts_pronunciation_proxy_registry_v3",
   "policy": {
     "canonical_text_immutable": true,
     "classification_unit": "character+reading",
     "production_contract": "Pronunciation is resolved before the TTS API call. Every character+reading rule is classified once.",
-    "listening_qa": "No per-WAV PASS queue. Only a new proxy rule needs one representative listening-QA asset.",
+    "listening_qa": "Rule-level QA only. A new proxy rule is validated once on one representative asset, then reused across assets and age cohorts. Per-WAV PASS review is not required.",
     "unclassified_rule_policy": "Text-layer classification required before full production for that rule. Classify as canonical or proxy; only proxy rules need representative audio validation.",
     "proxy_scope": "TTS synthesis boundary only; never write proxies back to canonical poem/title/author text.",
     "rule_status": "canonical: approved/validated; proxy: pending_validation/validated."
@@ -339,8 +339,9 @@
       "character": "中",
       "reading": "ㄓㄨㄥˋ",
       "strategy": "proxy",
-      "status": "pending_validation",
-      "proxy": "仲"
+      "status": "validated",
+      "proxy": "仲",
+      "validation_note": "Age 8 representative proxy listening QA PASS on 2026-10-09."
     },
     {
       "character": "使",
@@ -358,8 +359,9 @@
       "character": "勝",
       "reading": "ㄕㄥ",
       "strategy": "proxy",
-      "status": "pending_validation",
-      "proxy": "生"
+      "status": "validated",
+      "proxy": "生",
+      "validation_note": "Age 8 representative proxy listening QA PASS on 2026-10-09."
     },
     {
       "character": "勝",
@@ -383,15 +385,17 @@
       "character": "咽",
       "reading": "ㄧㄝˋ",
       "strategy": "proxy",
-      "status": "pending_validation",
-      "proxy": "夜"
+      "status": "validated",
+      "proxy": "夜",
+      "validation_note": "Age 8 representative proxy listening QA PASS on 2026-10-09."
     },
     {
       "character": "寧",
       "reading": "ㄋㄧㄥˋ",
       "strategy": "proxy",
-      "status": "pending_validation",
-      "proxy": "濘"
+      "status": "validated",
+      "proxy": "濘",
+      "validation_note": "Age 8 representative proxy listening QA PASS on 2026-10-09."
     },
     {
       "character": "將",
@@ -409,15 +413,17 @@
       "character": "峴",
       "reading": "ㄒㄧㄢˋ",
       "strategy": "proxy",
-      "status": "pending_validation",
-      "proxy": "現"
+      "status": "validated",
+      "proxy": "現",
+      "validation_note": "Age 8 representative proxy listening QA PASS on 2026-10-09."
     },
     {
       "character": "幷",
       "reading": "ㄅㄧㄥ",
       "strategy": "proxy",
-      "status": "pending_validation",
-      "proxy": "冰"
+      "status": "validated",
+      "proxy": "冰",
+      "validation_note": "Age 8 representative proxy listening QA PASS on 2026-10-09."
     },
     {
       "character": "幾",
@@ -471,8 +477,9 @@
       "character": "更",
       "reading": "ㄍㄥ",
       "strategy": "proxy",
-      "status": "pending_validation",
-      "proxy": "耕"
+      "status": "validated",
+      "proxy": "耕",
+      "validation_note": "Age 8 representative proxy listening QA PASS on 2026-10-09."
     },
     {
       "character": "朝",
@@ -484,8 +491,9 @@
       "character": "濬",
       "reading": "ㄐㄩㄣˋ",
       "strategy": "proxy",
-      "status": "pending_validation",
-      "proxy": "俊"
+      "status": "validated",
+      "proxy": "俊",
+      "validation_note": "Age 8 representative proxy listening QA PASS on 2026-10-09."
     },
     {
       "character": "為",
@@ -497,8 +505,9 @@
       "character": "燕",
       "reading": "ㄧㄢ",
       "strategy": "proxy",
-      "status": "pending_validation",
-      "proxy": "煙"
+      "status": "validated",
+      "proxy": "煙",
+      "validation_note": "Age 8 representative proxy listening QA PASS on 2026-10-09."
     },
     {
       "character": "爲",
@@ -534,8 +543,9 @@
       "character": "翫",
       "reading": "ㄨㄢˋ",
       "strategy": "proxy",
-      "status": "pending_validation",
-      "proxy": "萬"
+      "status": "validated",
+      "proxy": "萬",
+      "validation_note": "Age 8 representative proxy listening QA PASS on 2026-10-09."
     },
     {
       "character": "舍",
@@ -547,15 +557,17 @@
       "character": "荷",
       "reading": "ㄏㄜˋ",
       "strategy": "proxy",
-      "status": "pending_validation",
-      "proxy": "賀"
+      "status": "validated",
+      "proxy": "賀",
+      "validation_note": "Age 8 representative proxy listening QA PASS on 2026-10-09."
     },
     {
       "character": "著",
       "reading": "ㄓㄨˋ",
       "strategy": "proxy",
-      "status": "pending_validation",
-      "proxy": "住"
+      "status": "validated",
+      "proxy": "住",
+      "validation_note": "Age 8 representative proxy listening QA PASS on 2026-10-09."
     },
     {
       "character": "處",
@@ -573,15 +585,17 @@
       "character": "調",
       "reading": "ㄉㄧㄠˋ",
       "strategy": "proxy",
-      "status": "pending_validation",
-      "proxy": "吊"
+      "status": "validated",
+      "proxy": "吊",
+      "validation_note": "Age 8 representative proxy listening QA PASS on 2026-10-09."
     },
     {
       "character": "賈",
       "reading": "ㄍㄨˇ",
       "strategy": "proxy",
-      "status": "pending_validation",
-      "proxy": "谷"
+      "status": "validated",
+      "proxy": "谷",
+      "validation_note": "Age 8 representative proxy listening QA PASS on 2026-10-09."
     },
     {
       "character": "載",
