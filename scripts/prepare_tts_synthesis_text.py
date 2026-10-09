@@ -4,17 +4,13 @@
 Pronunciation is a text-layer contract:
 - source_text is canonical and immutable;
 - each (character, reading) rule is classified once;
-- validated canonical rules keep the source character;
-- validated proxy rules replace only the intended occurrence;
-- unclassified rules are reported for text-level review;
+- approved canonical rules keep the source character;
+- validated proxy rules are production-ready;
+- pending proxy rules may be materialized for representative QA;
+- repeated targets such as 朝朝 are handled deterministically;
 - human listening QA is reserved for a new proxy rule, not every asset.
 
 This script makes no API calls.
-
-Examples:
-    py scripts/prepare_tts_synthesis_text.py --age 8 --audit-only
-    py scripts/prepare_tts_synthesis_text.py --age 8 --apply
-    py scripts/prepare_tts_synthesis_text.py --age 8 --require-classified
 """
 
 from __future__ import annotations
@@ -26,7 +22,6 @@ import re
 from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
-
 
 RuleKey = tuple[str, str]
 
@@ -58,16 +53,26 @@ def load_rules(path: Path) -> dict[RuleKey, dict[str, Any]]:
         key = (str(rule["character"]), str(rule["reading"]))
         if key in result:
             raise ValueError(f"Duplicate TTS pronunciation rule: {key}")
+
         strategy = str(rule["strategy"])
         status = str(rule["status"])
         if strategy not in {"canonical", "proxy"}:
             raise ValueError(f"Invalid strategy for {key}: {strategy}")
-        if status != "validated":
+
+        allowed_status = (
+            {"approved", "validated"}
+            if strategy == "canonical"
+            else {"pending_validation", "validated"}
+        )
+        if status not in allowed_status:
             raise ValueError(
-                f"Production registry may contain only validated rules: {key}"
+                f"Invalid status for {key}: {status}; "
+                f"allowed={sorted(allowed_status)}"
             )
+
         if strategy == "proxy" and not str(rule.get("proxy", "")).strip():
             raise ValueError(f"Proxy rule missing proxy character: {key}")
+
         result[key] = rule
     return result
 
@@ -85,12 +90,16 @@ def all_occurrences(text: str, fragment: str) -> list[int]:
         start = index + 1
 
 
-def locate_target(
+def locate_targets(
     source_text: str,
     *,
     character: str,
     context: str,
-) -> int:
+) -> list[int]:
+    """Locate every intended occurrence inside a lexical context.
+
+    Example: context 朝朝 intentionally selects both 朝 characters.
+    """
     candidates: set[int] = set()
 
     context_parts = [
@@ -104,14 +113,14 @@ def locate_target(
             for index, value in enumerate(part)
             if value == character
         ]
-        if len(relative_positions) != 1:
+        if not relative_positions:
             continue
-        rel = relative_positions[0]
         for start in all_occurrences(source_text, part):
-            candidates.add(start + rel)
+            for rel in relative_positions:
+                candidates.add(start + rel)
 
-    if len(candidates) == 1:
-        return next(iter(candidates))
+    if candidates:
+        return sorted(candidates)
 
     direct = [
         index
@@ -119,10 +128,10 @@ def locate_target(
         if value == character
     ]
     if len(direct) == 1:
-        return direct[0]
+        return direct
 
     raise ValueError(
-        "Cannot identify one target occurrence: "
+        "Cannot identify target occurrence(s): "
         f"character={character!r} context={context!r} "
         f"source_text={source_text!r} "
         f"context_candidates={sorted(candidates)} "
@@ -144,6 +153,7 @@ def prepare_asset_text(
         reading = str(pronunciation["reading"])
         context = str(pronunciation.get("context", ""))
         key = (character, reading)
+
         rule = rules.get(key)
         if rule is None:
             unclassified.append(key)
@@ -153,27 +163,27 @@ def prepare_asset_text(
         if rule["strategy"] == "canonical":
             continue
 
-        position = locate_target(
+        proxy = str(rule["proxy"])
+        if len(proxy) != 1:
+            raise ValueError(
+                f"Proxy must be exactly one character: {key} -> {proxy!r}"
+            )
+
+        for position in locate_targets(
             source_text,
             character=character,
             context=context,
-        )
-        proxy = str(rule["proxy"])
-        previous = replacements.get(position)
-        if previous is not None and previous != proxy:
-            raise ValueError(
-                f"Conflicting proxy replacements at {position}: "
-                f"{previous!r} vs {proxy!r}"
-            )
-        replacements[position] = proxy
+        ):
+            previous = replacements.get(position)
+            if previous is not None and previous != proxy:
+                raise ValueError(
+                    f"Conflicting proxy replacements at {position}: "
+                    f"{previous!r} vs {proxy!r}"
+                )
+            replacements[position] = proxy
 
     chars = list(source_text)
     for position, proxy in replacements.items():
-        if len(proxy) != 1:
-            raise ValueError(
-                "Proxy must currently be exactly one character: "
-                f"position={position} proxy={proxy!r}"
-            )
         chars[position] = proxy
 
     return "".join(chars), classified, unclassified
@@ -202,14 +212,29 @@ def parse_args() -> argparse.Namespace:
         "--apply",
         action="store_true",
         help=(
-            "Materialize synthesis_text for fully classified assets. "
-            "Unclassified assets are never partially rewritten."
+            "Materialize synthesis_text for fully classified proxy assets. "
+            "Pending proxy rules may be materialized for representative QA."
         ),
     )
     parser.add_argument(
         "--require-classified",
         action="store_true",
         help="Exit non-zero when any pronunciation rule is unclassified.",
+    )
+    parser.add_argument(
+        "--require-materialized",
+        action="store_true",
+        help="Exit non-zero when registry-derived proxy text is not materialized.",
+    )
+    parser.add_argument(
+        "--require-production-ready",
+        action="store_true",
+        help="Exit non-zero while any used proxy rule is pending_validation.",
+    )
+    parser.add_argument(
+        "--pending-proxy-qa-plan",
+        action="store_true",
+        help="Print one representative asset for each pending proxy rule.",
     )
     return parser.parse_args()
 
@@ -235,20 +260,38 @@ def main() -> int:
 
     seen_rules: Counter[RuleKey] = Counter()
     unclassified_examples: dict[RuleKey, list[str]] = defaultdict(list)
+    pending_proxy_rules: set[RuleKey] = set()
+    pending_representatives: dict[RuleKey, str] = {}
+
     fully_classified_assets = 0
     proxy_assets = 0
     canonical_only_assets = 0
     unclassified_assets = 0
     changed_assets = 0
+    materialization_gaps: list[str] = []
     errors: list[str] = []
 
     for item in scoped_items:
+        label = (
+            f"p{int(item['poem_id']):03d} "
+            f"{item['audio_type']} "
+            f"s{int(item.get('scene_no', 0)):02d}"
+        )
+
         for pronunciation in item.get("pronunciations", []):
             key = (
                 str(pronunciation["character"]),
                 str(pronunciation["reading"]),
             )
             seen_rules[key] += 1
+            rule = rules.get(key)
+            if (
+                rule
+                and rule["strategy"] == "proxy"
+                and rule["status"] == "pending_validation"
+            ):
+                pending_proxy_rules.add(key)
+                pending_representatives.setdefault(key, label)
 
         try:
             prepared, _classified, unclassified = prepare_asset_text(
@@ -264,11 +307,6 @@ def main() -> int:
 
         if unclassified:
             unclassified_assets += 1
-            label = (
-                f"p{int(item['poem_id']):03d} "
-                f"{item['audio_type']} "
-                f"s{int(item.get('scene_no', 0)):02d}"
-            )
             for key in set(unclassified):
                 if len(unclassified_examples[key]) < 3:
                     unclassified_examples[key].append(label)
@@ -277,23 +315,31 @@ def main() -> int:
         fully_classified_assets += 1
         if prepared == str(item["source_text"]):
             canonical_only_assets += 1
-        else:
-            proxy_assets += 1
-            existing = str(item.get("synthesis_text") or "")
-            if existing and existing != prepared:
-                errors.append(
-                    f"{item['poem_id']}|{item['audio_type']}|"
-                    f"{item.get('scene_no', 0)}: existing synthesis_text "
-                    f"does not match registry: {existing!r} != {prepared!r}"
-                )
-                continue
-            if args.apply:
-                if existing != prepared:
-                    changed_assets += 1
-                item["synthesis_text"] = prepared
-                item["synthesis_text_source"] = (
-                    "tts_pronunciation_proxy_registry_v1"
-                )
+            continue
+
+        proxy_assets += 1
+        existing = str(item.get("synthesis_text") or "")
+        if existing and existing != prepared:
+            errors.append(
+                f"{item['poem_id']}|{item['audio_type']}|"
+                f"{item.get('scene_no', 0)}: existing synthesis_text "
+                f"does not match registry: {existing!r} != {prepared!r}"
+            )
+            continue
+
+        if args.require_materialized and existing != prepared:
+            materialization_gaps.append(
+                f"{item['poem_id']}|{item['audio_type']}|"
+                f"{item.get('scene_no', 0)}"
+            )
+
+        if args.apply:
+            if existing != prepared:
+                changed_assets += 1
+            item["synthesis_text"] = prepared
+            item["synthesis_text_source"] = (
+                "tts_pronunciation_proxy_registry_v2"
+            )
 
     unclassified_rules = sorted(
         [key for key in seen_rules if key not in rules],
@@ -314,6 +360,8 @@ def main() -> int:
     print(f"canonical_only_assets={canonical_only_assets}")
     print(f"proxy_assets={proxy_assets}")
     print(f"unclassified_assets={unclassified_assets}")
+    print(f"pending_proxy_rules={len(pending_proxy_rules)}")
+    print(f"materialization_gaps={len(materialization_gaps)}")
     print(f"errors={len(errors)}")
 
     if unclassified_rules:
@@ -327,6 +375,20 @@ def main() -> int:
                 f"occurrences={seen_rules[(character, reading)]} "
                 f"examples={examples}"
             )
+
+    if args.pending_proxy_qa_plan:
+        print("\nPending proxy representative QA:")
+        for key in sorted(pending_proxy_rules):
+            rule = rules[key]
+            print(
+                f"  {key[0]} {key[1]} -> {rule['proxy']} "
+                f"representative={pending_representatives[key]}"
+            )
+
+    if materialization_gaps:
+        print("\nMATERIALIZATION GAPS:")
+        for gap in materialization_gaps:
+            print(f"  {gap}")
 
     if errors:
         print("\nERRORS:")
@@ -342,6 +404,10 @@ def main() -> int:
         return 1
     if args.require_classified and unclassified_rules:
         return 2
+    if args.require_materialized and materialization_gaps:
+        return 3
+    if args.require_production_ready and pending_proxy_rules:
+        return 4
 
     print("AUDIT PASS" if not args.apply else "APPLY PASS")
     return 0
