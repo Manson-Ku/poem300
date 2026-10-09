@@ -71,16 +71,13 @@ All Age 9 poems have been upgraded to:
 ~~~text
 visual_plan_version = visual_plan_v2
 semantic_mode       = source_grounded_scene_v2
-visual_plan_status  = draft
+visual_plan_status  = approved
 ~~~
 
-The draft status is deliberate. Age 9 contains substantially more long poems,
-warfare, death, alcohol, palace/adult relationship material, supernatural
-imagery, and historical allusions than the younger cohorts.
-
-The source-grounded plan is deterministic and does not invent entities. A
-semantic safety review must add specific Scene notes where needed before the
-plans may be promoted to `approved`.
+Age 9 contains substantially more long poems, warfare, death, alcohol,
+palace/adult relationship material, supernatural imagery, and historical
+allusions than the younger cohorts. These have now passed deterministic
+Scene-level semantic/safety review and the plans are promoted to `approved`.
 
 Blank separator Scenes remain in each plan with no added semantic content.
 
@@ -178,11 +175,34 @@ Because the current Age 8 full-TTS process may have loaded the previous data
 before that correction, regenerate only p250 scene 1 after that batch finishes
 and verify `將軍` before video production.
 
-### Remaining Age 9 preprocessing gate
+### Age 9 visual semantic/safety gate
 
-Visual plans are still `draft`. The remaining text-side work is semantic /
-child-safety review of the source-grounded visual-plan text, especially long
-poems and Scenes involving warfare, death, alcohol, palace/adult relationship
-material, supernatural imagery or historical allusions. Do not generate Age 9
-images until that review promotes the plans to `approved`.
+~~~text
+poems                    = 138
+scenes                   = 1,050
+blank separator scenes   = 6
+tagged scenes            = 380
+scene-specific overrides = 56
+visual_plan_status       = approved:138
+production-ready gate    = PASS
+~~~
+
+Policy SSOT:
+
+~~~text
+data/age9_visual_safety_policy.json
+data/age9_visual_safety_report.json
+scripts/approve_age9_visual_plans.py
+~~~
+
+The review adds category-specific guidance for warfare, death/grief, alcohol,
+adult relationships, young-person depiction, supernatural/dream content,
+captivity/coercion and figurative harm. High-risk ambiguous scenes additionally
+carry explicit scene overrides. Canonical poetry and child explanations remain
+unchanged.
+
+Age 9 text preprocessing is now complete. The next pronunciation action is not
+a 267-WAV review queue: when Age 9 audio production starts, generate one
+representative asset for each of the 91 genuinely new proxy rules, validate
+those rules once, then reuse them across the cohort.
 

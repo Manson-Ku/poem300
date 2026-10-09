@@ -12,9 +12,12 @@ on:
       - "data/tts_pronunciation_proxy_registry.json"
       - "data/pronunciation_candidates_age8.json"
       - "data/age9_text_inventory.json"
+      - "data/age9_visual_safety_policy.json"
+      - "data/age9_visual_safety_report.json"
       - "data/pronunciation_candidates_age9.json"
       - "scripts/inventory_pronunciation.py"
       - "scripts/prepare_age9_text.py"
+      - "scripts/approve_age9_visual_plans.py"
       - "scripts/generate_tts_assets.py"
       - "scripts/prepare_tts_synthesis_text.py"
       - "scripts/qa_age_production.py"
@@ -82,6 +85,11 @@ jobs:
 
       - name: Age 9 structural text gate
         run: python scripts/qa_age_production.py --age 9
+
+      - name: Age 9 visual production gate
+        run: |
+          python scripts/approve_age9_visual_plans.py --check
+          python scripts/qa_age_production.py --age 9 --production-ready
 
       - name: Age 9 pronunciation source gate
         run: python scripts/inventory_pronunciation.py --age 9

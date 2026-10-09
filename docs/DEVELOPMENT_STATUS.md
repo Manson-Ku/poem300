@@ -1471,3 +1471,32 @@ The previous 123/123 or remaining-94 WAV listening requirement is permanently
 replaced by rule-level preprocessing. Future TTS batches inherit validated
 character+reading rules; only new special rules require representative audio QA.
 
+## Age 9 preprocessing COMPLETE（2026-10-09）
+
+~~~text
+poems                         138
+scenes                      1,050
+blank separators                6
+structural gate               PASS
+project font missing Han         0
+pronunciation candidate items  348
+pronunciation-sensitive assets 267
+character+reading rules         168
+classified rules                168
+new proxy rules pending QA       91
+visual safety tagged scenes     380
+scene-specific safety notes      56
+visual_plan_status         approved:138
+production-ready gate           PASS
+~~~
+
+Age 9 now uses the same rule-level pronunciation architecture as Age 8:
+pronunciation is resolved at the text layer before TTS; only genuinely new
+proxy rules require one representative listening QA case.
+
+Visual-plan safety is governed by
+`data/age9_visual_safety_policy.json` and applied reproducibly by
+`scripts/approve_age9_visual_plans.py`. Sensitive historical material is
+preserved semantically while preventing graphic violence, sexualization,
+harmful alcohol emphasis, literalized self-harm metaphors, horror treatment or
+other child-inappropriate visual amplification.
