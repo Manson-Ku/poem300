@@ -28,6 +28,7 @@ from typing import Any
 
 from dotenv import load_dotenv
 from google import genai
+from google.genai import types
 
 MODEL = "gemini-3.8-flash-lite-tts"
 DEFAULT_VOICE = "Kore"
@@ -357,6 +358,38 @@ def synthesis_text_for_override(
         raise ValueError("TTS synthesis_text must not be empty")
 
     return synthesis_text
+
+
+def build_client_http_options(
+    *,
+    sdk_max_retries: int | None,
+    request_timeout_seconds: float | None,
+) -> types.HttpOptions | None:
+    """Build optional Google Gen AI HTTP controls.
+
+    The Interactions transport has its own SDK retry loop.  Keep the SDK
+    defaults unless an explicit override is requested.  In particular,
+    sdk_max_retries=0 disables the SDK-internal 429/5xx retry sleep so a
+    diagnostic command can fail fast and let this script report the error.
+    """
+
+    if sdk_max_retries is None and request_timeout_seconds is None:
+        return None
+
+    kwargs: dict[str, Any] = {}
+
+    if sdk_max_retries is not None:
+        kwargs["retry_options"] = types.HttpRetryOptions(
+            attempts=sdk_max_retries,
+        )
+
+    if request_timeout_seconds is not None:
+        kwargs["timeout"] = max(
+            1,
+            round(request_timeout_seconds * 1000),
+        )
+
+    return types.HttpOptions(**kwargs)
 
 
 def is_retryable(exc: Exception) -> bool:
@@ -779,6 +812,30 @@ def main() -> int:
         "--max-retries",
         type=int,
         default=5,
+        help=(
+            "Application-level retries after the Google SDK returns an "
+            "error. This does not control SDK-internal retries."
+        ),
+    )
+    parser.add_argument(
+        "--sdk-max-retries",
+        type=int,
+        default=None,
+        help=(
+            "Override Google SDK internal retries for the Interactions "
+            "request. Use 0 for diagnostic fail-fast behavior. "
+            "Omit to preserve the SDK default."
+        ),
+    )
+    parser.add_argument(
+        "--request-timeout",
+        type=float,
+        default=None,
+        metavar="SECONDS",
+        help=(
+            "Override the Google SDK request timeout in seconds. "
+            "Example: --request-timeout 30. Omit to preserve the SDK default."
+        ),
     )
     parser.add_argument(
         "--retry-base-seconds",
@@ -797,6 +854,10 @@ def main() -> int:
         parser.error("--limit must be > 0")
     if args.max_retries < 0:
         parser.error("--max-retries must be >= 0")
+    if args.sdk_max_retries is not None and args.sdk_max_retries < 0:
+        parser.error("--sdk-max-retries must be >= 0")
+    if args.request_timeout is not None and args.request_timeout <= 0:
+        parser.error("--request-timeout must be > 0")
     if args.retry_base_seconds < 0:
         parser.error("--retry-base-seconds must be >= 0")
     if args.request_delay_ms < 0:
@@ -876,6 +937,14 @@ def main() -> int:
         "synthesis_proxy_only="
         f"{args.synthesis_proxy_only}"
     )
+    print(
+        "application_max_retries="
+        f"{args.max_retries} "
+        "sdk_max_retries="
+        f"{args.sdk_max_retries if args.sdk_max_retries is not None else 'default'} "
+        "request_timeout_seconds="
+        f"{args.request_timeout if args.request_timeout is not None else 'default'}"
+    )
 
     if not args.dry_run:
         api_key = os.environ.get("GEMINI_API_KEY", "").strip()
@@ -886,7 +955,17 @@ def main() -> int:
                 file=sys.stderr,
             )
             return 2
-        client = genai.Client(api_key=api_key)
+        http_options = build_client_http_options(
+            sdk_max_retries=args.sdk_max_retries,
+            request_timeout_seconds=args.request_timeout,
+        )
+        if http_options is None:
+            client = genai.Client(api_key=api_key)
+        else:
+            client = genai.Client(
+                api_key=api_key,
+                http_options=http_options,
+            )
         ensure_ledger(ledger_path)
     else:
         client = None

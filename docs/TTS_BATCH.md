@@ -188,3 +188,31 @@ py scripts\generate_tts_assets.py --age 6 --types title author poem --pronunciat
 ```
 
 The original source text remains unchanged. The pronunciation requirement is added only to the speech style metadata for that asset.
+
+## Retry / timeout diagnostics
+
+There are two retry layers:
+
+```text
+--max-retries       poem300 application-level retry loop
+SDK internal retry  Google Gen AI transport retry/backoff
+```
+
+The SDK layer can otherwise sleep and retry a `429 Too Many Requests` before
+`generate_tts_assets.py` regains control. For a diagnostic request, disable
+that hidden retry and set an explicit timeout:
+
+```powershell
+py scripts\generate_tts_assets.py --age 8 --poem-id 29 --types title --pronunciation-qa-only --max-retries 0 --sdk-max-retries 0 --request-timeout 30 --fail-fast
+```
+
+Behavior:
+
+- `--sdk-max-retries 0` disables SDK-internal retry/backoff for this client.
+- `--request-timeout 30` caps one SDK request at 30 seconds.
+- `--max-retries 0` also disables the outer poem300 retry layer.
+- omitting the two SDK flags preserves the Google SDK defaults.
+
+These controls are diagnostic/runtime controls only. They do not change TTS
+model, voice, pronunciation registry, canonical text, asset identity or resume
+behavior.
