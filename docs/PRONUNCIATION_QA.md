@@ -514,3 +514,17 @@ Future direction:
 - rare proxy characters such as `嵾 ㄘㄣ` receive explicit retry QA rather than
   being assumed correct.
 
+## Age 8 priority listening QA final（2026-10-09）
+
+The nine proxy retries were regenerated and all passed human listening QA.
+
+~~~text
+priority reviewed assets = 29
+priority PASS            = 29
+priority FAIL            = 0
+proxy assets             = 9
+remaining unreviewed     = 94
+~~~
+
+Priority listening gate is PASS. The full Age 8 pronunciation-sensitive gate
+remains pending until the other 94 registered assets are reviewed.

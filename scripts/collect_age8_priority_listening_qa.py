@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import json
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
@@ -116,7 +117,27 @@ def parse_args() -> argparse.Namespace:
         "--tier",
         choices=("1", "2", "all"),
         default="all",
-        help="Copy Tier 1, Tier 2, or both. Default: all",
+        help="Priority scope only: copy Tier 1, Tier 2, or both. Default: all",
+    )
+    parser.add_argument(
+        "--scope",
+        choices=("priority", "remaining"),
+        default="priority",
+        help=(
+            "priority: use the curated 29-item Tier 1/2 set; "
+            "remaining: collect the other Age 8 pronunciation-sensitive assets. "
+            "Default: priority"
+        ),
+    )
+    parser.add_argument(
+        "--tts-overrides",
+        default="data/tts_pronunciation_overrides.json",
+        help="Pronunciation-sensitive TTS registry.",
+    )
+    parser.add_argument(
+        "--age8-candidates",
+        default="data/pronunciation_candidates_age8.json",
+        help="Age 8 pronunciation candidate registry used to identify the cohort.",
     )
     parser.add_argument(
         "--clean",
@@ -133,6 +154,64 @@ def selected_assets(tier: str) -> list[ReviewAsset]:
     return [item for item in PRIORITY_ASSETS if item.tier == wanted]
 
 
+def remaining_assets(
+    *,
+    tts_overrides_path: Path,
+    candidates_path: Path,
+) -> list[ReviewAsset]:
+    tts = json.loads(tts_overrides_path.read_text(encoding="utf-8"))
+    candidates = json.loads(candidates_path.read_text(encoding="utf-8"))
+
+    age8_poem_ids = {
+        int(item["poem_id"])
+        for item in candidates.get("items", [])
+    }
+    priority_keys = {
+        (item.poem_id, item.audio_type, item.scene_no)
+        for item in PRIORITY_ASSETS
+    }
+
+    result: list[ReviewAsset] = []
+    for item in tts.get("items", []):
+        poem_id = int(item["poem_id"])
+        if poem_id not in age8_poem_ids:
+            continue
+        audio_type = str(item["audio_type"])
+        scene_no = int(item.get("scene_no", 0))
+        if (poem_id, audio_type, scene_no) in priority_keys:
+            continue
+
+        targets = []
+        notes = []
+        for pronunciation in item.get("pronunciations", []):
+            targets.append(
+                f"{pronunciation['character']} {pronunciation['reading']}"
+            )
+            context = str(pronunciation.get("context", "")).strip()
+            if context:
+                notes.append(context)
+
+        result.append(
+            ReviewAsset(
+                3,
+                poem_id,
+                audio_type,
+                scene_no,
+                "；".join(targets),
+                "／".join(notes),
+            )
+        )
+
+    result.sort(
+        key=lambda item: (
+            item.poem_id,
+            item.audio_type,
+            item.scene_no,
+        )
+    )
+    return result
+
+
 def main() -> int:
     args = parse_args()
     assets_root = Path(args.assets_root)
@@ -141,11 +220,17 @@ def main() -> int:
     if args.clean and output_dir.exists():
         shutil.rmtree(output_dir)
 
-    chosen = selected_assets(args.tier)
+    if args.scope == "remaining":
+        chosen = remaining_assets(
+            tts_overrides_path=Path(args.tts_overrides),
+            candidates_path=Path(args.age8_candidates),
+        )
+    else:
+        chosen = selected_assets(args.tier)
     missing: list[Path] = []
     rows: list[dict[str, str | int]] = []
 
-    counters = {1: 0, 2: 0}
+    counters = {1: 0, 2: 0, 3: 0}
 
     for item in chosen:
         source = assets_root / item.source_relative_path
@@ -203,7 +288,8 @@ def main() -> int:
         writer.writerows(rows)
 
     print("Age 8 priority listening QA collection")
-    print(f"tier={args.tier}")
+    print(f"scope={args.scope}")
+    print(f"tier={args.tier if args.scope == 'priority' else 'n/a'}")
     print(f"selected={len(chosen)}")
     print(f"copied={len(rows)}")
     print(f"missing={len(missing)}")

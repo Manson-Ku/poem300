@@ -1,5 +1,5 @@
 {
-  "version": "tts_pronunciation_overrides_v7",
+  "version": "tts_pronunciation_overrides_v8",
   "instruction_template": "Pronounce the specified character in this exact source text with the requested Taiwan Mandarin reading. Speak only the original source text; do not say the pronunciation instruction or add any words.",
   "items": [
     {
@@ -1034,7 +1034,8 @@
       ],
       "synthesis_text": "出賽入賽寒，處處黃蘆草。",
       "synthesis_proxy_note": "Age 8 priority listening QA: both 塞 targets in 出塞／入塞 were mispronounced. Use 賽 ㄙㄞˋ for both at the TTS boundary.",
-      "listening_qa_status": "retry_required"
+      "listening_qa_status": "passed",
+      "listening_qa_result": "Age 8 proxy retry confirmed PASS by human listening QA."
     },
     {
       "poem_id": 34,
@@ -1099,7 +1100,8 @@
       ],
       "synthesis_text": "欲渡黃河冰澀川，江登太杭雪满山。",
       "synthesis_proxy_note": "Age 8 priority listening QA: 冰塞川 target 塞 ㄙㄜˋ failed while 太行 ㄏㄤˊ passed. Proxy all registered sensitive readings in proxy mode: 塞→澀, 將→江, 行→杭, preserving the already-correct 太行 reading deterministically.",
-      "listening_qa_status": "retry_required"
+      "listening_qa_status": "passed",
+      "listening_qa_result": "Age 8 proxy retry confirmed PASS by human listening QA."
     },
     {
       "poem_id": 77,
@@ -1154,7 +1156,8 @@
       ],
       "synthesis_text": "岑申",
       "synthesis_proxy_note": "Age 8 priority listening QA: 岑參 author reading failed. Use validated 參→申 proxy for ㄕㄣ.",
-      "listening_qa_status": "retry_required"
+      "listening_qa_status": "passed",
+      "listening_qa_result": "Age 8 proxy retry confirmed PASS by human listening QA."
     },
     {
       "poem_id": 92,
@@ -1310,7 +1313,8 @@
       ],
       "synthesis_text": "明昭有封事，朔問夜如何。",
       "synthesis_proxy_note": "Age 8 priority listening QA: registered reading in this asset failed. Proxy both sensitive readings deterministically: 朝→昭 ㄓㄠ, 數→朔 ㄕㄨㄛˋ.",
-      "listening_qa_status": "retry_required"
+      "listening_qa_status": "passed",
+      "listening_qa_result": "Age 8 proxy retry confirmed PASS by human listening QA."
     },
     {
       "poem_id": 103,
@@ -1971,7 +1975,8 @@
       ],
       "synthesis_text": "嵾疵連屈陌，迢遞送斜暉。",
       "synthesis_proxy_note": "Age 8 priority listening QA: 參差 asset failed. Proxy all registered sensitive readings: 參→嵾 ㄘㄣ, 差→疵 ㄘ, 曲→屈 ㄑㄩ. 嵾 is an unambiguous ㄘㄣ proxy; retry must be listened again because it is uncommon.",
-      "listening_qa_status": "retry_required"
+      "listening_qa_status": "passed",
+      "listening_qa_result": "Age 8 proxy retry confirmed PASS by human listening QA."
     },
     {
       "poem_id": 152,
@@ -1992,7 +1997,8 @@
       ],
       "synthesis_text": "天涯沾夢朔，疑誤有新知。",
       "synthesis_proxy_note": "Age 8 priority listening QA: both target readings failed. Proxy 占→沾 ㄓㄢ and 數→朔 ㄕㄨㄛˋ.",
-      "listening_qa_status": "retry_required"
+      "listening_qa_status": "passed",
+      "listening_qa_result": "Age 8 proxy retry confirmed PASS by human listening QA."
     },
     {
       "poem_id": 153,
@@ -2247,7 +2253,8 @@
       ],
       "synthesis_text": "月黑雁飛高，蟬于夜遁逃。",
       "synthesis_proxy_note": "Age 8 priority listening QA: 單于 target 單 ㄔㄢˊ failed. Proxy 單→蟬.",
-      "listening_qa_status": "retry_required"
+      "listening_qa_status": "passed",
+      "listening_qa_result": "Age 8 proxy retry confirmed PASS by human listening QA."
     },
     {
       "poem_id": 251,
@@ -2268,7 +2275,8 @@
       ],
       "synthesis_text": "欲江輕記逐，大雪滿弓刀。",
       "synthesis_proxy_note": "Age 8 priority listening QA: registered reading in this asset failed. Proxy both sensitive readings deterministically in proxy mode: 將→江 ㄐㄧㄤ, 騎→記 ㄐㄧˋ.",
-      "listening_qa_status": "retry_required"
+      "listening_qa_status": "passed",
+      "listening_qa_result": "Age 8 proxy retry confirmed PASS by human listening QA."
     },
     {
       "poem_id": 251,
@@ -2535,7 +2543,8 @@
       ],
       "synthesis_text": "乘性南遊不戒嚴，九崇誰醒諫書函。",
       "synthesis_proxy_note": "Age 8 priority listening QA: 興 ㄒㄧㄥˋ and 省 ㄒㄧㄥˇ failed while 重 ㄔㄨㄥˊ passed. Proxy all three sensitive readings in proxy mode: 興→性, 重→崇, 省→醒.",
-      "listening_qa_status": "retry_required"
+      "listening_qa_status": "passed",
+      "listening_qa_result": "Age 8 proxy retry confirmed PASS by human listening QA."
     },
     {
       "poem_id": 299,
@@ -2662,34 +2671,22 @@
     }
   },
   "age8_policy": {
-    "status": "priority_listening_qa_round1",
+    "status": "priority_listening_qa_pass",
     "reviewed_candidate_items": 156,
     "pronunciation_sensitive_assets": 123,
     "synthesis_proxy_policy": "Age 8 instruction-only sensitive assets were generated first. After priority listening QA, only proven failures receive synthesis_text proxies; canonical text remains immutable.",
     "listening_qa": {
-      "status": "priority_round1_retry_required",
+      "status": "priority_pass_full_pending",
       "priority_reviewed_assets": 29,
-      "tier1_user_reviewed": 13,
-      "tier1_passed": 4,
-      "tier1_failed": 9,
-      "tier2_assistant_audio_reviewed": 16,
+      "priority_passed": 29,
+      "priority_failed": 0,
+      "tier1_reviewed": 13,
+      "tier1_passed_after_proxy_retry": 13,
+      "tier2_reviewed": 16,
       "tier2_passed": 16,
-      "tier2_failed": 0,
-      "priority_passed_total": 20,
-      "priority_failed_total": 9,
-      "failed_keys": [
-        "34|poem|2",
-        "77|poem|3",
-        "92|author|0",
-        "100|poem|4",
-        "151|poem|2",
-        "152|poem|4",
-        "251|poem|1",
-        "251|poem|2",
-        "294|poem|1"
-      ],
-      "synthesis_proxy_retry_assets": 9,
+      "synthesis_proxy_assets": 9,
       "full_sensitive_asset_count": 123,
+      "remaining_unreviewed_assets": 94,
       "full_listening_qa_status": "pending"
     },
     "canonical_text_immutable": true,

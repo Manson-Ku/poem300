@@ -1400,3 +1400,18 @@ Pipeline decision learned from this round: future registered
 pronunciation-sensitive assets should use proxy-first synthesis when a stable
 homophonic proxy is available. Ordinary assets continue to synthesize canonical
 text directly.
+
+## Age 8 priority pronunciation gate PASS（2026-10-09）
+
+Nine synthesis-proxy retries were regenerated and confirmed PASS.
+
+~~~text
+priority assets reviewed = 29
+priority PASS            = 29
+priority FAIL            = 0
+remaining sensitive QA   = 94
+~~~
+
+Next gate: review the remaining 94 pronunciation-sensitive WAV assets. Do not
+regenerate the 29 already accepted assets. Full Age 8 TTS production follows
+only after 123/123 listening PASS.

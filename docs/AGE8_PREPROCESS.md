@@ -275,3 +275,18 @@ Production learning: future pronunciation-sensitive assets should prefer
 proxy-first synthesis when a deterministic homophonic proxy is available,
 rather than paying for an instruction-only failure and a second generation.
 This does not apply to ordinary TTS assets.
+
+## Priority listening QA final
+
+~~~text
+priority reviewed = 29
+PASS              = 29
+FAIL              = 0
+proxy retries     = 9 / 9 PASS
+remaining         = 94
+~~~
+
+The priority subset is complete. The next blocking gate is human listening QA
+for the remaining 94 pronunciation-sensitive assets. Full Age 8 TTS production
+must still use resume behavior and remains blocked until the full 123/123
+sensitive set is accepted.
