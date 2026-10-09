@@ -1,5 +1,5 @@
 {
-  "version": "bpmf_font_extensions_v4",
+  "version": "bpmf_font_extensions_v5",
   "base_font": {
     "expected_filename": "BpmfHuninn-Regular.ttf",
     "upstream": "ButTaiwan/bpmfvs",
@@ -237,6 +237,314 @@
         "p312 清平調三首之三：觧釋"
       ],
       "note": "historical variant; renderer-only alias, canonical text remains 觧"
+    },
+    {
+      "character": "㝢",
+      "codepoint": "U+3762",
+      "source_character": "宇",
+      "source_codepoint": "U+5B87",
+      "reading": "ㄩˇ",
+      "contexts": [
+        "Age 9 canonical source"
+      ],
+      "note": "Age 9 renderer-only compatibility alias; canonical text remains unchanged."
+    },
+    {
+      "character": "劒",
+      "codepoint": "U+5292",
+      "source_character": "劍",
+      "source_codepoint": "U+528D",
+      "reading": "ㄐㄧㄢˋ",
+      "contexts": [
+        "Age 9 canonical source"
+      ],
+      "note": "Age 9 renderer-only compatibility alias; canonical text remains unchanged."
+    },
+    {
+      "character": "叙",
+      "codepoint": "U+53D9",
+      "source_character": "敘",
+      "source_codepoint": "U+6558",
+      "reading": "ㄒㄩˋ",
+      "contexts": [
+        "Age 9 canonical source"
+      ],
+      "note": "Age 9 renderer-only compatibility alias; canonical text remains unchanged."
+    },
+    {
+      "character": "妬",
+      "codepoint": "U+59AC",
+      "source_character": "妒",
+      "source_codepoint": "U+5992",
+      "reading": "ㄉㄨˋ",
+      "contexts": [
+        "Age 9 canonical source"
+      ],
+      "note": "Age 9 renderer-only compatibility alias; canonical text remains unchanged."
+    },
+    {
+      "character": "媿",
+      "codepoint": "U+5ABF",
+      "source_character": "愧",
+      "source_codepoint": "U+6127",
+      "reading": "ㄎㄨㄟˋ",
+      "contexts": [
+        "Age 9 canonical source"
+      ],
+      "note": "Age 9 renderer-only compatibility alias; canonical text remains unchanged."
+    },
+    {
+      "character": "廻",
+      "codepoint": "U+5EFB",
+      "source_character": "迴",
+      "source_codepoint": "U+8FF4",
+      "reading": "ㄏㄨㄟˊ",
+      "contexts": [
+        "Age 9 canonical source"
+      ],
+      "note": "Age 9 renderer-only compatibility alias; canonical text remains unchanged."
+    },
+    {
+      "character": "怳",
+      "codepoint": "U+6033",
+      "source_character": "恍",
+      "source_codepoint": "U+604D",
+      "reading": "ㄏㄨㄤˇ",
+      "contexts": [
+        "Age 9 canonical source"
+      ],
+      "note": "Age 9 renderer-only compatibility alias; canonical text remains unchanged."
+    },
+    {
+      "character": "愼",
+      "codepoint": "U+613C",
+      "source_character": "慎",
+      "source_codepoint": "U+614E",
+      "reading": "ㄕㄣˋ",
+      "contexts": [
+        "Age 9 canonical source"
+      ],
+      "note": "Age 9 renderer-only compatibility alias; canonical text remains unchanged."
+    },
+    {
+      "character": "慙",
+      "codepoint": "U+6159",
+      "source_character": "慚",
+      "source_codepoint": "U+615A",
+      "reading": "ㄘㄢˊ",
+      "contexts": [
+        "Age 9 canonical source"
+      ],
+      "note": "Age 9 renderer-only compatibility alias; canonical text remains unchanged."
+    },
+    {
+      "character": "斾",
+      "codepoint": "U+65BE",
+      "source_character": "旆",
+      "source_codepoint": "U+65C6",
+      "reading": "ㄆㄟˋ",
+      "contexts": [
+        "Age 9 canonical source"
+      ],
+      "note": "Age 9 renderer-only compatibility alias; canonical text remains unchanged."
+    },
+    {
+      "character": "滚",
+      "codepoint": "U+6EDA",
+      "source_character": "滾",
+      "source_codepoint": "U+6EFE",
+      "reading": "ㄍㄨㄣˇ",
+      "contexts": [
+        "Age 9 canonical source"
+      ],
+      "note": "Age 9 renderer-only compatibility alias; canonical text remains unchanged."
+    },
+    {
+      "character": "牕",
+      "codepoint": "U+7255",
+      "source_character": "窗",
+      "source_codepoint": "U+7A97",
+      "reading": "ㄔㄨㄤ",
+      "contexts": [
+        "Age 9 canonical source"
+      ],
+      "note": "Age 9 renderer-only compatibility alias; canonical text remains unchanged."
+    },
+    {
+      "character": "璅",
+      "codepoint": "U+7485",
+      "source_character": "瑣",
+      "source_codepoint": "U+7463",
+      "reading": "ㄙㄨㄛˇ",
+      "contexts": [
+        "Age 9 canonical source"
+      ],
+      "note": "Age 9 renderer-only compatibility alias; canonical text remains unchanged."
+    },
+    {
+      "character": "甞",
+      "codepoint": "U+751E",
+      "source_character": "嘗",
+      "source_codepoint": "U+5617",
+      "reading": "ㄔㄤˊ",
+      "contexts": [
+        "Age 9 canonical source"
+      ],
+      "note": "Age 9 renderer-only compatibility alias; canonical text remains unchanged."
+    },
+    {
+      "character": "盌",
+      "codepoint": "U+76CC",
+      "source_character": "碗",
+      "source_codepoint": "U+7897",
+      "reading": "ㄨㄢˇ",
+      "contexts": [
+        "Age 9 canonical source"
+      ],
+      "note": "Age 9 renderer-only compatibility alias; canonical text remains unchanged."
+    },
+    {
+      "character": "絶",
+      "codepoint": "U+7D76",
+      "source_character": "絕",
+      "source_codepoint": "U+7D55",
+      "reading": "ㄐㄩㄝˊ",
+      "contexts": [
+        "Age 9 canonical source"
+      ],
+      "note": "Age 9 renderer-only compatibility alias; canonical text remains unchanged."
+    },
+    {
+      "character": "羗",
+      "codepoint": "U+7F97",
+      "source_character": "羌",
+      "source_codepoint": "U+7F8C",
+      "reading": "ㄑㄧㄤ",
+      "contexts": [
+        "Age 9 canonical source"
+      ],
+      "note": "Age 9 renderer-only compatibility alias; canonical text remains unchanged."
+    },
+    {
+      "character": "虬",
+      "codepoint": "U+866C",
+      "source_character": "虯",
+      "source_codepoint": "U+866F",
+      "reading": "ㄑㄧㄡˊ",
+      "contexts": [
+        "Age 9 canonical source"
+      ],
+      "note": "Age 9 renderer-only compatibility alias; canonical text remains unchanged."
+    },
+    {
+      "character": "蟇",
+      "codepoint": "U+87C7",
+      "source_character": "蟆",
+      "source_codepoint": "U+87C6",
+      "reading": "ㄇㄚˊ",
+      "contexts": [
+        "Age 9 canonical source"
+      ],
+      "note": "Age 9 renderer-only compatibility alias; canonical text remains unchanged."
+    },
+    {
+      "character": "衞",
+      "codepoint": "U+885E",
+      "source_character": "衛",
+      "source_codepoint": "U+885B",
+      "reading": "ㄨㄟˋ",
+      "contexts": [
+        "Age 9 canonical source"
+      ],
+      "note": "Age 9 renderer-only compatibility alias; canonical text remains unchanged."
+    },
+    {
+      "character": "衮",
+      "codepoint": "U+886E",
+      "source_character": "袞",
+      "source_codepoint": "U+889E",
+      "reading": "ㄍㄨㄣˇ",
+      "contexts": [
+        "Age 9 canonical source"
+      ],
+      "note": "Age 9 renderer-only compatibility alias; canonical text remains unchanged."
+    },
+    {
+      "character": "袴",
+      "codepoint": "U+88B4",
+      "source_character": "褲",
+      "source_codepoint": "U+8932",
+      "reading": "ㄎㄨˋ",
+      "contexts": [
+        "Age 9 canonical source"
+      ],
+      "note": "Age 9 renderer-only compatibility alias; canonical text remains unchanged."
+    },
+    {
+      "character": "覩",
+      "codepoint": "U+89A9",
+      "source_character": "睹",
+      "source_codepoint": "U+7779",
+      "reading": "ㄉㄨˇ",
+      "contexts": [
+        "Age 9 canonical source"
+      ],
+      "note": "Age 9 renderer-only compatibility alias; canonical text remains unchanged."
+    },
+    {
+      "character": "顔",
+      "codepoint": "U+9854",
+      "source_character": "顏",
+      "source_codepoint": "U+984F",
+      "reading": "ㄧㄢˊ",
+      "contexts": [
+        "Age 9 canonical source"
+      ],
+      "note": "Age 9 renderer-only compatibility alias; canonical text remains unchanged."
+    },
+    {
+      "character": "顇",
+      "codepoint": "U+9847",
+      "source_character": "悴",
+      "source_codepoint": "U+60B4",
+      "reading": "ㄘㄨㄟˋ",
+      "contexts": [
+        "Age 9 canonical source"
+      ],
+      "note": "Age 9 renderer-only compatibility alias; canonical text remains unchanged."
+    },
+    {
+      "character": "顦",
+      "codepoint": "U+9866",
+      "source_character": "憔",
+      "source_codepoint": "U+6194",
+      "reading": "ㄑㄧㄠˊ",
+      "contexts": [
+        "Age 9 canonical source"
+      ],
+      "note": "Age 9 renderer-only compatibility alias; canonical text remains unchanged."
+    },
+    {
+      "character": "飜",
+      "codepoint": "U+98DC",
+      "source_character": "翻",
+      "source_codepoint": "U+7FFB",
+      "reading": "ㄈㄢ",
+      "contexts": [
+        "Age 9 canonical source"
+      ],
+      "note": "Age 9 renderer-only compatibility alias; canonical text remains unchanged."
+    },
+    {
+      "character": "鬬",
+      "codepoint": "U+9B2C",
+      "source_character": "鬥",
+      "source_codepoint": "U+9B25",
+      "reading": "ㄉㄡˋ",
+      "contexts": [
+        "Age 9 canonical source"
+      ],
+      "note": "Age 9 renderer-only compatibility alias; canonical text remains unchanged."
     }
   ],
   "synthesized_glyphs": [
