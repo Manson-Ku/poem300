@@ -1,5 +1,5 @@
 {
-  "version": "bpmf_font_extensions_v6",
+  "version": "bpmf_font_extensions_v7",
   "base_font": {
     "expected_filename": "BpmfHuninn-Regular.ttf",
     "upstream": "ButTaiwan/bpmfvs",
@@ -1171,12 +1171,20 @@
       "prototype_codepoint": "U+8CC7",
       "components": [
         {
-          "character": "艹",
-          "codepoint": "U+8279",
-          "scale_x": 0.92,
-          "scale_y": 0.42,
-          "x_em": 0.04,
-          "y_em": 0.58
+          "character": "十",
+          "codepoint": "U+5341",
+          "scale_x": 0.36,
+          "scale_y": 0.34,
+          "x_em": 0.14,
+          "y_em": 0.64
+        },
+        {
+          "character": "十",
+          "codepoint": "U+5341",
+          "scale_x": 0.36,
+          "scale_y": 0.34,
+          "x_em": 0.52,
+          "y_em": 0.64
         },
         {
           "character": "甾",
@@ -1190,7 +1198,7 @@
       "contexts": [
         "p173 積雨輞川莊作：東菑"
       ],
-      "evidence_note": "教育部辭典引本詩，東菑讀 ㄗ. Synthesize 艹+甾."
+      "evidence_note": "教育部辭典引本詩，東菑讀 ㄗ. Synthesize 艹+甾. Renderer approximation uses two small 十 components for the grass radical because the pinned base font has no standalone U+8279 艹 cmap entry."
     },
     {
       "character": "藎",
@@ -1200,12 +1208,20 @@
       "prototype_codepoint": "U+9032",
       "components": [
         {
-          "character": "艹",
-          "codepoint": "U+8279",
-          "scale_x": 0.92,
-          "scale_y": 0.42,
-          "x_em": 0.04,
-          "y_em": 0.58
+          "character": "十",
+          "codepoint": "U+5341",
+          "scale_x": 0.36,
+          "scale_y": 0.34,
+          "x_em": 0.14,
+          "y_em": 0.64
+        },
+        {
+          "character": "十",
+          "codepoint": "U+5341",
+          "scale_x": 0.36,
+          "scale_y": 0.34,
+          "x_em": 0.52,
+          "y_em": 0.64
         },
         {
           "character": "盡",
@@ -1219,7 +1235,7 @@
       "contexts": [
         "p198 遣悲懷三首之一：藎篋"
       ],
-      "evidence_note": "Age 9 rare glyph; BpmfVS records ㄐㄧㄣˋ. Synthesize 艹+盡."
+      "evidence_note": "Age 9 rare glyph; BpmfVS records ㄐㄧㄣˋ. Synthesize 艹+盡. Renderer approximation uses two small 十 components for the grass radical because the pinned base font has no standalone U+8279 艹 cmap entry."
     },
     {
       "character": "衱",
