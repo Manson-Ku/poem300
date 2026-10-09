@@ -280,11 +280,115 @@ def load_pronunciation_overrides(
     return index
 
 
+def load_pronunciation_proxy_rules(
+    path: Path,
+) -> dict[tuple[str, str], dict[str, Any]]:
+    if not path.exists():
+        return {}
+
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    index: dict[tuple[str, str], dict[str, Any]] = {}
+    for rule in payload.get("rules", []):
+        key = (str(rule["character"]), str(rule["reading"]))
+        if key in index:
+            raise ValueError(f"duplicate TTS proxy rule: {key}")
+        index[key] = rule
+    return index
+
+
+def _all_occurrences(text: str, fragment: str) -> list[int]:
+    if not fragment:
+        return []
+    starts: list[int] = []
+    start = 0
+    while True:
+        index = text.find(fragment, start)
+        if index < 0:
+            return starts
+        starts.append(index)
+        start = index + 1
+
+
+def _locate_proxy_targets(
+    source_text: str,
+    *,
+    character: str,
+    context: str,
+) -> list[int]:
+    candidates: set[int] = set()
+    parts = [
+        part.strip()
+        for part in context.replace("／", "/").split("/")
+        if part.strip()
+    ]
+    for part in parts:
+        rels = [
+            index
+            for index, value in enumerate(part)
+            if value == character
+        ]
+        for start in _all_occurrences(source_text, part):
+            for rel in rels:
+                candidates.add(start + rel)
+
+    if candidates:
+        return sorted(candidates)
+
+    direct = [
+        index
+        for index, value in enumerate(source_text)
+        if value == character
+    ]
+    if len(direct) == 1:
+        return direct
+
+    raise ValueError(
+        "Cannot identify proxy target occurrence(s): "
+        f"character={character!r} context={context!r} "
+        f"source_text={source_text!r}"
+    )
+
+
+def pending_proxy_representative_assets(
+    pronunciation_overrides: dict[tuple[int, str, int], dict[str, Any]],
+    proxy_rules: dict[tuple[str, str], dict[str, Any]],
+    *,
+    selected_poem_ids: set[int],
+) -> tuple[
+    set[tuple[int, str, int]],
+    dict[tuple[str, str], tuple[int, str, int]],
+]:
+    pending_rules = {
+        key
+        for key, rule in proxy_rules.items()
+        if (
+            str(rule.get("strategy")) == "proxy"
+            and str(rule.get("status")) == "pending_validation"
+        )
+    }
+    representatives: dict[
+        tuple[str, str],
+        tuple[int, str, int],
+    ] = {}
+    for asset_key, item in pronunciation_overrides.items():
+        if asset_key[0] not in selected_poem_ids:
+            continue
+        for pronunciation in item.get("pronunciations", []):
+            key = (
+                str(pronunciation["character"]),
+                str(pronunciation["reading"]),
+            )
+            if key in pending_rules:
+                representatives.setdefault(key, asset_key)
+    return set(representatives.values()), representatives
+
+
 def style_with_pronunciation(
     base_style: str,
     *,
     text: str,
     override: dict[str, Any] | None,
+    synthesis_text: str | None = None,
 ) -> str:
     if not override:
         return base_style
@@ -296,7 +400,7 @@ def style_with_pronunciation(
             f"expected={expected_text!r} actual={text!r}"
         )
 
-    if override.get("synthesis_text"):
+    if synthesis_text is not None and synthesis_text != text:
         return (
             base_style.rstrip()
             + " The input may contain pronunciation-only homophonic "
@@ -339,9 +443,10 @@ def synthesis_text_for_override(
     *,
     source_text: str,
     override: dict[str, Any] | None,
-) -> str:
+    proxy_rules: dict[tuple[str, str], dict[str, Any]],
+) -> tuple[str, set[tuple[str, str]]]:
     if not override:
-        return source_text
+        return source_text, set()
 
     expected_text = str(override.get("source_text", ""))
     if expected_text != source_text:
@@ -350,14 +455,59 @@ def synthesis_text_for_override(
             f"expected={expected_text!r} actual={source_text!r}"
         )
 
-    synthesis_text = str(
-        override.get("synthesis_text") or source_text
-    )
+    chars = list(source_text)
+    replacements: dict[int, str] = {}
+    pending_rules: set[tuple[str, str]] = set()
 
-    if not synthesis_text.strip():
+    for pronunciation in override.get("pronunciations", []):
+        key = (
+            str(pronunciation["character"]),
+            str(pronunciation["reading"]),
+        )
+        rule = proxy_rules.get(key)
+        if not rule or str(rule.get("strategy")) != "proxy":
+            continue
+
+        if str(rule.get("status")) == "pending_validation":
+            pending_rules.add(key)
+
+        proxy = str(rule.get("proxy", ""))
+        if len(proxy) != 1:
+            raise ValueError(
+                f"TTS proxy must be one character: {key} -> {proxy!r}"
+            )
+
+        for position in _locate_proxy_targets(
+            source_text,
+            character=key[0],
+            context=str(pronunciation.get("context", "")),
+        ):
+            previous = replacements.get(position)
+            if previous is not None and previous != proxy:
+                raise ValueError(
+                    f"Conflicting TTS proxies at {position}: "
+                    f"{previous!r} vs {proxy!r}"
+                )
+            replacements[position] = proxy
+
+    for position, proxy in replacements.items():
+        chars[position] = proxy
+    derived = "".join(chars)
+
+    legacy = str(override.get("synthesis_text") or "")
+    if legacy:
+        if derived != source_text and legacy != derived:
+            raise ValueError(
+                "Legacy synthesis_text conflicts with proxy registry: "
+                f"legacy={legacy!r} derived={derived!r}"
+            )
+        if derived == source_text:
+            derived = legacy
+
+    if not derived.strip():
         raise ValueError("TTS synthesis_text must not be empty")
 
-    return synthesis_text
+    return derived, pending_rules
 
 
 def build_client_http_options(
@@ -801,6 +951,19 @@ def main() -> int:
         ),
     )
     parser.add_argument(
+        "--pronunciation-proxy-registry",
+        default="data/tts_pronunciation_proxy_registry.json",
+        help="Text-layer character+reading TTS proxy registry.",
+    )
+    parser.add_argument(
+        "--pending-proxy-qa-only",
+        action="store_true",
+        help=(
+            "Process one representative asset per pending proxy rule. "
+            "Use with --force because representative WAVs may exist."
+        ),
+    )
+    parser.add_argument(
         "--pronunciation-qa-only",
         action="store_true",
         help=(
@@ -876,6 +1039,9 @@ def main() -> int:
     pronunciation_overrides = load_pronunciation_overrides(
         Path(args.pronunciation_overrides)
     )
+    pronunciation_proxy_rules = load_pronunciation_proxy_rules(
+        Path(args.pronunciation_proxy_registry)
+    )
 
     poems = read_poems(Path(args.poems))
     ages = set(args.age) if args.age else None
@@ -890,6 +1056,27 @@ def main() -> int:
     if not selected:
         print("No poems matched the requested filters.")
         return 0
+
+    pending_proxy_qa_asset_keys: set[tuple[int, str, int]] = set()
+    pending_proxy_qa_representatives: dict[
+        tuple[str, str],
+        tuple[int, str, int],
+    ] = {}
+    if args.pending_proxy_qa_only:
+        (
+            pending_proxy_qa_asset_keys,
+            pending_proxy_qa_representatives,
+        ) = pending_proxy_representative_assets(
+            pronunciation_overrides,
+            pronunciation_proxy_rules,
+            selected_poem_ids={
+                int(poem["poem_id"])
+                for poem in selected
+            },
+        )
+        if not pending_proxy_qa_asset_keys:
+            print("No pending proxy rules matched the selected cohort.")
+            return 0
 
     run_id = (
         datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
@@ -944,7 +1131,11 @@ def main() -> int:
         "pronunciation_qa_only="
         f"{args.pronunciation_qa_only} "
         "synthesis_proxy_only="
-        f"{args.synthesis_proxy_only}"
+        f"{args.synthesis_proxy_only} "
+        "pending_proxy_qa_only="
+        f"{args.pending_proxy_qa_only} "
+        "pending_proxy_qa_representatives="
+        f"{len(pending_proxy_qa_asset_keys)}"
     )
     print(
         "application_max_retries="
@@ -1029,9 +1220,13 @@ def main() -> int:
             )
 
         for audio_type, text, output_path in poem_level_jobs:
-            override = pronunciation_overrides.get(
-                (pid, audio_type, 0)
-            )
+            asset_key = (pid, audio_type, 0)
+            override = pronunciation_overrides.get(asset_key)
+            if (
+                args.pending_proxy_qa_only
+                and asset_key not in pending_proxy_qa_asset_keys
+            ):
+                continue
             if args.pronunciation_qa_only and not override:
                 continue
             if (
@@ -1043,14 +1238,24 @@ def main() -> int:
             ):
                 continue
 
+            synthesis_text, pending_rules = synthesis_text_for_override(
+                source_text=text,
+                override=override,
+                proxy_rules=pronunciation_proxy_rules,
+            )
+            if pending_rules and not args.pending_proxy_qa_only:
+                raise ValueError(
+                    "Pending TTS proxy rule(s) require representative QA: "
+                    + ", ".join(
+                        f"{character} {reading}"
+                        for character, reading in sorted(pending_rules)
+                    )
+                )
             effective_style = style_with_pronunciation(
                 args.style,
                 text=text,
                 override=override,
-            )
-            synthesis_text = synthesis_text_for_override(
-                source_text=text,
-                override=override,
+                synthesis_text=synthesis_text,
             )
 
             if output_path.exists() and not args.force:
@@ -1177,13 +1382,17 @@ def main() -> int:
                 )
 
             for audio_type, text, output_path in jobs:
-                override = pronunciation_overrides.get(
-                    (
-                        pid,
-                        audio_type,
-                        int(scene["scene_no"]),
-                    )
+                asset_key = (
+                    pid,
+                    audio_type,
+                    int(scene["scene_no"]),
                 )
+                override = pronunciation_overrides.get(asset_key)
+                if (
+                    args.pending_proxy_qa_only
+                    and asset_key not in pending_proxy_qa_asset_keys
+                ):
+                    continue
                 if args.pronunciation_qa_only and not override:
                     continue
                 if (
@@ -1195,14 +1404,24 @@ def main() -> int:
                 ):
                     continue
 
+                synthesis_text, pending_rules = synthesis_text_for_override(
+                    source_text=text,
+                    override=override,
+                    proxy_rules=pronunciation_proxy_rules,
+                )
+                if pending_rules and not args.pending_proxy_qa_only:
+                    raise ValueError(
+                        "Pending TTS proxy rule(s) require representative QA: "
+                        + ", ".join(
+                            f"{character} {reading}"
+                            for character, reading in sorted(pending_rules)
+                        )
+                    )
                 effective_style = style_with_pronunciation(
                     args.style,
                     text=text,
                     override=override,
-                )
-                synthesis_text = synthesis_text_for_override(
-                    source_text=text,
-                    override=override,
+                    synthesis_text=synthesis_text,
                 )
 
                 if output_path.exists() and not args.force:
