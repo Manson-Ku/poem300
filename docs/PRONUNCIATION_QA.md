@@ -423,3 +423,94 @@ result         = PASS
 ~~~
 
 These 40 WAV files are now accepted production assets. Subsequent full Age 7 TTS runs must use resume behavior and must not use `--force` unless a new listening-QA defect is found.
+
+## Age 8 priority listening QA round 1（2026-10-09）
+
+Priority review set:
+
+~~~text
+Tier 1 user listening review       = 13
+Tier 1 PASS                        = 4
+Tier 1 FAIL                        = 9
+
+Tier 2 assistant audio review      = 16
+Tier 2 PASS                        = 16
+Tier 2 FAIL                        = 0
+
+priority reviewed total            = 29
+priority PASS                      = 20
+priority FAIL                      = 9
+~~~
+
+Tier 2 uploaded WAV review passed the registered targets:
+
+~~~text
+p029 title       盱眙       ㄒㄩ ㄧˊ
+p099_s01 poem    鄜州       鄜 ㄈㄨ
+p126-p130 author 劉長卿     長 ㄔㄤˊ
+p138 author      盧綸       綸 ㄌㄨㄣˊ
+p163 author      崔顥       顥 ㄏㄠˋ
+p249-p252 author 盧綸       綸 ㄌㄨㄣˊ
+p278-p279 author 張祜       祜 ㄏㄨˋ
+p299 author      鄭畋       畋 ㄊㄧㄢˊ
+~~~
+
+Tier 1 failures registered for deterministic TTS-boundary retry:
+
+~~~text
+p034_s02
+source: 出塞入塞寒，處處黃蘆草。
+proxy:  出賽入賽寒，處處黃蘆草。
+
+p077_s03
+source: 欲渡黃河冰塞川，將登太行雪满山。
+proxy:  欲渡黃河冰澀川，江登太杭雪满山。
+
+p092 author
+source: 岑參
+proxy:  岑申
+
+p100_s04
+source: 明朝有封事，數問夜如何。
+proxy:  明昭有封事，朔問夜如何。
+
+p151_s02
+source: 參差連曲陌，迢遞送斜暉。
+proxy:  嵾疵連屈陌，迢遞送斜暉。
+
+p152_s04
+source: 天涯占夢數，疑誤有新知。
+proxy:  天涯沾夢朔，疑誤有新知。
+
+p251_s01
+source: 月黑雁飛高，單于夜遁逃。
+proxy:  月黑雁飛高，蟬于夜遁逃。
+
+p251_s02
+source: 欲將輕騎逐，大雪滿弓刀。
+proxy:  欲江輕記逐，大雪滿弓刀。
+
+p294_s01
+source: 乘興南遊不戒嚴，九重誰省諫書函。
+proxy:  乘性南遊不戒嚴，九崇誰醒諫書函。
+~~~
+
+Canonical title / author / poem text remains unchanged. These substitutions exist only
+at the synthesis boundary.
+
+### Production learning
+
+The highest-risk Tier 1 sample produced 9 failures out of 13 instruction-only
+assets. This is strong evidence that pronunciation instructions alone are an
+inefficient first-pass strategy for known high-risk polyphones.
+
+Future direction:
+
+- ordinary TTS remains canonical-text-first;
+- registered pronunciation-sensitive assets should be **proxy-first** when a
+  deterministic same-reading homophonic proxy exists;
+- source text and synthesis text remain separate data contracts;
+- a proxy still requires listening QA; it is not treated as self-validating;
+- rare proxy characters such as `嵾 ㄘㄣ` receive explicit retry QA rather than
+  being assumed correct.
+

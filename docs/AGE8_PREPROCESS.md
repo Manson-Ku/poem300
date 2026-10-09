@@ -256,3 +256,22 @@ Next gate:
 3. register only actual failures with TTS-boundary synthesis proxies;
 4. rerun failed assets only;
 5. reach 123/123 listening PASS before full Age 8 TTS production.
+
+## Priority listening QA round 1
+
+~~~text
+priority reviewed = 29
+PASS              = 20
+FAIL              = 9
+proxy retries     = 9
+full 123 QA       = still pending
+~~~
+
+The nine failed assets are now registered with TTS-boundary `synthesis_text`
+proxies. Tier 2 uploaded audio review passed 16/16. The retry batch must be
+listened again before any failed asset is promoted to PASS.
+
+Production learning: future pronunciation-sensitive assets should prefer
+proxy-first synthesis when a deterministic homophonic proxy is available,
+rather than paying for an instruction-only failure and a second generation.
+This does not apply to ordinary TTS assets.

@@ -1383,3 +1383,20 @@ Canonical text remains unchanged. No Age 8 synthesis proxy has been pre-authoriz
 Only assets that fail listening QA may receive a TTS-boundary proxy, following
 the Age 7 contract. Full Age 8 TTS production remains blocked until the 123
 sensitive assets reach listening PASS.
+
+## Age 8 priority listening QA round 1（2026-10-09）
+
+~~~text
+priority reviewed = 29
+PASS              = 20
+FAIL              = 9
+retry proxies     = 9
+~~~
+
+Nine proven failures are registered for synthesis-proxy retry. Tier 2 uploaded
+audio review passed 16/16. Full 123-asset listening QA is still pending.
+
+Pipeline decision learned from this round: future registered
+pronunciation-sensitive assets should use proxy-first synthesis when a stable
+homophonic proxy is available. Ordinary assets continue to synthesize canonical
+text directly.
