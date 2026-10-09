@@ -216,3 +216,45 @@ Behavior:
 These controls are diagnostic/runtime controls only. They do not change TTS
 model, voice, pronunciation registry, canonical text, asset identity or resume
 behavior.
+
+## Pronunciation architecture v2: resolve before TTS
+
+Pronunciation is now a preprocessing concern, not an audio-by-audio QA loop.
+
+SSOT:
+
+~~~text
+data/tts_pronunciation_proxy_registry.json
+~~~
+
+Rule unit:
+
+~~~text
+character + target reading
+~~~
+
+Each rule is classified once:
+
+- `canonical`: the model may receive the original source character; no repeated
+  asset-level listening QA is required.
+- `proxy`: the text layer substitutes a validated same-reading proxy in
+  `synthesis_text`; canonical `source_text` is untouched.
+- unclassified: production preprocessing stops at the text-rule gate until the
+  rule is classified.
+
+Audit without API calls:
+
+~~~powershell
+py scripts\prepare_tts_synthesis_text.py --age 8 --audit-only
+~~~
+
+After rule classification is complete, materialize proxy text:
+
+~~~powershell
+py scripts\prepare_tts_synthesis_text.py --age 8 --apply --require-classified
+~~~
+
+Human listening QA is required only when validating a **new proxy rule**. Use
+one representative asset for that rule. Once validated, reuse the rule across
+all matching assets and later age cohorts. Do not require PASS review for every
+WAV.

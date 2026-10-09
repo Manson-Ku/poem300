@@ -1415,3 +1415,40 @@ remaining sensitive QA   = 94
 Next gate: review the remaining 94 pronunciation-sensitive WAV assets. Do not
 regenerate the 29 already accepted assets. Full Age 8 TTS production follows
 only after 123/123 listening PASS.
+
+## 36. TTS pronunciation governance v2（2026-10-09）
+
+Age 8 priority QA exposed that per-asset pronunciation review is the wrong unit
+of work. Production now resolves pronunciation before the API call.
+
+~~~text
+source_text = canonical / immutable
+character+reading rule
+  -> canonical strategy
+  OR
+  -> validated proxy strategy
+synthesis_text = generated at text layer
+TTS = execution only
+~~~
+
+SSOT:
+
+~~~text
+data/tts_pronunciation_proxy_registry.json
+scripts/prepare_tts_synthesis_text.py
+~~~
+
+Current Age 8 rule inventory:
+
+~~~text
+unique rules         71
+classified           27
+proxy validated      17
+canonical validated  10
+unclassified         44
+~~~
+
+The old `remaining 94 WAV listening QA` gate is cancelled. Next gate is
+text-level classification of the remaining 44 rules. Only a newly added proxy
+rule requires one representative listening-QA asset. Once a rule passes, it is
+reused globally rather than re-reviewed per WAV.

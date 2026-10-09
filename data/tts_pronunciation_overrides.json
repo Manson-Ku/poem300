@@ -1,5 +1,5 @@
 {
-  "version": "tts_pronunciation_overrides_v8",
+  "version": "tts_pronunciation_overrides_v9",
   "instruction_template": "Pronounce the specified character in this exact source text with the requested Taiwan Mandarin reading. Speak only the original source text; do not say the pronunciation instruction or add any words.",
   "items": [
     {
@@ -2671,10 +2671,10 @@
     }
   },
   "age8_policy": {
-    "status": "priority_listening_qa_pass",
+    "status": "text_rule_classification",
     "reviewed_candidate_items": 156,
     "pronunciation_sensitive_assets": 123,
-    "synthesis_proxy_policy": "Age 8 instruction-only sensitive assets were generated first. After priority listening QA, only proven failures receive synthesis_text proxies; canonical text remains immutable.",
+    "synthesis_proxy_policy": "Pronunciation is now resolved at the text layer before TTS. Validated proxy rules are reusable across assets; canonical rules need no repeated listening QA.",
     "listening_qa": {
       "status": "priority_pass_full_pending",
       "priority_reviewed_assets": 29,
@@ -2687,13 +2687,22 @@
       "synthesis_proxy_assets": 9,
       "full_sensitive_asset_count": 123,
       "remaining_unreviewed_assets": 94,
-      "full_listening_qa_status": "pending"
+      "full_listening_qa_status": "superseded_by_rule_level_qa",
+      "asset_level_full_review_required": false
     },
     "canonical_text_immutable": true,
     "production_learning": {
       "observation": "Instruction-only synthesis failed 9 of 13 highest-risk Tier 1 assets in the priority listening sample.",
-      "future_direction": "For future batches, use proxy-first synthesis for registered pronunciation-sensitive readings when a deterministic homophonic proxy is available. Keep ordinary TTS on canonical text and keep canonical source immutable.",
+      "future_direction": "Production contract changed: preprocess character+reading rules before TTS. Use canonical text for ordinary/validated canonical rules and proxy-first synthesis for validated special rules. Do not perform per-asset PASS review.",
       "scope_guard": "Proxy-first applies to pronunciation-sensitive boundary assets, not every TTS asset."
+    },
+    "rule_level_qa": {
+      "unique_rules": 71,
+      "classified_rules": 27,
+      "validated_proxy_rules_in_age8": 17,
+      "validated_canonical_rules_in_age8": 10,
+      "unclassified_rules": 44,
+      "blocking_gate": "Classify the remaining 44 character+reading rules at the text layer. Only new proxy rules require one representative listening QA asset."
     }
   }
 }

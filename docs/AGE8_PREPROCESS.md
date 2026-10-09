@@ -286,7 +286,51 @@ proxy retries     = 9 / 9 PASS
 remaining         = 94
 ~~~
 
-The priority subset is complete. The next blocking gate is human listening QA
-for the remaining 94 pronunciation-sensitive assets. Full Age 8 TTS production
-must still use resume behavior and remains blocked until the full 123/123
-sensitive set is accepted.
+The priority subset is complete. The previous plan to listen to the remaining
+94 assets one-by-one is superseded by the text-rule architecture below.
+
+## TTS pronunciation architecture v2: text-rule first
+
+Decision date: 2026-10-09.
+
+Per-asset pronunciation listening QA is no longer the production gate.
+
+~~~text
+canonical source text
+    -> pronunciation inventory
+    -> classify each character+reading rule
+       -> canonical: send original character
+       -> proxy: materialize deterministic synthesis proxy
+    -> TTS API
+~~~
+
+Permanent SSOT:
+
+~~~text
+data/tts_pronunciation_proxy_registry.json
+~~~
+
+Preparation / audit:
+
+~~~powershell
+py scripts\prepare_tts_synthesis_text.py --age 8 --audit-only
+~~~
+
+Current Age 8 rule-level state:
+
+~~~text
+pronunciation-sensitive assets = 123
+unique character+reading rules = 71
+classified rules               = 27
+  validated proxy              = 17
+  validated canonical          = 10
+unclassified rules             = 44
+~~~
+
+The 94 remaining WAV files are **not** a required one-by-one review queue.
+The next gate is to classify the remaining 44 text rules. A rule classified as
+ordinary/canonical needs no listening QA. A newly introduced proxy rule gets one
+representative listening QA case; after PASS, that rule is reusable across all
+assets and future age cohorts.
+
+Canonical title / author / poem text remains immutable.

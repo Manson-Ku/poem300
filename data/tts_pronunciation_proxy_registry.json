@@ -1,0 +1,338 @@
+{
+  "version": "tts_pronunciation_proxy_registry_v1",
+  "policy": {
+    "canonical_text_immutable": true,
+    "classification_unit": "character+reading",
+    "production_contract": "Pronunciation is resolved before the TTS API call. Ordinary text uses source_text. Only registered special readings may use a deterministic synthesis proxy.",
+    "listening_qa": "Do not review every WAV. Validate a new special pronunciation rule on one representative asset, then reuse that rule across assets/ages.",
+    "unclassified_rule_policy": "Text-layer classification required before full production for that rule. Classify as canonical or proxy; only proxy rules need representative audio validation.",
+    "proxy_scope": "TTS synthesis boundary only; never write proxies back to canonical poem/title/author text."
+  },
+  "rules": [
+    {
+      "character": "景",
+      "reading": "ㄧㄥˇ",
+      "strategy": "proxy",
+      "proxy": "影",
+      "status": "validated",
+      "evidence": [
+        "p217_s02 poem"
+      ]
+    },
+    {
+      "character": "柴",
+      "reading": "ㄓㄞˋ",
+      "strategy": "proxy",
+      "proxy": "寨",
+      "status": "validated",
+      "evidence": [
+        "p217 title"
+      ]
+    },
+    {
+      "character": "疑",
+      "reading": "ㄧˊ",
+      "strategy": "proxy",
+      "proxy": "宜",
+      "status": "validated",
+      "evidence": [
+        "p226_s02 poem"
+      ]
+    },
+    {
+      "character": "夫",
+      "reading": "ㄈㄨˊ",
+      "strategy": "proxy",
+      "proxy": "符",
+      "status": "validated",
+      "evidence": [
+        "p006_s01 poem"
+      ]
+    },
+    {
+      "character": "了",
+      "reading": "ㄌㄧㄠˇ",
+      "strategy": "proxy",
+      "proxy": "瞭",
+      "status": "validated",
+      "evidence": [
+        "p006_s01 poem"
+      ]
+    },
+    {
+      "character": "闕",
+      "reading": "ㄑㄩㄝˋ",
+      "strategy": "proxy",
+      "proxy": "卻",
+      "status": "validated",
+      "evidence": [
+        "p085_s01 poem"
+      ]
+    },
+    {
+      "character": "塞",
+      "reading": "ㄙㄞˋ",
+      "strategy": "proxy",
+      "proxy": "賽",
+      "status": "validated",
+      "evidence": [
+        "p308 title",
+        "p034_s02 poem"
+      ]
+    },
+    {
+      "character": "參",
+      "reading": "ㄕㄣ",
+      "strategy": "proxy",
+      "proxy": "申",
+      "status": "validated",
+      "evidence": [
+        "p263 author",
+        "p092 author"
+      ]
+    },
+    {
+      "character": "爲",
+      "reading": "ㄨㄟˋ",
+      "strategy": "proxy",
+      "proxy": "未",
+      "status": "validated",
+      "evidence": [
+        "p293_s01 poem"
+      ]
+    },
+    {
+      "character": "塞",
+      "reading": "ㄙㄜˋ",
+      "strategy": "proxy",
+      "proxy": "澀",
+      "status": "validated",
+      "evidence": [
+        "p077_s03 poem"
+      ]
+    },
+    {
+      "character": "將",
+      "reading": "ㄐㄧㄤ",
+      "strategy": "proxy",
+      "proxy": "江",
+      "status": "validated",
+      "evidence": [
+        "p077_s03 poem",
+        "p251_s02 poem"
+      ]
+    },
+    {
+      "character": "行",
+      "reading": "ㄏㄤˊ",
+      "strategy": "proxy",
+      "proxy": "杭",
+      "status": "validated",
+      "evidence": [
+        "p077_s03 poem"
+      ]
+    },
+    {
+      "character": "朝",
+      "reading": "ㄓㄠ",
+      "strategy": "proxy",
+      "proxy": "昭",
+      "status": "validated",
+      "evidence": [
+        "p100_s04 poem"
+      ]
+    },
+    {
+      "character": "數",
+      "reading": "ㄕㄨㄛˋ",
+      "strategy": "proxy",
+      "proxy": "朔",
+      "status": "validated",
+      "evidence": [
+        "p100_s04 poem",
+        "p152_s04 poem"
+      ]
+    },
+    {
+      "character": "參",
+      "reading": "ㄘㄣ",
+      "strategy": "proxy",
+      "proxy": "嵾",
+      "status": "validated",
+      "evidence": [
+        "p151_s02 poem"
+      ],
+      "note": "Rare proxy glyph; validated by retry listening QA."
+    },
+    {
+      "character": "差",
+      "reading": "ㄘ",
+      "strategy": "proxy",
+      "proxy": "疵",
+      "status": "validated",
+      "evidence": [
+        "p151_s02 poem"
+      ]
+    },
+    {
+      "character": "曲",
+      "reading": "ㄑㄩ",
+      "strategy": "proxy",
+      "proxy": "屈",
+      "status": "validated",
+      "evidence": [
+        "p151_s02 poem"
+      ]
+    },
+    {
+      "character": "占",
+      "reading": "ㄓㄢ",
+      "strategy": "proxy",
+      "proxy": "沾",
+      "status": "validated",
+      "evidence": [
+        "p152_s04 poem"
+      ]
+    },
+    {
+      "character": "單",
+      "reading": "ㄔㄢˊ",
+      "strategy": "proxy",
+      "proxy": "蟬",
+      "status": "validated",
+      "evidence": [
+        "p251_s01 poem"
+      ]
+    },
+    {
+      "character": "騎",
+      "reading": "ㄐㄧˋ",
+      "strategy": "proxy",
+      "proxy": "記",
+      "status": "validated",
+      "evidence": [
+        "p251_s02 poem"
+      ]
+    },
+    {
+      "character": "興",
+      "reading": "ㄒㄧㄥˋ",
+      "strategy": "proxy",
+      "proxy": "性",
+      "status": "validated",
+      "evidence": [
+        "p294_s01 poem"
+      ]
+    },
+    {
+      "character": "重",
+      "reading": "ㄔㄨㄥˊ",
+      "strategy": "proxy",
+      "proxy": "崇",
+      "status": "validated",
+      "evidence": [
+        "p294_s01 poem"
+      ]
+    },
+    {
+      "character": "省",
+      "reading": "ㄒㄧㄥˇ",
+      "strategy": "proxy",
+      "proxy": "醒",
+      "status": "validated",
+      "evidence": [
+        "p294_s01 poem"
+      ]
+    },
+    {
+      "character": "盱",
+      "reading": "ㄒㄩ",
+      "strategy": "canonical",
+      "status": "validated",
+      "evidence": [
+        "p029 title"
+      ]
+    },
+    {
+      "character": "眙",
+      "reading": "ㄧˊ",
+      "strategy": "canonical",
+      "status": "validated",
+      "evidence": [
+        "p029 title"
+      ]
+    },
+    {
+      "character": "鄜",
+      "reading": "ㄈㄨ",
+      "strategy": "canonical",
+      "status": "validated",
+      "evidence": [
+        "p099_s01 poem"
+      ]
+    },
+    {
+      "character": "長",
+      "reading": "ㄔㄤˊ",
+      "strategy": "canonical",
+      "status": "validated",
+      "evidence": [
+        "p126-p130 author"
+      ]
+    },
+    {
+      "character": "綸",
+      "reading": "ㄌㄨㄣˊ",
+      "strategy": "canonical",
+      "status": "validated",
+      "evidence": [
+        "p138/p249-p252 author"
+      ]
+    },
+    {
+      "character": "顥",
+      "reading": "ㄏㄠˋ",
+      "strategy": "canonical",
+      "status": "validated",
+      "evidence": [
+        "p163 author"
+      ]
+    },
+    {
+      "character": "祜",
+      "reading": "ㄏㄨˋ",
+      "strategy": "canonical",
+      "status": "validated",
+      "evidence": [
+        "p278/p279 author"
+      ]
+    },
+    {
+      "character": "畋",
+      "reading": "ㄊㄧㄢˊ",
+      "strategy": "canonical",
+      "status": "validated",
+      "evidence": [
+        "p299 author"
+      ]
+    },
+    {
+      "character": "沈",
+      "reading": "ㄔㄣˊ",
+      "strategy": "canonical",
+      "status": "validated",
+      "evidence": [
+        "p312_s02 poem"
+      ]
+    },
+    {
+      "character": "觧",
+      "reading": "ㄐㄧㄝˇ",
+      "strategy": "canonical",
+      "status": "validated",
+      "evidence": [
+        "p312_s02 poem"
+      ]
+    }
+  ]
+}
