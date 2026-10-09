@@ -1,5 +1,5 @@
 {
-  "version": "bpmf_font_extensions_v5",
+  "version": "bpmf_font_extensions_v6",
   "base_font": {
     "expected_filename": "BpmfHuninn-Regular.ttf",
     "upstream": "ButTaiwan/bpmfvs",
@@ -545,6 +545,28 @@
         "Age 9 canonical source"
       ],
       "note": "Age 9 renderer-only compatibility alias; canonical text remains unchanged."
+    },
+    {
+      "character": "嶤",
+      "codepoint": "U+5DA4",
+      "source_character": "嶢",
+      "source_codepoint": "U+5DA2",
+      "reading": "ㄧㄠˊ",
+      "contexts": [
+        "Age 9 canonical source"
+      ],
+      "note": "教育部《異體字字典》列嶤為嶢之異體；renderer-only alias。"
+    },
+    {
+      "character": "疴",
+      "codepoint": "U+75B4",
+      "source_character": "痾",
+      "source_codepoint": "U+75FE",
+      "reading": "ㄜ",
+      "contexts": [
+        "Age 9 canonical source"
+      ],
+      "note": "教育部《異體字字典》列疴為痾之異體；renderer-only alias。"
     }
   ],
   "synthesized_glyphs": [
@@ -647,6 +669,1024 @@
         "p014 渭川田家"
       ],
       "evidence_note": "Pinned BpmfVS phonetic table records 雊 ㄍㄡˋ, while the Huninn source glyph is absent; synthesize canonical 雊 from same-font 句+隹 and borrow ㄍㄡˋ annotation geometry from 夠."
+    },
+    {
+      "character": "嚱",
+      "codepoint": "U+56B1",
+      "reading": "ㄒㄧ",
+      "prototype_character": "西",
+      "prototype_codepoint": "U+897F",
+      "components": [
+        {
+          "character": "口",
+          "codepoint": "U+53E3",
+          "scale_x": 0.46,
+          "scale_y": 1,
+          "x_em": 0,
+          "y_em": 0
+        },
+        {
+          "character": "戲",
+          "codepoint": "U+6232",
+          "scale_x": 0.62,
+          "scale_y": 1,
+          "x_em": 0.38,
+          "y_em": 0
+        }
+      ],
+      "contexts": [
+        "p074 蜀道難：噫吁嚱"
+      ],
+      "evidence_note": "Age 9 rare glyph; BpmfVS records ㄒㄧ. Synthesize 口+戲."
+    },
+    {
+      "character": "壈",
+      "codepoint": "U+58C8",
+      "reading": "ㄌㄢˇ",
+      "prototype_character": "懶",
+      "prototype_codepoint": "U+61F6",
+      "components": [
+        {
+          "character": "土",
+          "codepoint": "U+571F",
+          "scale_x": 0.46,
+          "scale_y": 1,
+          "x_em": 0,
+          "y_em": 0
+        },
+        {
+          "character": "稟",
+          "codepoint": "U+7A1F",
+          "scale_x": 0.62,
+          "scale_y": 1,
+          "x_em": 0.38,
+          "y_em": 0
+        }
+      ],
+      "contexts": [
+        "p056 丹青引贈曹將軍霸：坎壈"
+      ],
+      "evidence_note": "Age 9 rare glyph; BpmfVS records ㄌㄢˇ. Synthesize 土+稟."
+    },
+    {
+      "character": "娿",
+      "codepoint": "U+5A3F",
+      "reading": "ㄜ",
+      "prototype_character": "婀",
+      "prototype_codepoint": "U+5A40",
+      "components": [
+        {
+          "character": "女",
+          "codepoint": "U+5973",
+          "scale_x": 0.46,
+          "scale_y": 1,
+          "x_em": 0,
+          "y_em": 0
+        },
+        {
+          "character": "阿",
+          "codepoint": "U+963F",
+          "scale_x": 0.62,
+          "scale_y": 1,
+          "x_em": 0.38,
+          "y_em": 0
+        }
+      ],
+      "contexts": [
+        "p064 石鼓歌：媕娿"
+      ],
+      "evidence_note": "Age 9 rare glyph; BpmfVS records ㄜ. Synthesize 女+阿."
+    },
+    {
+      "character": "媕",
+      "codepoint": "U+5A95",
+      "reading": "ㄢ",
+      "prototype_character": "安",
+      "prototype_codepoint": "U+5B89",
+      "components": [
+        {
+          "character": "女",
+          "codepoint": "U+5973",
+          "scale_x": 0.46,
+          "scale_y": 1,
+          "x_em": 0,
+          "y_em": 0
+        },
+        {
+          "character": "奄",
+          "codepoint": "U+5944",
+          "scale_x": 0.62,
+          "scale_y": 1,
+          "x_em": 0.38,
+          "y_em": 0
+        }
+      ],
+      "contexts": [
+        "p064 石鼓歌：媕娿"
+      ],
+      "evidence_note": "Age 9 rare glyph; BpmfVS records ㄢ/ㄧㄢˇ; context 媕娿 uses ㄢ. Synthesize 女+奄."
+    },
+    {
+      "character": "岧",
+      "codepoint": "U+5CA7",
+      "reading": "ㄊㄧㄠˊ",
+      "prototype_character": "迢",
+      "prototype_codepoint": "U+8FE2",
+      "components": [
+        {
+          "character": "山",
+          "codepoint": "U+5C71",
+          "scale_x": 0.46,
+          "scale_y": 1,
+          "x_em": 0,
+          "y_em": 0
+        },
+        {
+          "character": "召",
+          "codepoint": "U+53EC",
+          "scale_x": 0.62,
+          "scale_y": 1,
+          "x_em": 0.38,
+          "y_em": 0
+        }
+      ],
+      "contexts": [
+        "p164 行經華陰：岧嶤"
+      ],
+      "evidence_note": "教育部《異體字字典》 records 岧 ㄊㄧㄠˊ; synthesize 山+召."
+    },
+    {
+      "character": "幘",
+      "codepoint": "U+5E58",
+      "reading": "ㄗㄜˊ",
+      "prototype_character": "責",
+      "prototype_codepoint": "U+8CAC",
+      "components": [
+        {
+          "character": "巾",
+          "codepoint": "U+5DFE",
+          "scale_x": 0.46,
+          "scale_y": 1,
+          "x_em": 0,
+          "y_em": 0
+        },
+        {
+          "character": "責",
+          "codepoint": "U+8CAC",
+          "scale_x": 0.62,
+          "scale_y": 1,
+          "x_em": 0.38,
+          "y_em": 0
+        }
+      ],
+      "contexts": [
+        "p171 和賈舍人早朝大明宮之作：絳幘"
+      ],
+      "evidence_note": "Age 9 rare glyph; BpmfVS records ㄗㄜˊ. Synthesize 巾+責."
+    },
+    {
+      "character": "摐",
+      "codepoint": "U+6450",
+      "reading": "ㄔㄨㄤ",
+      "prototype_character": "窗",
+      "prototype_codepoint": "U+7A97",
+      "components": [
+        {
+          "character": "手",
+          "codepoint": "U+624B",
+          "scale_x": 0.46,
+          "scale_y": 1,
+          "x_em": 0,
+          "y_em": 0
+        },
+        {
+          "character": "從",
+          "codepoint": "U+5F9E",
+          "scale_x": 0.62,
+          "scale_y": 1,
+          "x_em": 0.38,
+          "y_em": 0
+        }
+      ],
+      "contexts": [
+        "p069 燕歌行：摐金伐鼓"
+      ],
+      "evidence_note": "Age 9 rare glyph; BpmfVS records ㄔㄨㄤ. Synthesize 扌/手+從."
+    },
+    {
+      "character": "晼",
+      "codepoint": "U+667C",
+      "reading": "ㄨㄢˇ",
+      "prototype_character": "晚",
+      "prototype_codepoint": "U+665A",
+      "components": [
+        {
+          "character": "日",
+          "codepoint": "U+65E5",
+          "scale_x": 0.46,
+          "scale_y": 1,
+          "x_em": 0,
+          "y_em": 0
+        },
+        {
+          "character": "宛",
+          "codepoint": "U+5B9B",
+          "scale_x": 0.62,
+          "scale_y": 1,
+          "x_em": 0.38,
+          "y_em": 0
+        }
+      ],
+      "contexts": [
+        "p209 春雨：春晼晚"
+      ],
+      "evidence_note": "Age 9 rare glyph; BpmfVS records ㄨㄢˇ. Synthesize 日+宛."
+    },
+    {
+      "character": "曨",
+      "codepoint": "U+66E8",
+      "reading": "ㄌㄨㄥˊ",
+      "prototype_character": "龍",
+      "prototype_codepoint": "U+9F8D",
+      "components": [
+        {
+          "character": "日",
+          "codepoint": "U+65E5",
+          "scale_x": 0.46,
+          "scale_y": 1,
+          "x_em": 0,
+          "y_em": 0
+        },
+        {
+          "character": "龍",
+          "codepoint": "U+9F8D",
+          "scale_x": 0.62,
+          "scale_y": 1,
+          "x_em": 0.38,
+          "y_em": 0
+        }
+      ],
+      "contexts": [
+        "p063 謁衡嶽廟遂宿岳寺題門樓：曈曨"
+      ],
+      "evidence_note": "Age 9 rare glyph; BpmfVS records ㄌㄨㄥˊ. Synthesize 日+龍."
+    },
+    {
+      "character": "朓",
+      "codepoint": "U+6713",
+      "reading": "ㄊㄧㄠˋ",
+      "prototype_character": "跳",
+      "prototype_codepoint": "U+8DF3",
+      "components": [
+        {
+          "character": "月",
+          "codepoint": "U+6708",
+          "scale_x": 0.46,
+          "scale_y": 1,
+          "x_em": 0,
+          "y_em": 0
+        },
+        {
+          "character": "兆",
+          "codepoint": "U+5146",
+          "scale_x": 0.62,
+          "scale_y": 1,
+          "x_em": 0.38,
+          "y_em": 0
+        }
+      ],
+      "contexts": [
+        "p051 宣州謝朓樓餞別校書叔雲：謝朓"
+      ],
+      "evidence_note": "教育部《重編國語辭典》人名謝朓讀 ㄒㄧㄝˋ ㄊㄧㄠˋ. Synthesize 月+兆."
+    },
+    {
+      "character": "澒",
+      "codepoint": "U+6F92",
+      "reading": "ㄏㄨㄥˋ",
+      "prototype_character": "哄",
+      "prototype_codepoint": "U+54C4",
+      "components": [
+        {
+          "character": "水",
+          "codepoint": "U+6C34",
+          "scale_x": 0.46,
+          "scale_y": 1,
+          "x_em": 0,
+          "y_em": 0
+        },
+        {
+          "character": "項",
+          "codepoint": "U+9805",
+          "scale_x": 0.62,
+          "scale_y": 1,
+          "x_em": 0.38,
+          "y_em": 0
+        }
+      ],
+      "contexts": [
+        "p059 觀公孫大娘弟子舞劍器行并序：澒洞"
+      ],
+      "evidence_note": "Age 9 context 澒洞 uses ㄏㄨㄥˋ. Synthesize 水+項."
+    },
+    {
+      "character": "璫",
+      "codepoint": "U+74AB",
+      "reading": "ㄉㄤ",
+      "prototype_character": "當",
+      "prototype_codepoint": "U+7576",
+      "components": [
+        {
+          "character": "王",
+          "codepoint": "U+738B",
+          "scale_x": 0.46,
+          "scale_y": 1,
+          "x_em": 0,
+          "y_em": 0
+        },
+        {
+          "character": "當",
+          "codepoint": "U+7576",
+          "scale_x": 0.62,
+          "scale_y": 1,
+          "x_em": 0.38,
+          "y_em": 0
+        }
+      ],
+      "contexts": [
+        "p209 春雨：玉璫"
+      ],
+      "evidence_note": "Age 9 rare glyph; BpmfVS records ㄉㄤ. Synthesize 王+當."
+    },
+    {
+      "character": "矰",
+      "codepoint": "U+77F0",
+      "reading": "ㄗㄥ",
+      "prototype_character": "增",
+      "prototype_codepoint": "U+589E",
+      "components": [
+        {
+          "character": "矢",
+          "codepoint": "U+77E2",
+          "scale_x": 0.46,
+          "scale_y": 1,
+          "x_em": 0,
+          "y_em": 0
+        },
+        {
+          "character": "曾",
+          "codepoint": "U+66FE",
+          "scale_x": 0.62,
+          "scale_y": 1,
+          "x_em": 0.38,
+          "y_em": 0
+        }
+      ],
+      "contexts": [
+        "p159 孤雁：矰繳"
+      ],
+      "evidence_note": "CNS/ BpmfVS records 矰 ㄗㄥ, IDS 矢+曾."
+    },
+    {
+      "character": "砯",
+      "codepoint": "U+782F",
+      "reading": "ㄆㄧㄥ",
+      "prototype_character": "乒",
+      "prototype_codepoint": "U+4E52",
+      "components": [
+        {
+          "character": "石",
+          "codepoint": "U+77F3",
+          "scale_x": 0.46,
+          "scale_y": 1,
+          "x_em": 0,
+          "y_em": 0
+        },
+        {
+          "character": "水",
+          "codepoint": "U+6C34",
+          "scale_x": 0.62,
+          "scale_y": 1,
+          "x_em": 0.38,
+          "y_em": 0
+        }
+      ],
+      "contexts": [
+        "p074 蜀道難：砯崖"
+      ],
+      "evidence_note": "Age 9 rare glyph; BpmfVS records ㄆㄧㄥ. Approximate canonical structure 石+水."
+    },
+    {
+      "character": "窅",
+      "codepoint": "U+7A85",
+      "reading": "ㄧㄠˇ",
+      "prototype_character": "咬",
+      "prototype_codepoint": "U+54AC",
+      "components": [
+        {
+          "character": "穴",
+          "codepoint": "U+7A74",
+          "scale_x": 0.92,
+          "scale_y": 0.42,
+          "x_em": 0.04,
+          "y_em": 0.58
+        },
+        {
+          "character": "目",
+          "codepoint": "U+76EE",
+          "scale_x": 0.94,
+          "scale_y": 0.68,
+          "x_em": 0.03,
+          "y_em": 0
+        }
+      ],
+      "contexts": [
+        "p200 遣悲懷三首之三：窅冥"
+      ],
+      "evidence_note": "Age 9 rare glyph; BpmfVS records ㄧㄠˇ. Synthesize 穴+目."
+    },
+    {
+      "character": "綃",
+      "codepoint": "U+7D83",
+      "reading": "ㄒㄧㄠ",
+      "prototype_character": "消",
+      "prototype_codepoint": "U+6D88",
+      "components": [
+        {
+          "character": "糸",
+          "codepoint": "U+7CF8",
+          "scale_x": 0.46,
+          "scale_y": 1,
+          "x_em": 0,
+          "y_em": 0
+        },
+        {
+          "character": "肖",
+          "codepoint": "U+8096",
+          "scale_x": 0.62,
+          "scale_y": 1,
+          "x_em": 0.38,
+          "y_em": 0
+        }
+      ],
+      "contexts": [
+        "p067 琵琶行并序：紅綃"
+      ],
+      "evidence_note": "Age 9 rare glyph; BpmfVS records ㄒㄧㄠ. Synthesize 糸+肖."
+    },
+    {
+      "character": "纆",
+      "codepoint": "U+7E86",
+      "reading": "ㄇㄛˋ",
+      "prototype_character": "墨",
+      "prototype_codepoint": "U+58A8",
+      "components": [
+        {
+          "character": "糸",
+          "codepoint": "U+7CF8",
+          "scale_x": 0.46,
+          "scale_y": 1,
+          "x_em": 0,
+          "y_em": 0
+        },
+        {
+          "character": "墨",
+          "codepoint": "U+58A8",
+          "scale_x": 0.62,
+          "scale_y": 1,
+          "x_em": 0.38,
+          "y_em": 0
+        }
+      ],
+      "contexts": [
+        "p086 在獄詠蟬并序"
+      ],
+      "evidence_note": "Age 9 rare glyph; BpmfVS records ㄇㄛˋ. Synthesize 糸+墨."
+    },
+    {
+      "character": "菑",
+      "codepoint": "U+83D1",
+      "reading": "ㄗ",
+      "prototype_character": "資",
+      "prototype_codepoint": "U+8CC7",
+      "components": [
+        {
+          "character": "艹",
+          "codepoint": "U+8279",
+          "scale_x": 0.92,
+          "scale_y": 0.42,
+          "x_em": 0.04,
+          "y_em": 0.58
+        },
+        {
+          "character": "甾",
+          "codepoint": "U+753E",
+          "scale_x": 0.94,
+          "scale_y": 0.68,
+          "x_em": 0.03,
+          "y_em": 0
+        }
+      ],
+      "contexts": [
+        "p173 積雨輞川莊作：東菑"
+      ],
+      "evidence_note": "教育部辭典引本詩，東菑讀 ㄗ. Synthesize 艹+甾."
+    },
+    {
+      "character": "藎",
+      "codepoint": "U+85CE",
+      "reading": "ㄐㄧㄣˋ",
+      "prototype_character": "進",
+      "prototype_codepoint": "U+9032",
+      "components": [
+        {
+          "character": "艹",
+          "codepoint": "U+8279",
+          "scale_x": 0.92,
+          "scale_y": 0.42,
+          "x_em": 0.04,
+          "y_em": 0.58
+        },
+        {
+          "character": "盡",
+          "codepoint": "U+76E1",
+          "scale_x": 0.94,
+          "scale_y": 0.68,
+          "x_em": 0.03,
+          "y_em": 0
+        }
+      ],
+      "contexts": [
+        "p198 遣悲懷三首之一：藎篋"
+      ],
+      "evidence_note": "Age 9 rare glyph; BpmfVS records ㄐㄧㄣˋ. Synthesize 艹+盡."
+    },
+    {
+      "character": "衱",
+      "codepoint": "U+8871",
+      "reading": "ㄐㄧㄝˊ",
+      "prototype_character": "節",
+      "prototype_codepoint": "U+7BC0",
+      "components": [
+        {
+          "character": "衣",
+          "codepoint": "U+8863",
+          "scale_x": 0.46,
+          "scale_y": 1,
+          "x_em": 0,
+          "y_em": 0
+        },
+        {
+          "character": "及",
+          "codepoint": "U+53CA",
+          "scale_x": 0.62,
+          "scale_y": 1,
+          "x_em": 0.38,
+          "y_em": 0
+        }
+      ],
+      "contexts": [
+        "p080 麗人行：腰衱"
+      ],
+      "evidence_note": "Age 9 rare glyph; BpmfVS records ㄐㄧㄝˊ. Approximate 衤/衣+及."
+    },
+    {
+      "character": "豗",
+      "codepoint": "U+8C57",
+      "reading": "ㄏㄨㄟ",
+      "prototype_character": "灰",
+      "prototype_codepoint": "U+7070",
+      "components": [
+        {
+          "character": "兀",
+          "codepoint": "U+5140",
+          "scale_x": 0.58,
+          "scale_y": 1,
+          "x_em": 0,
+          "y_em": 0
+        },
+        {
+          "character": "豕",
+          "codepoint": "U+8C55",
+          "scale_x": 0.72,
+          "scale_y": 0.92,
+          "x_em": 0.24,
+          "y_em": 0.02
+        }
+      ],
+      "contexts": [
+        "p074 蜀道難：喧豗"
+      ],
+      "evidence_note": "CNS IDS is 兀 surrounding 豕; BpmfVS records ㄏㄨㄟ."
+    },
+    {
+      "character": "貙",
+      "codepoint": "U+8C99",
+      "reading": "ㄔㄨ",
+      "prototype_character": "出",
+      "prototype_codepoint": "U+51FA",
+      "components": [
+        {
+          "character": "豸",
+          "codepoint": "U+8C78",
+          "scale_x": 0.46,
+          "scale_y": 1,
+          "x_em": 0,
+          "y_em": 0
+        },
+        {
+          "character": "區",
+          "codepoint": "U+5340",
+          "scale_x": 0.62,
+          "scale_y": 1,
+          "x_em": 0.38,
+          "y_em": 0
+        }
+      ],
+      "contexts": [
+        "p068 韓碑：貙"
+      ],
+      "evidence_note": "Age 9 rare glyph; BpmfVS records ㄔㄨ. Synthesize 豸+區."
+    },
+    {
+      "character": "邽",
+      "codepoint": "U+90BD",
+      "reading": "ㄍㄨㄟ",
+      "prototype_character": "龜",
+      "prototype_codepoint": "U+9F9C",
+      "components": [
+        {
+          "character": "圭",
+          "codepoint": "U+572D",
+          "scale_x": 0.46,
+          "scale_y": 1,
+          "x_em": 0,
+          "y_em": 0
+        },
+        {
+          "character": "邑",
+          "codepoint": "U+9091",
+          "scale_x": 0.62,
+          "scale_y": 1,
+          "x_em": 0.38,
+          "y_em": 0
+        }
+      ],
+      "contexts": [
+        "p201 望月有感：下邽"
+      ],
+      "evidence_note": "Age 9 place-name glyph; context reads ㄍㄨㄟ. Synthesize 圭+邑."
+    },
+    {
+      "character": "閟",
+      "codepoint": "U+959F",
+      "reading": "ㄅㄧˋ",
+      "prototype_character": "必",
+      "prototype_codepoint": "U+5FC5",
+      "components": [
+        {
+          "character": "門",
+          "codepoint": "U+9580",
+          "scale_x": 1,
+          "scale_y": 1,
+          "x_em": 0,
+          "y_em": 0
+        },
+        {
+          "character": "必",
+          "codepoint": "U+5FC5",
+          "scale_x": 0.52,
+          "scale_y": 0.6,
+          "x_em": 0.24,
+          "y_em": 0.1
+        }
+      ],
+      "contexts": [
+        "p058 古柏行：閟宮"
+      ],
+      "evidence_note": "Age 9 rare glyph; BpmfVS records ㄅㄧˋ. Compose 門 enclosing 必."
+    },
+    {
+      "character": "隩",
+      "codepoint": "U+96A9",
+      "reading": "ㄩˋ",
+      "prototype_character": "玉",
+      "prototype_codepoint": "U+7389",
+      "components": [
+        {
+          "character": "阜",
+          "codepoint": "U+961C",
+          "scale_x": 0.46,
+          "scale_y": 1,
+          "x_em": 0,
+          "y_em": 0
+        },
+        {
+          "character": "奧",
+          "codepoint": "U+5967",
+          "scale_x": 0.62,
+          "scale_y": 1,
+          "x_em": 0.38,
+          "y_em": 0
+        }
+      ],
+      "contexts": [
+        "p073 桃源行：隈隩"
+      ],
+      "evidence_note": "教育部《重編國語辭典》 lists 隈隩 ㄨㄟ ㄩˋ. Approximate 阝/阜+奧."
+    },
+    {
+      "character": "鞚",
+      "codepoint": "U+979A",
+      "reading": "ㄎㄨㄥˋ",
+      "prototype_character": "控",
+      "prototype_codepoint": "U+63A7",
+      "components": [
+        {
+          "character": "革",
+          "codepoint": "U+9769",
+          "scale_x": 0.46,
+          "scale_y": 1,
+          "x_em": 0,
+          "y_em": 0
+        },
+        {
+          "character": "空",
+          "codepoint": "U+7A7A",
+          "scale_x": 0.62,
+          "scale_y": 1,
+          "x_em": 0.38,
+          "y_em": 0
+        }
+      ],
+      "contexts": [
+        "p080 麗人行：飛鞚"
+      ],
+      "evidence_note": "Age 9 rare glyph; BpmfVS records ㄎㄨㄥˋ. Synthesize 革+空."
+    },
+    {
+      "character": "鞞",
+      "codepoint": "U+979E",
+      "reading": "ㄅㄧㄥˇ",
+      "prototype_character": "丙",
+      "prototype_codepoint": "U+4E19",
+      "components": [
+        {
+          "character": "革",
+          "codepoint": "U+9769",
+          "scale_x": 0.46,
+          "scale_y": 1,
+          "x_em": 0,
+          "y_em": 0
+        },
+        {
+          "character": "卑",
+          "codepoint": "U+5351",
+          "scale_x": 0.62,
+          "scale_y": 1,
+          "x_em": 0.38,
+          "y_em": 0
+        }
+      ],
+      "contexts": [
+        "p066 長恨歌：漁陽鞞鼓"
+      ],
+      "evidence_note": "教育部《重編國語辭典》 lists 漁陽鞞鼓 ㄩˊ ㄧㄤˊ ㄅㄧㄥˇ ㄍㄨˇ. Synthesize 革+卑."
+    },
+    {
+      "character": "鞿",
+      "codepoint": "U+97BF",
+      "reading": "ㄐㄧ",
+      "prototype_character": "機",
+      "prototype_codepoint": "U+6A5F",
+      "components": [
+        {
+          "character": "革",
+          "codepoint": "U+9769",
+          "scale_x": 0.46,
+          "scale_y": 1,
+          "x_em": 0,
+          "y_em": 0
+        },
+        {
+          "character": "幾",
+          "codepoint": "U+5E7E",
+          "scale_x": 0.62,
+          "scale_y": 1,
+          "x_em": 0.38,
+          "y_em": 0
+        }
+      ],
+      "contexts": [
+        "p061 山石：為人鞿"
+      ],
+      "evidence_note": "Age 9 rare glyph; BpmfVS records ㄐㄧ. Synthesize 革+幾."
+    },
+    {
+      "character": "顙",
+      "codepoint": "U+9859",
+      "reading": "ㄙㄤˇ",
+      "prototype_character": "嗓",
+      "prototype_codepoint": "U+55D3",
+      "components": [
+        {
+          "character": "桑",
+          "codepoint": "U+6851",
+          "scale_x": 0.46,
+          "scale_y": 1,
+          "x_em": 0,
+          "y_em": 0
+        },
+        {
+          "character": "頁",
+          "codepoint": "U+9801",
+          "scale_x": 0.62,
+          "scale_y": 1,
+          "x_em": 0.38,
+          "y_em": 0
+        }
+      ],
+      "contexts": [
+        "p043 送陳章甫：大顙"
+      ],
+      "evidence_note": "教育部《異體字字典》 records 顙 ㄙㄤˇ, structure 桑+頁."
+    },
+    {
+      "character": "颭",
+      "codepoint": "U+98AD",
+      "reading": "ㄓㄢˇ",
+      "prototype_character": "展",
+      "prototype_codepoint": "U+5C55",
+      "components": [
+        {
+          "character": "風",
+          "codepoint": "U+98A8",
+          "scale_x": 0.78,
+          "scale_y": 1,
+          "x_em": 0,
+          "y_em": 0
+        },
+        {
+          "character": "占",
+          "codepoint": "U+5360",
+          "scale_x": 0.44,
+          "scale_y": 0.62,
+          "x_em": 0.48,
+          "y_em": 0.12
+        }
+      ],
+      "contexts": [
+        "p196 登柳州城樓寄漳汀封連四州刺史：亂颭"
+      ],
+      "evidence_note": "教育部字典 records 颭 ㄓㄢˇ; approximate 風 enclosing 占."
+    },
+    {
+      "character": "颻",
+      "codepoint": "U+98BB",
+      "reading": "ㄧㄠˊ",
+      "prototype_character": "搖",
+      "prototype_codepoint": "U+6416",
+      "components": [
+        {
+          "character": "爪",
+          "codepoint": "U+722A",
+          "scale_x": 0.36,
+          "scale_y": 0.42,
+          "x_em": 0.02,
+          "y_em": 0.56
+        },
+        {
+          "character": "缶",
+          "codepoint": "U+7F36",
+          "scale_x": 0.42,
+          "scale_y": 0.58,
+          "x_em": 0.02,
+          "y_em": 0.02
+        },
+        {
+          "character": "風",
+          "codepoint": "U+98A8",
+          "scale_x": 0.66,
+          "scale_y": 1,
+          "x_em": 0.34,
+          "y_em": 0
+        }
+      ],
+      "contexts": [
+        "p066 長恨歌；p069 燕歌行：飄颻"
+      ],
+      "evidence_note": "Age 9 rare glyph; BpmfVS records ㄧㄠˊ. Approximate phonetic 䍃 from 爪+缶 plus 風."
+    },
+    {
+      "character": "飀",
+      "codepoint": "U+98C0",
+      "reading": "ㄌㄧㄡˊ",
+      "prototype_character": "流",
+      "prototype_codepoint": "U+6D41",
+      "components": [
+        {
+          "character": "風",
+          "codepoint": "U+98A8",
+          "scale_x": 0.78,
+          "scale_y": 1,
+          "x_em": 0,
+          "y_em": 0
+        },
+        {
+          "character": "留",
+          "codepoint": "U+7559",
+          "scale_x": 0.48,
+          "scale_y": 0.7,
+          "x_em": 0.46,
+          "y_em": 0.08
+        }
+      ],
+      "contexts": [
+        "p046 聽安萬善吹觱篥歌：颼飀"
+      ],
+      "evidence_note": "Age 9 rare glyph; BpmfVS records ㄌㄧㄡˊ. Approximate 風 enclosing 留."
+    },
+    {
+      "character": "騧",
+      "codepoint": "U+9A27",
+      "reading": "ㄍㄨㄚ",
+      "prototype_character": "瓜",
+      "prototype_codepoint": "U+74DC",
+      "components": [
+        {
+          "character": "馬",
+          "codepoint": "U+99AC",
+          "scale_x": 0.46,
+          "scale_y": 1,
+          "x_em": 0,
+          "y_em": 0
+        },
+        {
+          "character": "咼",
+          "codepoint": "U+54BC",
+          "scale_x": 0.62,
+          "scale_y": 1,
+          "x_em": 0.38,
+          "y_em": 0
+        }
+      ],
+      "contexts": [
+        "p055 韋諷錄事宅觀曹將軍畫馬圖：拳毛騧"
+      ],
+      "evidence_note": "CNS IDS 馬+咼; BpmfVS records ㄍㄨㄚ."
+    },
+    {
+      "character": "鼉",
+      "codepoint": "U+9F09",
+      "reading": "ㄊㄨㄛˊ",
+      "prototype_character": "駝",
+      "prototype_codepoint": "U+99DD",
+      "components": [
+        {
+          "character": "口",
+          "codepoint": "U+53E3",
+          "scale_x": 0.4,
+          "scale_y": 0.25,
+          "x_em": 0.06,
+          "y_em": 0.74
+        },
+        {
+          "character": "口",
+          "codepoint": "U+53E3",
+          "scale_x": 0.4,
+          "scale_y": 0.25,
+          "x_em": 0.53,
+          "y_em": 0.74
+        },
+        {
+          "character": "田",
+          "codepoint": "U+7530",
+          "scale_x": 0.72,
+          "scale_y": 0.32,
+          "x_em": 0.14,
+          "y_em": 0.43
+        },
+        {
+          "character": "一",
+          "codepoint": "U+4E00",
+          "scale_x": 0.78,
+          "scale_y": 0.12,
+          "x_em": 0.11,
+          "y_em": 0.34
+        },
+        {
+          "character": "黽",
+          "codepoint": "U+9EFD",
+          "scale_x": 0.78,
+          "scale_y": 0.48,
+          "x_em": 0.11,
+          "y_em": 0
+        }
+      ],
+      "contexts": [
+        "p064 石鼓歌：蛟鼉"
+      ],
+      "evidence_note": "CNS IDS ⿳㽞一黽; approximate 㽞 with two 口 over 田, then 一+黽. BpmfVS records ㄊㄨㄛˊ."
     }
   ]
 }
