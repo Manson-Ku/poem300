@@ -1,5 +1,5 @@
 {
-  "version": "tts_pronunciation_proxy_registry_v3",
+  "version": "tts_pronunciation_proxy_registry_v4",
   "policy": {
     "canonical_text_immutable": true,
     "classification_unit": "character+reading",
@@ -7,7 +7,8 @@
     "listening_qa": "Rule-level QA only. A new proxy rule is validated once on one representative asset, then reused across assets and age cohorts. Per-WAV PASS review is not required.",
     "unclassified_rule_policy": "Text-layer classification required before full production for that rule. Classify as canonical or proxy; only proxy rules need representative audio validation.",
     "proxy_scope": "TTS synthesis boundary only; never write proxies back to canonical poem/title/author text.",
-    "rule_status": "canonical: approved/validated; proxy: pending_validation/validated."
+    "rule_status": "canonical: approved/validated; proxy: pending_validation/validated.",
+    "age9": "Age 9 rules are classified before audio production. Newly introduced proxy rules remain pending_validation until one representative asset passes listening QA."
   },
   "rules": [
     {
@@ -626,6 +627,972 @@
       "reading": "ㄑㄧˊ",
       "strategy": "canonical",
       "status": "approved"
+    },
+    {
+      "character": "乘",
+      "reading": "ㄔㄥˊ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "乘",
+      "reading": "ㄕㄥˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "聖"
+    },
+    {
+      "character": "估",
+      "reading": "ㄍㄨ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "姑"
+    },
+    {
+      "character": "佺",
+      "reading": "ㄑㄩㄢˊ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "傳",
+      "reading": "ㄓㄨㄢˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "撰"
+    },
+    {
+      "character": "冉",
+      "reading": "ㄖㄢˇ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "冠",
+      "reading": "ㄍㄨㄢˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "貫"
+    },
+    {
+      "character": "削",
+      "reading": "ㄒㄧㄠ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "消"
+    },
+    {
+      "character": "剡",
+      "reading": "ㄕㄢˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "善"
+    },
+    {
+      "character": "劒",
+      "reading": "ㄐㄧㄢˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "劍"
+    },
+    {
+      "character": "卷",
+      "reading": "ㄐㄩㄢˋ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "叙",
+      "reading": "ㄒㄩˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "敘"
+    },
+    {
+      "character": "召",
+      "reading": "ㄕㄠˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "紹"
+    },
+    {
+      "character": "和",
+      "reading": "ㄏㄜˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "賀"
+    },
+    {
+      "character": "嚱",
+      "reading": "ㄒㄧ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "西"
+    },
+    {
+      "character": "埽",
+      "reading": "ㄙㄠˇ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "掃"
+    },
+    {
+      "character": "壈",
+      "reading": "ㄌㄢˇ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "懶"
+    },
+    {
+      "character": "妬",
+      "reading": "ㄉㄨˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "妒"
+    },
+    {
+      "character": "娿",
+      "reading": "ㄜ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "婀"
+    },
+    {
+      "character": "婁",
+      "reading": "ㄌㄡˊ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "媕",
+      "reading": "ㄢ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "安"
+    },
+    {
+      "character": "媿",
+      "reading": "ㄎㄨㄟˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "愧"
+    },
+    {
+      "character": "宓",
+      "reading": "ㄈㄨˊ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "福"
+    },
+    {
+      "character": "宿",
+      "reading": "ㄒㄧㄡˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "秀"
+    },
+    {
+      "character": "少",
+      "reading": "ㄕㄠˇ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "屬",
+      "reading": "ㄓㄨˇ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "主"
+    },
+    {
+      "character": "屬",
+      "reading": "ㄕㄨˇ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "暑"
+    },
+    {
+      "character": "岧",
+      "reading": "ㄊㄧㄠˊ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "迢"
+    },
+    {
+      "character": "嶤",
+      "reading": "ㄧㄠˊ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "搖"
+    },
+    {
+      "character": "幘",
+      "reading": "ㄗㄜˊ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "責"
+    },
+    {
+      "character": "廻",
+      "reading": "ㄏㄨㄟˊ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "迴"
+    },
+    {
+      "character": "強",
+      "reading": "ㄑㄧㄤˇ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "怳",
+      "reading": "ㄏㄨㄤˇ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "恍"
+    },
+    {
+      "character": "愼",
+      "reading": "ㄕㄣˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "慎"
+    },
+    {
+      "character": "慙",
+      "reading": "ㄘㄢˊ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "慚"
+    },
+    {
+      "character": "應",
+      "reading": "ㄧㄥˋ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "扁",
+      "reading": "ㄆㄧㄢ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "篇"
+    },
+    {
+      "character": "摐",
+      "reading": "ㄔㄨㄤ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "窗"
+    },
+    {
+      "character": "摻",
+      "reading": "ㄘㄢˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "燦"
+    },
+    {
+      "character": "攢",
+      "reading": "ㄘㄨㄢˊ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "教",
+      "reading": "ㄐㄧㄠ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "散",
+      "reading": "ㄙㄢˋ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "斾",
+      "reading": "ㄆㄟˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "旆"
+    },
+    {
+      "character": "昚",
+      "reading": "ㄕㄣˋ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "晼",
+      "reading": "ㄨㄢˇ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "晚"
+    },
+    {
+      "character": "曨",
+      "reading": "ㄌㄨㄥˊ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "龍"
+    },
+    {
+      "character": "曲",
+      "reading": "ㄑㄩˇ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "取"
+    },
+    {
+      "character": "朓",
+      "reading": "ㄊㄧㄠˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "跳"
+    },
+    {
+      "character": "校",
+      "reading": "ㄐㄧㄠˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "較"
+    },
+    {
+      "character": "校",
+      "reading": "ㄒㄧㄠˋ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "樂",
+      "reading": "ㄌㄜˋ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "樂",
+      "reading": "ㄩㄝˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "月"
+    },
+    {
+      "character": "毋",
+      "reading": "ㄨˊ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "沈",
+      "reading": "ㄕㄣˇ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "沒",
+      "reading": "ㄇㄛˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "墨"
+    },
+    {
+      "character": "滚",
+      "reading": "ㄍㄨㄣˇ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "滾"
+    },
+    {
+      "character": "潛",
+      "reading": "ㄑㄧㄢˊ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "潦",
+      "reading": "ㄌㄧㄠˊ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "澒",
+      "reading": "ㄏㄨㄥˋ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "為",
+      "reading": "ㄨㄟˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "未"
+    },
+    {
+      "character": "燕",
+      "reading": "ㄧㄢˋ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "牕",
+      "reading": "ㄔㄨㄤ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "窗"
+    },
+    {
+      "character": "璫",
+      "reading": "ㄉㄤ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "當"
+    },
+    {
+      "character": "甞",
+      "reading": "ㄔㄤˊ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "嘗"
+    },
+    {
+      "character": "當",
+      "reading": "ㄉㄤ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "盌",
+      "reading": "ㄨㄢˇ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "碗"
+    },
+    {
+      "character": "矰",
+      "reading": "ㄗㄥ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "增"
+    },
+    {
+      "character": "砯",
+      "reading": "ㄆㄧㄥ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "乒"
+    },
+    {
+      "character": "稹",
+      "reading": "ㄓㄣˇ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "稽",
+      "reading": "ㄑㄧˇ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "起"
+    },
+    {
+      "character": "窅",
+      "reading": "ㄧㄠˇ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "咬"
+    },
+    {
+      "character": "筠",
+      "reading": "ㄩㄣˊ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "給",
+      "reading": "ㄐㄧˇ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "己"
+    },
+    {
+      "character": "絶",
+      "reading": "ㄐㄩㄝˊ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "絕"
+    },
+    {
+      "character": "綃",
+      "reading": "ㄒㄧㄠ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "消"
+    },
+    {
+      "character": "綦",
+      "reading": "ㄑㄧˊ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "縫",
+      "reading": "ㄈㄥˊ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "繳",
+      "reading": "ㄓㄨㄛˊ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "濁"
+    },
+    {
+      "character": "纆",
+      "reading": "ㄇㄛˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "墨"
+    },
+    {
+      "character": "羗",
+      "reading": "ㄑㄧㄤ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "羌"
+    },
+    {
+      "character": "翃",
+      "reading": "ㄏㄨㄥˊ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "茲",
+      "reading": "ㄘˊ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "慈"
+    },
+    {
+      "character": "菑",
+      "reading": "ㄗ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "資"
+    },
+    {
+      "character": "華",
+      "reading": "ㄏㄨㄚˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "化"
+    },
+    {
+      "character": "著",
+      "reading": "ㄓㄨㄛˊ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "酌"
+    },
+    {
+      "character": "藎",
+      "reading": "ㄐㄧㄣˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "進"
+    },
+    {
+      "character": "藏",
+      "reading": "ㄘㄤˊ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "虬",
+      "reading": "ㄑㄧㄡˊ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "虯"
+    },
+    {
+      "character": "蟇",
+      "reading": "ㄇㄚˊ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "蟆"
+    },
+    {
+      "character": "蠡",
+      "reading": "ㄌㄧˇ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "李"
+    },
+    {
+      "character": "行",
+      "reading": "ㄒㄧㄥˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "性"
+    },
+    {
+      "character": "衞",
+      "reading": "ㄨㄟˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "衛"
+    },
+    {
+      "character": "衮",
+      "reading": "ㄍㄨㄣˇ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "袞"
+    },
+    {
+      "character": "衰",
+      "reading": "ㄕㄨㄞ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "衱",
+      "reading": "ㄐㄧㄝˊ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "節"
+    },
+    {
+      "character": "袴",
+      "reading": "ㄎㄨˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "褲"
+    },
+    {
+      "character": "袷",
+      "reading": "ㄐㄧㄚˊ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "夾"
+    },
+    {
+      "character": "覩",
+      "reading": "ㄉㄨˇ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "睹"
+    },
+    {
+      "character": "解",
+      "reading": "ㄐㄧㄝˇ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "豗",
+      "reading": "ㄏㄨㄟ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "灰"
+    },
+    {
+      "character": "賈",
+      "reading": "ㄐㄧㄚˇ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "適",
+      "reading": "ㄕˋ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "邽",
+      "reading": "ㄍㄨㄟ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "歸"
+    },
+    {
+      "character": "長",
+      "reading": "ㄓㄤˇ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "掌"
+    },
+    {
+      "character": "間",
+      "reading": "ㄐㄧㄢ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "閟",
+      "reading": "ㄅㄧˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "必"
+    },
+    {
+      "character": "隩",
+      "reading": "ㄩˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "玉"
+    },
+    {
+      "character": "鞚",
+      "reading": "ㄎㄨㄥˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "控"
+    },
+    {
+      "character": "鞞",
+      "reading": "ㄅㄧㄥˇ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "丙"
+    },
+    {
+      "character": "鞿",
+      "reading": "ㄐㄧ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "機"
+    },
+    {
+      "character": "頎",
+      "reading": "ㄑㄧˊ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "顇",
+      "reading": "ㄘㄨㄟˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "悴"
+    },
+    {
+      "character": "顔",
+      "reading": "ㄧㄢˊ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "顏"
+    },
+    {
+      "character": "顙",
+      "reading": "ㄙㄤˇ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "嗓"
+    },
+    {
+      "character": "顦",
+      "reading": "ㄑㄧㄠˊ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "憔"
+    },
+    {
+      "character": "颭",
+      "reading": "ㄓㄢˇ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "展"
+    },
+    {
+      "character": "颻",
+      "reading": "ㄧㄠˊ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "搖"
+    },
+    {
+      "character": "飀",
+      "reading": "ㄌㄧㄡˊ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "流"
+    },
+    {
+      "character": "飜",
+      "reading": "ㄈㄢ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "翻"
+    },
+    {
+      "character": "飲",
+      "reading": "ㄧㄣˇ",
+      "strategy": "canonical",
+      "status": "approved",
+      "note": "Age 9 text-preprocessing classification."
+    },
+    {
+      "character": "飲",
+      "reading": "ㄧㄣˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "印"
+    },
+    {
+      "character": "騧",
+      "reading": "ㄍㄨㄚ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "瓜"
+    },
+    {
+      "character": "鬬",
+      "reading": "ㄉㄡˋ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "鬥"
+    },
+    {
+      "character": "鼉",
+      "reading": "ㄊㄨㄛˊ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "駝"
+    },
+    {
+      "character": "龜",
+      "reading": "ㄑㄧㄡ",
+      "strategy": "proxy",
+      "status": "pending_validation",
+      "note": "Age 9 text-preprocessing classification.",
+      "proxy": "秋"
     }
   ]
 }
