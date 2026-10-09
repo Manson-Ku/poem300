@@ -2208,10 +2208,11 @@
       "pronunciations": [
         {
           "character": "將",
-          "reading": "ㄐㄧㄤˋ",
+          "reading": "ㄐㄧㄤ",
           "context": "將軍"
         }
-      ]
+      ],
+      "pronunciation_correction_note": "2026-10-09: 將軍 corrected to ㄐㄧㄤ ㄐㄩㄣ per MOE dictionary. Existing WAV requires targeted regeneration after the current full Age 8 batch finishes."
     },
     {
       "poem_id": 250,

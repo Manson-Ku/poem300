@@ -1,5 +1,5 @@
 {
-  "version": "bopomofo_overrides_v3",
+  "version": "bopomofo_overrides_v4",
   "spec": "ButTaiwan/bpmfvs",
   "items": [
     {
@@ -1074,18 +1074,6 @@
       "expected_reading": "ㄙㄞˋ",
       "note": "塞下曲；Age 8 reviewed pronunciation",
       "render_codepoint": "U+E916",
-      "render_mode": "project_font_pua_alias"
-    },
-    {
-      "poem_id": 250,
-      "field": "content",
-      "line_no": 1,
-      "char_index": 6,
-      "character": "將",
-      "selector": "U+E01E1",
-      "expected_reading": "ㄐㄧㄤˋ",
-      "note": "將軍；Age 8 reviewed pronunciation",
-      "render_codepoint": "U+E917",
       "render_mode": "project_font_pua_alias"
     },
     {
