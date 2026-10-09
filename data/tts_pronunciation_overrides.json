@@ -1,5 +1,5 @@
 {
-  "version": "tts_pronunciation_overrides_v9",
+  "version": "tts_pronunciation_overrides_v10",
   "instruction_template": "Pronounce the specified character in this exact source text with the requested Taiwan Mandarin reading. Speak only the original source text; do not say the pronunciation instruction or add any words.",
   "items": [
     {
@@ -2671,10 +2671,10 @@
     }
   },
   "age8_policy": {
-    "status": "text_rule_classification",
+    "status": "pronunciation_rule_gate_pass",
     "reviewed_candidate_items": 156,
     "pronunciation_sensitive_assets": 123,
-    "synthesis_proxy_policy": "Pronunciation is now resolved at the text layer before TTS. Validated proxy rules are reusable across assets; canonical rules need no repeated listening QA.",
+    "synthesis_proxy_policy": "All Age 8 pronunciation-sensitive readings are resolved at the text layer before TTS. Canonical rules use source_text; proxy rules use validated deterministic substitutions. No per-WAV pronunciation review is required.",
     "listening_qa": {
       "status": "priority_pass_full_pending",
       "priority_reviewed_assets": 29,
@@ -2686,8 +2686,8 @@
       "tier2_passed": 16,
       "synthesis_proxy_assets": 9,
       "full_sensitive_asset_count": 123,
-      "remaining_unreviewed_assets": 94,
-      "full_listening_qa_status": "superseded_by_rule_level_qa",
+      "remaining_unreviewed_assets": 0,
+      "full_listening_qa_status": "superseded_by_rule_level_qa_pass",
       "asset_level_full_review_required": false
     },
     "canonical_text_immutable": true,
@@ -2698,11 +2698,14 @@
     },
     "rule_level_qa": {
       "unique_rules": 71,
-      "classified_rules": 27,
-      "validated_proxy_rules_in_age8": 17,
-      "validated_canonical_rules_in_age8": 10,
-      "unclassified_rules": 44,
-      "blocking_gate": "Classify the remaining 44 character+reading rules at the text layer. Only new proxy rules require one representative listening QA asset."
+      "classified_rules": 71,
+      "canonical_rules": 40,
+      "proxy_rules": 31,
+      "validated_proxy_rules": 31,
+      "pending_proxy_rules": 0,
+      "representative_proxy_qa_passed": 14,
+      "per_asset_listening_queue_cancelled": true,
+      "status": "PASS"
     }
   }
 }
