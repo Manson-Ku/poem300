@@ -86,6 +86,9 @@ jobs:
       - name: Age 9 pronunciation source gate
         run: python scripts/inventory_pronunciation.py --age 9
 
+      - name: Age 9 TTS text-rule audit
+        run: python scripts/prepare_tts_synthesis_text.py --age 9 --audit-only
+
       - name: Rebuild pinned project font
         run: |
           python scripts/sync_bpmf_font.py
