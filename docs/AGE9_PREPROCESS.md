@@ -99,3 +99,90 @@ Blank separator Scenes remain in each plan with no added semantic content.
 
 Canonical title, author, content, child explanations, and physical-line Scene
 boundaries are immutable throughout preprocessing.
+
+## Current gate status (2026-10-09)
+
+Structural / text source:
+
+~~~text
+poems                    = 138
+scenes                   = 1,050
+blank separator scenes   = 6
+structural errors        = 0
+status                   = PASS
+~~~
+
+Project font:
+
+~~~text
+unique Han               = 2,412
+missing unique Han       = 0
+status                   = PASS
+~~~
+
+Age 9 pronunciation inventory:
+
+~~~text
+candidate items                  = 348
+candidate poems                  = 91
+pronunciation-sensitive assets   = 267
+unique character+reading rules   = 168
+classified rules                 = 168
+unclassified rules               = 0
+canonical-only assets            = 106
+proxy assets                     = 161
+new proxy rules pending QA       = 91
+materialization gaps             = 0
+text-rule audit                  = PASS
+~~~
+
+Bopomofo / renderer registration:
+
+~~~text
+Age 9 override occurrences       = 141
+unique Age 9 render rules        = 57
+reused existing render rules     = 29
+new PUA render rules             = 28
+new PUA range                    = U+E931 .. U+E94C
+~~~
+
+Global pronunciation/font contract after Age 9 registration:
+
+~~~text
+bopomofo_overrides               = 279
+tts_override_assets              = 450
+tts_synthesis_proxy_assets       = 178
+font_extensions_verified         = 3
+render_aliases_verified          = 77
+font_gaps                        = 0
+errors                           = 0
+status                           = PASS
+~~~
+
+The 91 new Age 9 proxy rules remain `pending_validation` by design. They do
+not block text preprocessing. When Age 9 audio production starts, generate one
+representative asset per genuinely new proxy rule, listen once, then promote
+the rule to `validated`. Do not create a 267-WAV pronunciation review queue.
+
+### Important Age 8 correction found during Age 9 audit
+
+The shared audit exposed one pre-existing reading error in p250:
+
+~~~text
+林暗草驚風，將軍夜引弓。
+將軍 = ㄐㄧㄤ ㄐㄩㄣ
+~~~
+
+The Age 8 candidate, TTS registry and bopomofo override were corrected in Repo.
+Because the current Age 8 full-TTS process may have loaded the previous data
+before that correction, regenerate only p250 scene 1 after that batch finishes
+and verify `將軍` before video production.
+
+### Remaining Age 9 preprocessing gate
+
+Visual plans are still `draft`. The remaining text-side work is semantic /
+child-safety review of the source-grounded visual-plan text, especially long
+poems and Scenes involving warfare, death, alcohol, palace/adult relationship
+material, supernatural imagery or historical allusions. Do not generate Age 9
+images until that review promotes the plans to `approved`.
+
