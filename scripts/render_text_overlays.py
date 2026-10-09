@@ -170,14 +170,182 @@ def text_bbox(
     *,
     font: ImageFont.FreeTypeFont,
     stroke_width: int,
+    multiline_spacing: int = 0,
 ) -> tuple[int, int, int, int]:
     image = Image.new("L", (8, 8), 0)
     draw = ImageDraw.Draw(image)
+    if "\n" in text:
+        return draw.multiline_textbbox(
+            (0, 0),
+            text,
+            font=font,
+            stroke_width=stroke_width,
+            spacing=multiline_spacing,
+            align="center",
+        )
     return draw.textbbox(
         (0, 0),
         text,
         font=font,
         stroke_width=stroke_width,
+    )
+
+
+def title_line_candidates(
+    text: str,
+    *,
+    max_lines: int,
+) -> list[str]:
+    """Return natural long-title wrapping candidates.
+
+    Prefer the canonical ASCII-space phrase boundaries used by the source
+    dataset. If a title has no such separators, fall back to character
+    boundaries. Canonical title text is never changed; newlines exist only in
+    the renderer-facing title string.
+    """
+    if max_lines < 2:
+        return []
+
+    phrase_units = [part for part in text.split(" ") if part]
+    use_phrase_units = len(phrase_units) >= 2
+    units = phrase_units if use_phrase_units else list(text)
+    if len(units) < 2:
+        return []
+
+    joiner = " " if use_phrase_units else ""
+    results: list[str] = []
+
+    def partitions(
+        start: int,
+        remaining_lines: int,
+        parts: list[str],
+    ) -> None:
+        if remaining_lines == 1:
+            tail = joiner.join(units[start:]).strip()
+            if tail:
+                results.append("\n".join(parts + [tail]))
+            return
+
+        max_end = len(units) - (remaining_lines - 1)
+        for end in range(start + 1, max_end + 1):
+            part = joiner.join(units[start:end]).strip()
+            if not part:
+                continue
+            partitions(
+                end,
+                remaining_lines - 1,
+                parts + [part],
+            )
+
+    for line_count in range(2, min(max_lines, len(units)) + 1):
+        partitions(0, line_count, [])
+
+    return results
+
+
+def choose_title_layout(
+    text: str,
+    *,
+    font_path: Path,
+    config: dict[str, Any],
+    max_width: int,
+    max_height: int,
+    raster_scale: int,
+    stroke_width: int,
+) -> tuple[int, str]:
+    """Fit a title, using multiline rendering only as an overflow fallback."""
+    title_style = config["typography"]["title"]
+    try:
+        size, _ = choose_font_size(
+            [text],
+            font_path=font_path,
+            candidates=title_style["candidate_font_px"],
+            max_width=max_width,
+            raster_scale=raster_scale,
+            stroke_width=stroke_width,
+        )
+        return size, text
+    except ValueError:
+        pass
+
+    fallback = title_style.get("multiline_fallback") or {}
+    if not fallback.get("enabled", False):
+        raise ValueError(
+            f"title overflow and multiline fallback disabled: {text!r}"
+        )
+
+    max_lines = int(fallback.get("max_lines", 2))
+    line_spacing_px = int(fallback.get("line_spacing_px", 2))
+    candidates = [
+        int(value)
+        for value in fallback.get(
+            "candidate_font_px",
+            title_style["candidate_font_px"],
+        )
+    ]
+    layouts = title_line_candidates(
+        text,
+        max_lines=max_lines,
+    )
+    if not layouts:
+        raise ValueError(
+            f"title overflow with no valid multiline layout: {text!r}"
+        )
+
+    for display_px in candidates:
+        font = ImageFont.truetype(
+            str(font_path),
+            display_px * raster_scale,
+        )
+        measured: list[
+            tuple[int, int, int, str]
+        ] = []
+        for layout in layouts:
+            bbox = text_bbox(
+                layout,
+                font=font,
+                stroke_width=stroke_width * raster_scale,
+                multiline_spacing=line_spacing_px * raster_scale,
+            )
+            width = bbox[2] - bbox[0]
+            height = bbox[3] - bbox[1]
+            if (
+                width <= max_width * raster_scale
+                and height <= max_height * raster_scale
+            ):
+                line_widths = []
+                for line in layout.split("\n"):
+                    line_bbox = text_bbox(
+                        line,
+                        font=font,
+                        stroke_width=stroke_width * raster_scale,
+                    )
+                    line_widths.append(
+                        line_bbox[2] - line_bbox[0]
+                    )
+                imbalance = max(line_widths) - min(line_widths)
+                measured.append(
+                    (
+                        len(layout.split("\n")),
+                        imbalance,
+                        width,
+                        layout,
+                    )
+                )
+
+        if measured:
+            measured.sort(
+                key=lambda item: (
+                    item[0],
+                    item[1],
+                    item[2],
+                )
+            )
+            return display_px, measured[0][3]
+
+    raise ValueError(
+        f"title overflow: cannot fit within "
+        f"{max_width}x{max_height}px using <= {max_lines} lines"
     )
 
 
@@ -284,7 +452,15 @@ def render_text_png(
     shadow_alpha = float(shadow.get("alpha", 0))
     padding = padding_px * raster_scale
 
-    bbox = text_bbox(text, font=font, stroke_width=stroke)
+    multiline_spacing = 0
+    if "\n" in text:
+        multiline_spacing = 2 * raster_scale
+    bbox = text_bbox(
+        text,
+        font=font,
+        stroke_width=stroke,
+        multiline_spacing=multiline_spacing,
+    )
     text_w = bbox[2] - bbox[0]
     text_h = bbox[3] - bbox[1]
 
@@ -310,13 +486,25 @@ def render_text_png(
             (0, 0, 0, 0),
         )
         shadow_draw = ImageDraw.Draw(shadow_layer)
-        shadow_draw.text(
+        draw_shadow = (
+            shadow_draw.multiline_text
+            if "\n" in text
+            else shadow_draw.text
+        )
+        shadow_kwargs: dict[str, Any] = {}
+        if "\n" in text:
+            shadow_kwargs.update(
+                spacing=multiline_spacing,
+                align="center",
+            )
+        draw_shadow(
             (x + shadow_dx, y + shadow_dy),
             text,
             font=font,
             fill=(0, 0, 0, round(255 * shadow_alpha)),
             stroke_width=stroke,
             stroke_fill=(0, 0, 0, round(255 * shadow_alpha)),
+            **shadow_kwargs,
         )
         if shadow_blur > 0:
             from PIL import ImageFilter
@@ -326,13 +514,21 @@ def render_text_png(
         image.alpha_composite(shadow_layer)
 
     draw = ImageDraw.Draw(image)
-    draw.text(
+    draw_text = draw.multiline_text if "\n" in text else draw.text
+    draw_kwargs: dict[str, Any] = {}
+    if "\n" in text:
+        draw_kwargs.update(
+            spacing=multiline_spacing,
+            align="center",
+        )
+    draw_text(
         (x, y),
         text,
         font=font,
         fill=fill,
         stroke_width=stroke,
         stroke_fill=stroke_fill,
+        **draw_kwargs,
     )
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -569,13 +765,12 @@ def main() -> int:
             )
             page_font_sizes[page_no] = size
 
-        title_size, _ = choose_font_size(
-            [title_text],
+        title_size, title_render_text = choose_title_layout(
+            title_text,
             font_path=font_path,
-            candidates=config["typography"]["title"][
-                "candidate_font_px"
-            ],
+            config=config,
             max_width=int(config["zones"]["title"]["width"]),
+            max_height=int(config["zones"]["title"]["height"]),
             raster_scale=raster_scale,
             stroke_width=int(
                 config["appearance"]["title_content"]["stroke_px"]
@@ -641,7 +836,7 @@ def main() -> int:
         jobs: list[dict[str, Any]] = [
             {
                 "kind": "title",
-                "text": title_text,
+                "text": title_render_text,
                 "output": poem_text_dir / "title_bpmf.png",
                 "font_px": title_size,
                 "appearance": config["appearance"]["title_content"],
@@ -821,8 +1016,9 @@ def main() -> int:
             "font_path": font_path.as_posix(),
             "title": {
                 "text": poem["title"],
-                "render_text": title_text,
+                "render_text": title_render_text,
                 "font_px": title_size,
+                "line_count": title_render_text.count("\n") + 1,
                 "image": f"assets/p{pid:03d}/text/title_bpmf.png",
                 "ivs_overrides": title_overrides,
             },

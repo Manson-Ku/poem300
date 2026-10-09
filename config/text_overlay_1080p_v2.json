@@ -99,7 +99,24 @@
         36
       ],
       "single_line": true,
-      "fit": "largest_discrete_size_that_fits_width"
+      "fit": "largest_discrete_size_that_fits_width",
+      "multiline_fallback": {
+        "enabled": true,
+        "max_lines": 3,
+        "candidate_font_px": [
+          36,
+          34,
+          32,
+          30,
+          28,
+          26,
+          24
+        ],
+        "line_spacing_px": 2,
+        "fit": "largest_size_that_fits_width_and_height",
+        "scope": "title_only_renderer_fallback",
+        "canonical_text_policy": "preserve_canonical_title; insert_newlines_only_in_render_text"
+      }
     },
     "author": {
       "candidate_font_px": [

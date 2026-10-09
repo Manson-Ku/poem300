@@ -11,6 +11,7 @@ on:
       - "data/tts_pronunciation_overrides.json"
       - "data/tts_pronunciation_proxy_registry.json"
       - "data/pronunciation_candidates_age8.json"
+      - "config/text_overlay_1080p_v2.json"
       - "data/age9_text_inventory.json"
       - "data/age9_visual_safety_policy.json"
       - "data/age9_visual_safety_report.json"
@@ -23,6 +24,7 @@ on:
       - "scripts/qa_age_production.py"
       - "scripts/qa_font_coverage.py"
       - "scripts/qa_pronunciation.py"
+      - "scripts/render_text_overlays.py"
       - "scripts/patch_bpmf_font.py"
       - "scripts/sync_bpmf_font.py"
       - ".github/workflows/preproduction_qa.yml"
@@ -57,6 +59,9 @@ jobs:
         run: |
           python scripts/sync_bpmf_font.py
           python scripts/patch_bpmf_font.py --force
+
+      - name: Age 8 text overlay layout gate
+        run: python scripts/render_text_overlays.py --age 8 --approved-only --dry-run
 
       - name: Age 8 structural and production gate
         run: python scripts/qa_age_production.py --age 8 --production-ready
