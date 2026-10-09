@@ -1,5 +1,5 @@
 {
-  "version": "tts_pronunciation_overrides_v11",
+  "version": "tts_pronunciation_overrides_v12",
   "instruction_template": "Pronounce the specified character in this exact source text with the requested Taiwan Mandarin reading. Speak only the original source text; do not say the pronunciation instruction or add any words.",
   "items": [
     {
@@ -2641,7 +2641,9 @@
           "reading": "ㄕㄣ",
           "context": "參與商"
         }
-      ]
+      ],
+      "synthesis_text": "人生不相見，動如申與商。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 7,
@@ -2654,7 +2656,9 @@
           "reading": "ㄏㄤˊ",
           "context": "成行"
         }
-      ]
+      ],
+      "synthesis_text": "昔別君未婚，兒女忽成杭。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 15,
@@ -2667,7 +2671,9 @@
           "reading": "ㄋㄧㄥˋ",
           "context": "寧久微"
         }
-      ]
+      ],
+      "synthesis_text": "豔色天下重，西施濘久微。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 20,
@@ -2693,7 +2699,9 @@
           "reading": "ㄔㄨㄤ",
           "context": "牕裏"
         }
-      ]
+      ],
+      "synthesis_text": "草色新雨中，松聲晚窗裏。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 21,
@@ -2742,7 +2750,9 @@
           "reading": "ㄕㄣ",
           "context": "岑參"
         }
-      ]
+      ],
+      "synthesis_text": "岑申",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 23,
@@ -2786,7 +2796,9 @@
           "reading": "ㄉㄨˇ",
           "context": "覩"
         }
-      ]
+      ],
+      "synthesis_text": "自慚居處崇，未睹斯民康。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 25,
@@ -2799,7 +2811,9 @@
           "reading": "ㄕㄨˇ",
           "context": "屬時禁"
         }
-      ]
+      ],
+      "synthesis_text": "鮮肥暑時禁，蔬果幸見嘗。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 25,
@@ -2838,7 +2852,9 @@
           "reading": "ㄧㄣˋ",
           "context": "飲馬"
         }
-      ]
+      ],
+      "synthesis_text": "印馬渡秋水，水寒風似刀。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 35,
@@ -2856,7 +2872,9 @@
           "reading": "ㄑㄩˇ",
           "context": "塞下曲"
         }
-      ]
+      ],
+      "synthesis_text": "賽下取",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 38,
@@ -2869,7 +2887,9 @@
           "reading": "ㄔㄤˊ",
           "context": "甞"
         }
-      ]
+      ],
+      "synthesis_text": "十四爲君婦，羞顏未嘗開。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 38,
@@ -2913,7 +2933,9 @@
           "reading": "ㄧㄢ",
           "context": "幽燕"
         }
-      ]
+      ],
+      "synthesis_text": "男兒事長征，少小幽煙客。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 42,
@@ -2944,7 +2966,9 @@
           "reading": "ㄑㄧㄤ",
           "context": "羗笛"
         }
-      ]
+      ],
+      "synthesis_text": "今爲羌笛出賽聲，使我三軍淚如雨。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 43,
@@ -2975,7 +2999,9 @@
           "reading": "ㄑㄧㄡˊ",
           "context": "虬鬚"
         }
-      ]
+      ],
+      "synthesis_text": "陳侯立身何坦蕩，虯鬚虎眉仍大嗓。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 43,
@@ -3001,7 +3027,9 @@
           "reading": "ㄧㄣˋ",
           "context": "飲我曹"
         }
-      ]
+      ],
+      "synthesis_text": "東門酤酒印我曹，心輕萬事皆鴻毛。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 44,
@@ -3040,7 +3068,9 @@
           "reading": "ㄐㄧˇ",
           "context": "給事"
         }
-      ]
+      ],
+      "synthesis_text": "聽董大彈胡笳兼寄語弄房己事",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 46,
@@ -3071,7 +3101,9 @@
           "reading": "ㄘˊ",
           "context": "龜茲"
         }
-      ]
+      ],
+      "synthesis_text": "南山截竹爲觱篥，此樂本自秋慈出。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 46,
@@ -3084,7 +3116,9 @@
           "reading": "ㄨㄟˋ",
           "context": "爲我吹"
         }
-      ]
+      ],
+      "synthesis_text": "流傳漢地曲轉奇，涼州胡人未我吹。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 46,
@@ -3097,7 +3131,9 @@
           "reading": "ㄌㄧㄡˊ",
           "context": "颼飀"
         }
-      ]
+      ],
+      "synthesis_text": "枯桑老柏寒颼流，九雛鳴鳳亂啾啾。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 46,
@@ -3123,7 +3159,9 @@
           "reading": "ㄘㄢˋ",
           "context": "漁陽摻"
         }
-      ]
+      ],
+      "synthesis_text": "忽然更作漁陽燦，黃雲蕭條白日暗。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 46,
@@ -3136,7 +3174,9 @@
           "reading": "ㄑㄩˇ",
           "context": "聲一曲"
         }
-      ]
+      ],
+      "synthesis_text": "歲夜高堂列明燭，美酒一杯聲一取。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 48,
@@ -3162,7 +3202,9 @@
           "reading": "ㄉㄨˇ",
           "context": "覩"
         }
-      ]
+      ],
+      "synthesis_text": "越人語天姥，雲霞明滅或可睹。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 49,
@@ -3175,7 +3217,9 @@
           "reading": "ㄕㄢˋ",
           "context": "剡溪"
         }
-      ]
+      ],
+      "synthesis_text": "湖月照我影，送我至善溪。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 49,
@@ -3188,7 +3232,9 @@
           "reading": "ㄓㄨㄛˊ",
           "context": "著謝公屐"
         }
-      ]
+      ],
+      "synthesis_text": "腳酌謝公屐，身登青雲梯。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 49,
@@ -3201,7 +3247,9 @@
           "reading": "ㄏㄨㄤˇ",
           "context": "怳"
         }
-      ]
+      ],
+      "synthesis_text": "忽魂悸以魄動，恍驚起而長嗟。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 49,
@@ -3232,7 +3280,9 @@
           "reading": "ㄙㄢˋ",
           "context": "散髮"
         }
-      ]
+      ],
+      "synthesis_text": "人生在世不稱意，明朝散髮弄篇舟。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 51,
@@ -3250,7 +3300,9 @@
           "reading": "ㄊㄧㄠˋ",
           "context": "謝朓"
         }
-      ]
+      ],
+      "synthesis_text": "宣州謝跳樓餞別較書叔雲",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 52,
@@ -3263,7 +3315,9 @@
           "reading": "ㄕㄣ",
           "context": "岑參"
         }
-      ]
+      ],
+      "synthesis_text": "岑申",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 52,
@@ -3294,7 +3348,9 @@
           "reading": "ㄐㄧㄤ",
           "context": "將軍"
         }
-      ]
+      ],
+      "synthesis_text": "漢家大將西出師，江軍金甲夜不脫。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 52,
@@ -3307,7 +3363,9 @@
           "reading": "ㄐㄧˋ",
           "context": "虜騎"
         }
-      ]
+      ],
+      "synthesis_text": "幕中草檄硯水凝，虜記聞之應膽懾。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 52,
@@ -3333,7 +3391,9 @@
           "reading": "ㄕㄣ",
           "context": "岑參"
         }
-      ]
+      ],
+      "synthesis_text": "岑申",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 53,
@@ -3346,7 +3406,9 @@
           "reading": "ㄔㄢˊ",
           "context": "單于"
         }
-      ]
+      ],
+      "synthesis_text": "羽書昨夜過渠黎，蟬于已在金山西。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 53,
@@ -3372,7 +3434,9 @@
           "reading": "ㄕㄣ",
           "context": "岑參"
         }
-      ]
+      ],
+      "synthesis_text": "岑申",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 54,
@@ -3390,7 +3454,9 @@
           "reading": "ㄓㄨㄛˊ",
           "context": "難著"
         }
-      ]
+      ],
+      "synthesis_text": "江軍角弓不得控，都護鐵衣冷難酌。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 54,
@@ -3403,7 +3469,9 @@
           "reading": "ㄧㄣˋ",
           "context": "飲歸客"
         }
-      ]
+      ],
+      "synthesis_text": "中軍置酒印歸客，胡琴琵琶與羌笛。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 55,
@@ -3429,7 +3497,9 @@
           "reading": "ㄐㄧㄤ",
           "context": "將軍"
         }
-      ]
+      ],
+      "synthesis_text": "江軍得名三十載，人間又見真乘黃。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 55,
@@ -3442,7 +3512,9 @@
           "reading": "ㄨㄢˇ",
           "context": "盌"
         }
-      ]
+      ],
+      "synthesis_text": "內府殷紅瑪瑙碗，婕妤傳詔才人索。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 55,
@@ -3460,7 +3532,9 @@
           "reading": "ㄐㄧㄤ",
           "context": "將軍"
         }
-      ]
+      ],
+      "synthesis_text": "碗賜江軍拜舞歸，輕紈細綺相追飛。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 55,
@@ -3473,7 +3547,9 @@
           "reading": "ㄍㄨㄚ",
           "context": "拳毛騧"
         }
-      ]
+      ],
+      "synthesis_text": "昔日太宗拳毛瓜，近時郭家獅子花。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 55,
@@ -3486,7 +3562,9 @@
           "reading": "ㄐㄧˋ",
           "context": "騎戰"
         }
-      ]
+      ],
+      "synthesis_text": "此皆記戰一敵萬，縞素漠漠開風沙。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 55,
@@ -3499,7 +3577,9 @@
           "reading": "ㄐㄧㄤ",
           "context": "將軍"
         }
-      ]
+      ],
+      "synthesis_text": "韋諷錄事宅觀曹江軍畫馬圖",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 56,
@@ -3512,7 +3592,9 @@
           "reading": "ㄐㄧㄤ",
           "context": "將軍"
         }
-      ]
+      ],
+      "synthesis_text": "江軍魏武之子孫，於今爲庶爲清門。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 56,
@@ -3525,7 +3607,9 @@
           "reading": "ㄕㄨㄛˋ",
           "context": "數上"
         }
-      ]
+      ],
+      "synthesis_text": "開元之中常引見，承恩朔上南薰殿。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 56,
@@ -3538,7 +3622,9 @@
           "reading": "ㄐㄧㄤ",
           "context": "將軍"
         }
-      ]
+      ],
+      "synthesis_text": "凌煙功臣少顏色，江軍下筆開生面。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 56,
@@ -3564,7 +3650,9 @@
           "reading": "ㄐㄧㄤ",
           "context": "將軍"
         }
-      ]
+      ],
+      "synthesis_text": "詔謂江軍拂絹素，意匠慘澹經營中。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 56,
@@ -3577,7 +3665,9 @@
           "reading": "ㄔㄨㄥˊ",
           "context": "九重"
         }
-      ]
+      ],
+      "synthesis_text": "斯須九崇真龍出，一洗萬古凡馬空。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 56,
@@ -3603,7 +3693,9 @@
           "reading": "ㄐㄧㄤ",
           "context": "將軍"
         }
-      ]
+      ],
+      "synthesis_text": "江軍畫善蓋有神，必逢佳士亦寫真。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 56,
@@ -3616,7 +3708,9 @@
           "reading": "ㄌㄢˇ",
           "context": "坎壈"
         }
-      ]
+      ],
+      "synthesis_text": "但看古來盛名下，終日坎懶纏其身。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 56,
@@ -3629,7 +3723,9 @@
           "reading": "ㄐㄧㄤ",
           "context": "將軍"
         }
-      ]
+      ],
+      "synthesis_text": "丹青引贈曹江軍霸",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 58,
@@ -3655,7 +3751,9 @@
           "reading": "ㄅㄧˋ",
           "context": "閟宮"
         }
-      ]
+      ],
+      "synthesis_text": "憶昨路繞錦亭東，先主武侯同必宮。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 58,
@@ -3696,7 +3794,9 @@
           "reading": "ㄕㄨㄛˋ",
           "context": "數常"
         }
-      ]
+      ],
+      "synthesis_text": "大曆二年十月十九日，夔府別駕元持宅，見臨潁李十二孃 舞劍器，壯其蔚跂，問其所師，曰：“餘公孫大娘弟子也。” 開元三載，餘尚童稚，記於郾城觀公孫氏，舞劍器渾脫， 瀏漓頓挫，獨出貫時，自高頭宜春梨園二伎坊內人洎外供奉， 曉是舞者，聖文神武皇帝初，公孫一人而已。 玉貌錦衣，況餘白首，今茲弟子，亦非盛顏。 既辨其由來，知波瀾莫二，撫事慷慨，聊爲《劍器行》。 昔者吳人張旭，善草書帖，朔常於鄴縣見公孫大娘 舞西河劍器，自此草書掌進，豪蕩感激，即公孫可知矣。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 59,
@@ -3722,7 +3822,9 @@
           "reading": "ㄩㄝˋ",
           "context": "女樂"
         }
-      ]
+      ],
+      "synthesis_text": "梨園弟子散如煙，女月餘姿映寒日。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 59,
@@ -3761,7 +3863,9 @@
           "reading": "ㄐㄧ",
           "context": "為人鞿"
         }
-      ]
+      ],
+      "synthesis_text": "人生如此自可樂，豈必局束為人機。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 62,
@@ -3774,7 +3878,9 @@
           "reading": "ㄓㄨˇ",
           "context": "相屬"
         }
-      ]
+      ],
+      "synthesis_text": "沙平水息聲影絕，一杯相主君當歌。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 63,
@@ -3787,7 +3893,9 @@
           "reading": "ㄌㄨㄥˊ",
           "context": "曈曨"
         }
-      ]
+      ],
+      "synthesis_text": "夜投佛寺上高閣，星月掩映雲曈龍。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 64,
@@ -3800,7 +3908,9 @@
           "reading": "ㄊㄨㄛˊ",
           "context": "蛟鼉"
         }
-      ]
+      ],
+      "synthesis_text": "年深豈免有缺畫，快劍斫斷生蛟駝。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 64,
@@ -3813,7 +3923,9 @@
           "reading": "ㄒㄧㄡˋ",
           "context": "星宿"
         }
-      ]
+      ],
+      "synthesis_text": "孔子西行不到秦，掎摭星秀遺羲娥。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 64,
@@ -3839,7 +3951,9 @@
           "reading": "ㄧㄝˋ",
           "context": "填咽"
         }
-      ]
+      ],
+      "synthesis_text": "觀經鴻都尚填夜，坐見舉國來奔波。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 64,
@@ -3857,7 +3971,9 @@
           "reading": "ㄜ",
           "context": "媕娿"
         }
-      ]
+      ],
+      "synthesis_text": "中朝大官老於事，詎肯感激徒安婀。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 64,
@@ -3870,7 +3986,9 @@
           "reading": "ㄓㄨㄛˊ",
           "context": "著手"
         }
-      ]
+      ],
+      "synthesis_text": "牧童敲火牛礪角，誰復酌手爲摩挲。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 66,
@@ -3883,7 +4001,9 @@
           "reading": "ㄓㄤˇ",
           "context": "初長成"
         }
-      ]
+      ],
+      "synthesis_text": "楊家有女初掌成，養在深閨人未識。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 66,
@@ -3896,7 +4016,9 @@
           "reading": "ㄓㄠ",
           "context": "一朝"
         }
-      ]
+      ],
+      "synthesis_text": "天生麗質難自棄，一昭選在君王側。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 66,
@@ -3909,7 +4031,9 @@
           "reading": "ㄧㄢˊ",
           "context": "顔"
         }
-      ]
+      ],
+      "synthesis_text": "迴眸一笑百媚生，六宮粉黛無顏色。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 66,
@@ -3922,7 +4046,9 @@
           "reading": "ㄧㄢˊ",
           "context": "顔"
         }
-      ]
+      ],
+      "synthesis_text": "雲鬢花顏金步搖，芙蓉帳暖度春宵。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 66,
@@ -3948,7 +4074,9 @@
           "reading": "ㄩㄝˋ",
           "context": "仙樂"
         }
-      ]
+      ],
+      "synthesis_text": "驪宮高處入青雲，仙月風飄處處聞。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 66,
@@ -3966,7 +4094,9 @@
           "reading": "ㄅㄧㄥˇ",
           "context": "鞞鼓"
         }
-      ]
+      ],
+      "synthesis_text": "漁陽丙鼓動地來，驚破霓裳羽衣取。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 66,
@@ -3989,7 +4119,9 @@
           "reading": "ㄐㄧˋ",
           "context": "萬騎"
         }
-      ]
+      ],
+      "synthesis_text": "九崇城闕煙塵生，千聖萬記西南行。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 66,
@@ -4015,7 +4147,9 @@
           "reading": "ㄓㄠ",
           "context": "朝朝暮暮"
         }
-      ]
+      ],
+      "synthesis_text": "蜀江水碧蜀山青，聖主昭昭暮暮情。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 66,
@@ -4028,7 +4162,9 @@
           "reading": "ㄧㄢˊ",
           "context": "顔"
         }
-      ]
+      ],
+      "synthesis_text": "馬嵬坡下泥土中，不見玉顏空死處。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 66,
@@ -4041,7 +4177,9 @@
           "reading": "ㄨㄟˋ",
           "context": "為感"
         }
-      ]
+      ],
+      "synthesis_text": "未感君王輾轉思，遂教方士殷勤覓。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 66,
@@ -4059,7 +4197,9 @@
           "reading": "ㄘ",
           "context": "參差"
         }
-      ]
+      ],
+      "synthesis_text": "中有一人字太真，雪膚花貌嵾疵是。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 66,
@@ -4085,7 +4225,9 @@
           "reading": "ㄧㄠˊ",
           "context": "飄颻"
         }
-      ]
+      ],
+      "synthesis_text": "風吹仙袂飄搖舉，猶似霓裳羽衣舞。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 66,
@@ -4098,7 +4240,9 @@
           "reading": "ㄔㄨㄥˊ",
           "context": "重寄詞"
         }
-      ]
+      ],
+      "synthesis_text": "臨別殷勤崇寄詞，詞中有誓兩心知。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 66,
@@ -4194,7 +4338,9 @@
           "reading": "ㄌㄜˋ",
           "context": "歡樂"
         }
-      ]
+      ],
+      "synthesis_text": "元和十年，予左遷九江郡司馬。明年秋，送客湓浦口，聞舟船中夜彈琵琶者，聽其音，錚錚然有京都聲。問其人，本長安倡女，嘗學琵琶於穆、曹二善才，年掌色衰，委身為谷人婦。遂命酒，使快彈數取，曲罷憫默，自敘少小時歡樂事，今漂淪憔悴，轉徙於江湖間。予出官二年，恬然自安。感斯人言，是夕始覺有遷謫意。因為長句歌以贈之。凡六百一十六言，命曰《琵琶行》。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 67,
@@ -4212,7 +4358,9 @@
           "reading": "ㄉㄧㄠˋ",
           "context": "曲調"
         }
-      ]
+      ],
+      "synthesis_text": "轉軸撥絃三兩聲，未成取吊先有情。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 67,
@@ -4230,7 +4378,9 @@
           "reading": "ㄐㄧㄢ",
           "context": "間關"
         }
-      ]
+      ],
+      "synthesis_text": "間關鶯語花底滑，幽夜泉流冰下難。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 67,
@@ -4243,7 +4393,9 @@
           "reading": "ㄐㄧˋ",
           "context": "鐵騎"
         }
-      ]
+      ],
+      "synthesis_text": "銀瓶乍破水漿迸，鐵記突出刀槍鳴。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 67,
@@ -4269,7 +4421,9 @@
           "reading": "ㄇㄚˊ",
           "context": "蝦蟇"
         }
-      ]
+      ],
+      "synthesis_text": "自言本是京城女，家在蝦蟆陵下住。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 67,
@@ -4282,7 +4436,9 @@
           "reading": "ㄕㄨˇ",
           "context": "名屬教坊"
         }
-      ]
+      ],
+      "synthesis_text": "十三學得琵琶成，名暑教坊第一部。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 67,
@@ -4300,7 +4456,9 @@
           "reading": "ㄐㄧㄠˋ",
           "context": "曾教善才伏"
         }
-      ]
+      ],
+      "synthesis_text": "曲罷曾教善才伏，妝成每被秋娘妒。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 67,
@@ -4323,7 +4481,9 @@
           "reading": "ㄒㄧㄠ",
           "context": "紅綃"
         }
-      ]
+      ],
+      "synthesis_text": "五陵年少爭纏頭，一曲紅消不知數。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 67,
@@ -4336,7 +4496,9 @@
           "reading": "ㄓㄠ",
           "context": "朝來"
         }
-      ]
+      ],
+      "synthesis_text": "弟走從軍阿姨死，暮去昭來顏色故。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 67,
@@ -4380,7 +4542,9 @@
           "reading": "ㄏㄞˊ",
           "context": "還獨傾"
         }
-      ]
+      ],
+      "synthesis_text": "春江花昭秋月夜，往往取酒還獨傾。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 67,
@@ -4393,7 +4557,9 @@
           "reading": "ㄩㄝˋ",
           "context": "仙樂"
         }
-      ]
+      ],
+      "synthesis_text": "今夜聞君琵琶語，如聽仙月耳暫明。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 67,
@@ -4421,7 +4587,9 @@
           "reading": "ㄈㄢ",
           "context": "飜作"
         }
-      ]
+      ],
+      "synthesis_text": "莫辭耕坐彈一曲，未君翻作琵琶行。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 67,
@@ -4434,7 +4602,9 @@
           "reading": "ㄔㄨㄥˊ",
           "context": "重聞"
         }
-      ]
+      ],
+      "synthesis_text": "淒淒不似向前聲，滿座崇聞皆掩泣。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 67,
@@ -4486,7 +4656,9 @@
           "reading": "ㄑㄧˇ",
           "context": "稽首"
         }
-      ]
+      ],
+      "synthesis_text": "愈拜起首蹈且舞，金石刻畫臣能爲。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 68,
@@ -4558,7 +4730,9 @@
           "reading": "ㄒㄧㄥˊ",
           "context": "燕歌行"
         }
-      ]
+      ],
+      "synthesis_text": "開元二十六年，客有從御史大夫張公出賽而還者，作《煙歌行》以示適，感征戍之事，因而賀焉。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 69,
@@ -4589,7 +4763,9 @@
           "reading": "ㄔㄨㄤ",
           "context": "摐金"
         }
-      ]
+      ],
+      "synthesis_text": "窗金伐鼓下榆關，旌旆逶迤碣石間。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 69,
@@ -4607,7 +4783,9 @@
           "reading": "ㄔㄢˊ",
           "context": "單于"
         }
-      ]
+      ],
+      "synthesis_text": "校尉羽書飛瀚海，蟬于獵火照狼山。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 69,
@@ -4620,7 +4798,9 @@
           "reading": "ㄐㄧˋ",
           "context": "胡騎"
         }
-      ]
+      ],
+      "synthesis_text": "山川蕭條極邊土，胡記憑陵雜風雨。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 69,
@@ -4638,7 +4818,9 @@
           "reading": "ㄉㄡˋ",
           "context": "鬬"
         }
-      ]
+      ],
+      "synthesis_text": "大漠窮秋賽草腓，孤城落日鬥兵稀。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 69,
@@ -4669,7 +4851,9 @@
           "reading": "ㄧㄠˊ",
           "context": "飄颻"
         }
-      ]
+      ],
+      "synthesis_text": "邊庭飄搖那可度，絕域蒼茫耕何有。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 69,
@@ -4708,7 +4892,9 @@
           "reading": "ㄐㄧㄤ",
           "context": "將軍"
         }
-      ]
+      ],
+      "synthesis_text": "君不見沙場征戰苦，至今猶憶李江軍。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 69,
@@ -4726,7 +4912,9 @@
           "reading": "ㄒㄧㄥˊ",
           "context": "燕歌行"
         }
-      ]
+      ],
+      "synthesis_text": "煙歌行",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 70,
@@ -4752,7 +4940,9 @@
           "reading": "ㄧㄣˋ",
           "context": "飲馬"
         }
-      ]
+      ],
+      "synthesis_text": "白日登山望烽火，黃昏印馬傍交河。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 70,
@@ -4817,7 +5007,9 @@
           "reading": "ㄑㄩˇ",
           "context": "理曲"
         }
-      ]
+      ],
+      "synthesis_text": "戲罷曾無理取時，妝成秪是薰香坐。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 71,
@@ -4856,7 +5048,9 @@
           "reading": "ㄐㄧㄢˋ",
           "context": "一劒"
         }
-      ]
+      ],
+      "synthesis_text": "一身轉戰三千里，一劍曾當百萬師。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 72,
@@ -4869,7 +5063,9 @@
           "reading": "ㄐㄧˋ",
           "context": "虜騎"
         }
-      ]
+      ],
+      "synthesis_text": "漢兵奮迅如霹靂，虜記崩騰畏蒺藜。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 72,
@@ -4887,7 +5083,9 @@
           "reading": "ㄨㄟˋ",
           "context": "衞"
         }
-      ]
+      ],
+      "synthesis_text": "衛青不敗由天幸，李廣無功緣數奇。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 72,
@@ -4905,7 +5103,9 @@
           "reading": "ㄐㄧㄤ",
           "context": "將軍"
         }
-      ]
+      ],
+      "synthesis_text": "節使三河募年少，詔書五道出江軍。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 72,
@@ -4923,7 +5123,9 @@
           "reading": "ㄧㄢ",
           "context": "燕弓"
         }
-      ]
+      ],
+      "synthesis_text": "願得煙弓射天將，恥令越甲鳴吳軍。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 72,
@@ -4954,7 +5156,9 @@
           "reading": "ㄒㄧㄥˊ",
           "context": "潛行"
         }
-      ]
+      ],
+      "synthesis_text": "山口潛行始隈玉，山開曠望旋平陸。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 73,
@@ -4993,7 +5197,9 @@
           "reading": "ㄙㄠˇ",
           "context": "埽花"
         }
-      ]
+      ],
+      "synthesis_text": "平明閭巷掃花開，薄暮漁樵乘水入。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 73,
@@ -5006,7 +5212,9 @@
           "reading": "ㄑㄩ",
           "context": "幾曲"
         }
-      ]
+      ],
+      "synthesis_text": "當時只記入山深，青溪幾屈到雲林。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 73,
@@ -5032,7 +5240,9 @@
           "reading": "ㄒㄧ",
           "context": "噫吁嚱"
         }
-      ]
+      ],
+      "synthesis_text": "噫吁西！危乎高哉！",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 74,
@@ -5045,7 +5255,9 @@
           "reading": "ㄙㄞˋ",
           "context": "秦塞"
         }
-      ]
+      ],
+      "synthesis_text": "爾來四萬八千歲，不與秦賽通人煙。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 74,
@@ -5058,7 +5270,9 @@
           "reading": "ㄐㄩㄝˊ",
           "context": "橫絶"
         }
-      ]
+      ],
+      "synthesis_text": "西當太白有鳥道，可以橫絕峨眉巔。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 74,
@@ -5071,7 +5285,9 @@
           "reading": "ㄕㄣ",
           "context": "捫參歷井"
         }
-      ]
+      ],
+      "synthesis_text": "捫申歷井仰脅息，以手撫膺坐長歎。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 74,
@@ -5102,7 +5318,9 @@
           "reading": "ㄏㄨㄟ",
           "context": "喧豗"
         }
-      ]
+      ],
+      "synthesis_text": "飛湍瀑流爭喧灰，乒崖轉石萬壑雷。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 74,
@@ -5115,7 +5333,9 @@
           "reading": "ㄨㄟˋ",
           "context": "胡爲"
         }
-      ]
+      ],
+      "synthesis_text": "其險也若此，嗟爾遠道之人胡未乎來哉？",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 74,
@@ -5128,7 +5348,9 @@
           "reading": "ㄓㄠ",
           "context": "朝避"
         }
-      ]
+      ],
+      "synthesis_text": "昭避猛虎，夕避長蛇。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 74,
@@ -5167,7 +5389,9 @@
           "reading": "ㄐㄧㄤ",
           "context": "將進酒"
         }
-      ]
+      ],
+      "synthesis_text": "岑夫子，丹丘生。江進酒，君莫停。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 78,
@@ -5193,7 +5417,9 @@
           "reading": "ㄐㄧㄤ",
           "context": "將出換"
         }
-      ]
+      ],
+      "synthesis_text": "呼兒江出換美酒，與爾同銷萬古愁。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 78,
@@ -5206,7 +5432,9 @@
           "reading": "ㄐㄧㄤ",
           "context": "將進酒"
         }
-      ]
+      ],
+      "synthesis_text": "江進酒",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 79,
@@ -5245,7 +5473,9 @@
           "reading": "ㄐㄧㄝˊ",
           "context": "腰衱"
         }
-      ]
+      ],
+      "synthesis_text": "背後何所見？珠壓腰節穩稱身。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 80,
@@ -5258,7 +5488,9 @@
           "reading": "ㄎㄨㄥˋ",
           "context": "飛鞚"
         }
-      ]
+      ],
+      "synthesis_text": "黃門飛控不動塵，御廚絡繹送八珍。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 80,
@@ -5289,7 +5521,9 @@
           "reading": "ㄒㄧㄥˊ",
           "context": "潛行"
         }
-      ]
+      ],
+      "synthesis_text": "少陵野老吞聲哭，春日潛行屈江屈。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 81,
@@ -5302,7 +5536,9 @@
           "reading": "ㄐㄧˋ",
           "context": "胡騎"
         }
-      ]
+      ],
+      "synthesis_text": "黃昏胡記塵滿城，欲往城南望城北。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 82,
@@ -5315,7 +5551,9 @@
           "reading": "ㄔㄢˊ",
           "context": "單于"
         }
-      ]
+      ],
+      "synthesis_text": "竊聞天子已傳位，聖德北服南蟬于。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 82,
@@ -5328,7 +5566,9 @@
           "reading": "ㄕㄣˋ",
           "context": "愼"
         }
-      ]
+      ],
+      "synthesis_text": "花門剺面請雪恥，慎勿出口他人狙。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 82,
@@ -5341,7 +5581,9 @@
           "reading": "ㄕㄣˋ",
           "context": "愼"
         }
-      ]
+      ],
+      "synthesis_text": "哀哉王孫慎勿疏，五陵佳氣無時無。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 86,
@@ -5394,7 +5636,9 @@
           "reading": "ㄘㄤˊ",
           "context": "藏用"
         }
-      ]
+      ],
+      "synthesis_text": "余禁所禁垣西，是法廳事也。有古槐數株焉，雖生意可知，同殷仲文之古樹，而聽訟斯在，即周紹伯之甘棠。每至夕照低陰，秋蟬疏引，發聲幽息，有切嘗聞；豈人心異於曩時，將蟲響悲於前聽？嗟乎！聲以動容，德以象賢，故潔其身也，稟君子達人之高性；蛻其皮也，有仙都羽化之靈姿。候時而來，順陰陽之數；應節為變，審藏用之機。有目斯開，不以道昏而昧其視；有翼自薄，不以俗厚而易其真。吟喬樹之微風，韻資天縱；飲高秋之墜露，清畏人知。僕失路艱虞，遭時徽墨，不哀傷而自怨，未搖落而先衰。聞蟪蛄之流聲，悟平反之已奏；見螳螂之抱影，怯危機之未安。感而綴詩，貽諸知己。庶情沿物應，哀弱羽之飄零；道寄人知，憫餘聲之寂寞。非謂文墨，取代幽憂云爾。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 87,
@@ -5407,7 +5651,9 @@
           "reading": "ㄏㄜˋ",
           "context": "和晉陵陸丞"
         }
-      ]
+      ],
+      "synthesis_text": "賀晉陵陸丞早春遊望",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 88,
@@ -5477,7 +5723,9 @@
           "reading": "ㄓㄤˇ",
           "context": "長大"
         }
-      ]
+      ],
+      "synthesis_text": "十年離亂後，掌大一相逢。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 141,
@@ -5503,7 +5751,9 @@
           "reading": "ㄒㄧㄡˋ",
           "context": "星宿"
         }
-      ]
+      ],
+      "synthesis_text": "曉月過殘壘，繁星秀故關。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 144,
@@ -5516,7 +5766,9 @@
           "reading": "ㄇㄛˋ",
           "context": "沒蕃"
         }
-      ]
+      ],
+      "synthesis_text": "墨蕃故人",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 147,
@@ -5529,7 +5781,9 @@
           "reading": "ㄏㄨㄚˋ",
           "context": "太華"
         }
-      ]
+      ],
+      "synthesis_text": "殘雲歸太化，疏雨過中條。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 154,
@@ -5555,7 +5809,9 @@
           "reading": "ㄏㄤˊ",
           "context": "雁行"
         }
-      ]
+      ],
+      "synthesis_text": "灞原風雨定，晚見雁杭頻。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 159,
@@ -5568,7 +5824,9 @@
           "reading": "ㄏㄤˊ",
           "context": "幾行"
         }
-      ]
+      ],
+      "synthesis_text": "幾杭歸塞盡，片影獨何之。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 159,
@@ -5586,7 +5844,9 @@
           "reading": "ㄓㄨㄛˊ",
           "context": "矰繳"
         }
-      ]
+      ],
+      "synthesis_text": "未必逢增濁，孤飛自可疑。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 164,
@@ -5627,7 +5887,9 @@
           "reading": "ㄒㄧㄠ",
           "context": "削不成"
         }
-      ]
+      ],
+      "synthesis_text": "迢搖太化俯咸京，天外三峰消不成。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 164,
@@ -5640,7 +5902,9 @@
           "reading": "ㄏㄨㄚˋ",
           "context": "華陰"
         }
-      ]
+      ],
+      "synthesis_text": "行經化陰",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 165,
@@ -5749,7 +6013,9 @@
           "reading": "ㄕㄣ",
           "context": "岑參"
         }
-      ]
+      ],
+      "synthesis_text": "岑申",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 170,
@@ -5772,7 +6038,9 @@
           "reading": "ㄐㄧㄚˇ",
           "context": "賈至"
         }
-      ]
+      ],
+      "synthesis_text": "奉賀中書舍人賈至早朝大明宮",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 171,
@@ -5785,7 +6053,9 @@
           "reading": "ㄗㄜˊ",
           "context": "絳幘"
         }
-      ]
+      ],
+      "synthesis_text": "絳責雞人送曉籌，尚衣方進翠雲裘。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 171,
@@ -5798,7 +6068,9 @@
           "reading": "ㄍㄨㄣˇ",
           "context": "衮龍"
         }
-      ]
+      ],
+      "synthesis_text": "日色纔臨仙掌動，香煙欲傍袞龍浮。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 171,
@@ -5816,7 +6088,9 @@
           "reading": "ㄏㄜˋ",
           "context": "和賈舍人"
         }
-      ]
+      ],
+      "synthesis_text": "賀賈舍人早朝大明宮之作",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 172,
@@ -5829,7 +6103,9 @@
           "reading": "ㄙㄞˋ",
           "context": "秦塞"
         }
-      ]
+      ],
+      "synthesis_text": "渭水自縈秦賽曲，黃山舊繞漢宮斜。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 172,
@@ -5842,7 +6118,9 @@
           "reading": "ㄏㄜˋ",
           "context": "奉和聖制"
         }
-      ]
+      ],
+      "synthesis_text": "奉賀聖制從蓬萊向興慶閣道中留春雨中春望之作應制",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 173,
@@ -5855,7 +6133,9 @@
           "reading": "ㄗ",
           "context": "東菑"
         }
-      ]
+      ],
+      "synthesis_text": "積雨空林煙火遲，蒸藜炊黍餉東資。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 174,
@@ -5899,7 +6179,9 @@
           "reading": "ㄐㄧˇ",
           "context": "給事"
         }
-      ]
+      ],
+      "synthesis_text": "酬郭己事",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 176,
@@ -5912,7 +6194,9 @@
           "reading": "ㄨㄟˋ",
           "context": "為君"
         }
-      ]
+      ],
+      "synthesis_text": "蓬門今始未君開。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 176,
@@ -5938,7 +6222,9 @@
           "reading": "ㄍㄨㄣˇ",
           "context": "滚滚"
         }
-      ]
+      ],
+      "synthesis_text": "不盡長江滾滾來。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 179,
@@ -5990,7 +6276,9 @@
           "reading": "ㄒㄧㄥˇ",
           "context": "省識"
         }
-      ]
+      ],
+      "synthesis_text": "畫圖醒識春風面，環佩空歸月夜魂。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 185,
@@ -6029,7 +6317,9 @@
           "reading": "ㄎㄨㄟˋ",
           "context": "媿"
         }
-      ]
+      ],
+      "synthesis_text": "今日龍鍾人共棄，愧君猶遣慎風波。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 188,
@@ -6042,7 +6332,9 @@
           "reading": "ㄔㄨㄥˊ",
           "context": "重別"
         }
-      ]
+      ],
+      "synthesis_text": "江州崇別薛六柳八二員外",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 189,
@@ -6143,7 +6435,9 @@
           "reading": "ㄏㄨㄟˊ",
           "context": "廻"
         }
-      ]
+      ],
+      "synthesis_text": "聞道欲來相問訊，西樓望月幾迴圓。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 193,
@@ -6195,7 +6489,9 @@
           "reading": "ㄍㄨ",
           "context": "估客"
         }
-      ]
+      ],
+      "synthesis_text": "姑客晝眠知浪靜，舟人夜語覺潮生。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 196,
@@ -6208,7 +6504,9 @@
           "reading": "ㄓㄢˇ",
           "context": "亂颭"
         }
-      ]
+      ],
+      "synthesis_text": "驚風亂展芙蓉水，密雨斜侵薜荔牆。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 198,
@@ -6247,7 +6545,9 @@
           "reading": "ㄐㄧㄣˋ",
           "context": "藎篋"
         }
-      ]
+      ],
+      "synthesis_text": "顧我無衣搜進篋，泥他沽酒拔金釵。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 199,
@@ -6286,7 +6586,9 @@
           "reading": "ㄧㄠˇ",
           "context": "窅冥"
         }
-      ]
+      ],
+      "synthesis_text": "同穴咬冥何所望，他生緣會更難期。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 201,
@@ -6299,7 +6601,9 @@
           "reading": "ㄍㄨㄟ",
           "context": "下邽"
         }
-      ]
+      ],
+      "synthesis_text": "自河南經亂、關內阻飢，兄弟離散各在一處，因望月有感，聊書所懷寄上浮梁大兄、於潛七兄、烏江十五兄，兼示符離及下歸弟妹。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 201,
@@ -6325,7 +6629,9 @@
           "reading": "ㄈㄨˊ",
           "context": "宓妃"
         }
-      ]
+      ],
+      "synthesis_text": "賈氏窺簾韓掾少，福妃留枕魏王才。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 207,
@@ -6343,7 +6649,9 @@
           "reading": "ㄓㄨㄢˋ",
           "context": "傳車"
         }
-      ]
+      ],
+      "synthesis_text": "徒令上將揮神筆，終見降王走撰車。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 209,
@@ -6356,7 +6664,9 @@
           "reading": "ㄐㄧㄚˊ",
           "context": "袷衣"
         }
-      ]
+      ],
+      "synthesis_text": "悵臥新春白夾衣，白門寥落意多違。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 209,
@@ -6369,7 +6679,9 @@
           "reading": "ㄨㄢˇ",
           "context": "晼晚"
         }
-      ]
+      ],
+      "synthesis_text": "遠路應悲春晚晚，殘霄猶得夢依稀。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 209,
@@ -6382,7 +6694,9 @@
           "reading": "ㄉㄤ",
           "context": "玉璫"
         }
-      ]
+      ],
+      "synthesis_text": "玉當緘札何由達，萬里雲羅一雁飛。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 210,
@@ -6421,7 +6735,9 @@
           "reading": "ㄌㄧˇ",
           "context": "范蠡"
         }
-      ]
+      ],
+      "synthesis_text": "誰解乘舟尋范李，五湖煙水獨忘機。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 213,
@@ -6447,7 +6763,9 @@
           "reading": "ㄙㄞˋ",
           "context": "塞草"
         }
-      ]
+      ],
+      "synthesis_text": "雲邊雁斷胡天月，隴上羊歸賽草煙。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 214,
@@ -6460,7 +6778,9 @@
           "reading": "ㄎㄨˋ",
           "context": "袴"
         }
-      ]
+      ],
+      "synthesis_text": "遙窺正殿簾開處，袍褲宮人掃御床。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 215,
@@ -6473,7 +6793,9 @@
           "reading": "ㄉㄡˋ",
           "context": "鬬"
         }
-      ]
+      ],
+      "synthesis_text": "敢將十指誇偏巧，不把雙眉鬥畫長。",
+      "synthesis_text_source": "tts_pronunciation_proxy_registry_v4"
     },
     {
       "poem_id": 216,
@@ -6586,12 +6908,20 @@
     }
   },
   "age9_policy": {
-    "status": "candidate_registry_aligned_rule_classification_pending",
+    "status": "text_rules_classified_proxy_validation_pending",
     "canonical_text_immutable": true,
     "source_candidate_file": "data/pronunciation_candidates_age9.json",
     "pronunciation_sensitive_assets": 267,
     "candidate_items": 348,
     "synthesis_proxy_policy": "Age 9 candidates are registered before TTS. Existing validated character+reading rules may be reused. New rules must be classified at the text layer before production; candidates alone do not authorize a proxy.",
-    "listening_qa_policy": "Only genuinely new proxy rules require one representative audio QA case. No per-WAV review queue."
+    "listening_qa_policy": "Only genuinely new proxy rules require one representative audio QA case. No per-WAV review queue.",
+    "unique_rules": 168,
+    "classified_rules": 168,
+    "canonical_only_assets": 106,
+    "proxy_assets": 161,
+    "pending_proxy_rules": 91,
+    "synthesis_text_materialized": true,
+    "synthesis_text_source": "tts_pronunciation_proxy_registry_v4",
+    "next_gate": "Validate one representative Age 9 audio asset for each pending proxy rule; canonical rules require no per-asset listening QA."
   }
 }
