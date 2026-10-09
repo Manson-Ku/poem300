@@ -1452,3 +1452,22 @@ The old `remaining 94 WAV listening QA` gate is cancelled. Next gate is
 text-level classification of the remaining 44 rules. Only a newly added proxy
 rule requires one representative listening-QA asset. Once a rule passes, it is
 reused globally rather than re-reviewed per WAV.
+
+## Age 8 pronunciation rule gate COMPLETE（2026-10-09）
+
+Age 8 TTS pronunciation governance v2 has reached PASS:
+
+~~~text
+rules total        71
+classified         71
+canonical          40
+proxy              31
+validated proxy    31
+pending proxy       0
+representative QA  14 / 14 PASS
+~~~
+
+The previous 123/123 or remaining-94 WAV listening requirement is permanently
+replaced by rule-level preprocessing. Future TTS batches inherit validated
+character+reading rules; only new special rules require representative audio QA.
+
