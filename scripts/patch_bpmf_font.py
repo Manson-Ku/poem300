@@ -423,22 +423,44 @@ def base_glyph_name_for_codepoint(
     return str(bases[0].glyphName)
 
 
+def make_component(
+    *,
+    glyph_name: str,
+    scale_x: float = 1.0,
+    scale_y: float = 1.0,
+    x_units: int = 0,
+    y_units: int = 0,
+) -> Any:
+    """Create a positioned/scaled component for synthesized Han glyphs.
+
+    The older Age 7/8 specs only needed left/right composition. Age 9
+    introduces rare characters with top/bottom and mixed layouts, so the
+    synthesis contract now supports an explicit component list while keeping
+    the legacy left/right fields fully compatible.
+    """
+    component = GlyphComponent()
+    component.glyphName = glyph_name
+    component.x = int(x_units)
+    component.y = int(y_units)
+    component.flags = 0
+    component.transform = [
+        [float(scale_x), 0.0],
+        [0.0, float(scale_y)],
+    ]
+    return component
+
+
 def make_lr_component(
     *,
     glyph_name: str,
     scale_x: float,
     x_units: int,
 ) -> Any:
-    component = GlyphComponent()
-    component.glyphName = glyph_name
-    component.x = int(x_units)
-    component.y = 0
-    component.flags = 0
-    component.transform = [
-        [float(scale_x), 0.0],
-        [0.0, 1.0],
-    ]
-    return component
+    return make_component(
+        glyph_name=glyph_name,
+        scale_x=scale_x,
+        x_units=x_units,
+    )
 
 
 def add_synthesized_glyphs(
@@ -457,26 +479,16 @@ def add_synthesized_glyphs(
         prototype_codepoint = parse_uplus(
             str(item["prototype_codepoint"])
         )
-        left_char = str(item["left_character"])
-        left_codepoint = parse_uplus(
-            str(item["left_codepoint"])
-        )
-        right_char = str(item["right_character"])
-        right_codepoint = parse_uplus(
-            str(item["right_codepoint"])
-        )
 
-        for actual_char, actual_cp, label in (
-            (char, codepoint, "target"),
-            (prototype_char, prototype_codepoint, "prototype"),
-            (left_char, left_codepoint, "left"),
-            (right_char, right_codepoint, "right"),
-        ):
-            if ord(actual_char) != actual_cp:
-                raise ValueError(
-                    f"{label} {actual_char}: codepoint mismatch "
-                    f"U+{actual_cp:04X}"
-                )
+        if ord(char) != codepoint:
+            raise ValueError(
+                f"target {char}: codepoint mismatch U+{codepoint:04X}"
+            )
+        if ord(prototype_char) != prototype_codepoint:
+            raise ValueError(
+                f"prototype {prototype_char}: codepoint mismatch "
+                f"U+{prototype_codepoint:04X}"
+            )
 
         existing = best_cmap.get(codepoint)
         if existing:
@@ -489,14 +501,66 @@ def add_synthesized_glyphs(
             )
             continue
 
-        left_base = base_glyph_name_for_codepoint(
-            font,
-            left_codepoint,
-        )
-        right_base = base_glyph_name_for_codepoint(
-            font,
-            right_codepoint,
-        )
+        component_specs = item.get("components")
+        if component_specs:
+            normalized_components: list[dict[str, Any]] = []
+            for index, raw in enumerate(component_specs):
+                component_char = str(raw["character"])
+                component_codepoint = parse_uplus(
+                    str(
+                        raw.get("codepoint")
+                        or f"U+{ord(component_char):04X}"
+                    )
+                )
+                if ord(component_char) != component_codepoint:
+                    raise ValueError(
+                        f"{char}: component {index} "
+                        f"{component_char} codepoint mismatch"
+                    )
+                normalized_components.append(
+                    {
+                        "character": component_char,
+                        "codepoint": component_codepoint,
+                        "scale_x": float(raw.get("scale_x", 1.0)),
+                        "scale_y": float(raw.get("scale_y", 1.0)),
+                        "x_em": float(raw.get("x_em", 0.0)),
+                        "y_em": float(raw.get("y_em", 0.0)),
+                    }
+                )
+        else:
+            # Backward-compatible Age 7/8 left-right synthesis contract.
+            left_char = str(item["left_character"])
+            right_char = str(item["right_character"])
+            left_codepoint = parse_uplus(str(item["left_codepoint"]))
+            right_codepoint = parse_uplus(str(item["right_codepoint"]))
+            if ord(left_char) != left_codepoint:
+                raise ValueError(
+                    f"{char}: left component codepoint mismatch"
+                )
+            if ord(right_char) != right_codepoint:
+                raise ValueError(
+                    f"{char}: right component codepoint mismatch"
+                )
+            layout = item["layout"]
+            normalized_components = [
+                {
+                    "character": left_char,
+                    "codepoint": left_codepoint,
+                    "scale_x": float(layout["left_scale_x"]),
+                    "scale_y": 1.0,
+                    "x_em": 0.0,
+                    "y_em": 0.0,
+                },
+                {
+                    "character": right_char,
+                    "codepoint": right_codepoint,
+                    "scale_x": float(layout["right_scale_x"]),
+                    "scale_y": 1.0,
+                    "x_em": float(layout["right_x_em"]),
+                    "y_em": 0.0,
+                },
+            ]
+
         prototype_name = annotated_glyph_for_codepoint(
             font,
             prototype_codepoint,
@@ -511,15 +575,31 @@ def add_synthesized_glyphs(
                 f"got {len(prototype_base)}"
             )
 
-        layout = item["layout"]
-        left_scale_x = float(layout["left_scale_x"])
-        right_scale_x = float(layout["right_scale_x"])
-        right_x = int(
-            round(
-                units_per_em
-                * float(layout["right_x_em"])
+        base_components = []
+        for component_spec in normalized_components:
+            base_name = base_glyph_name_for_codepoint(
+                font,
+                int(component_spec["codepoint"]),
             )
-        )
+            base_components.append(
+                make_component(
+                    glyph_name=base_name,
+                    scale_x=float(component_spec["scale_x"]),
+                    scale_y=float(component_spec["scale_y"]),
+                    x_units=int(
+                        round(
+                            units_per_em
+                            * float(component_spec["x_em"])
+                        )
+                    ),
+                    y_units=int(
+                        round(
+                            units_per_em
+                            * float(component_spec["y_em"])
+                        )
+                    ),
+                )
+            )
 
         base_name = f"poem300.base.{codepoint:04X}"
         annotated_name = f"poem300.annotated.{codepoint:04X}"
@@ -527,18 +607,7 @@ def add_synthesized_glyphs(
         if base_name not in glyf:
             base_glyph = Glyph()
             base_glyph.numberOfContours = -1
-            base_glyph.components = [
-                make_lr_component(
-                    glyph_name=left_base,
-                    scale_x=left_scale_x,
-                    x_units=0,
-                ),
-                make_lr_component(
-                    glyph_name=right_base,
-                    scale_x=right_scale_x,
-                    x_units=right_x,
-                ),
-            ]
+            base_glyph.components = base_components
             glyf[base_name] = base_glyph
             ensure_glyph_order(font, base_name)
 
@@ -558,9 +627,7 @@ def add_synthesized_glyphs(
             annotated_glyph = copy.deepcopy(
                 glyf[prototype_name]
             )
-            target_base = copy.deepcopy(
-                prototype_base[0]
-            )
+            target_base = copy.deepcopy(prototype_base[0])
             target_base.glyphName = base_name
             annotated_glyph.components = (
                 prototype_phonetic + [target_base]
@@ -592,8 +659,7 @@ def add_synthesized_glyphs(
                 **item,
                 "glyph": annotated_name,
                 "base_glyph": base_name,
-                "left_base_glyph": left_base,
-                "right_base_glyph": right_base,
+                "component_count": len(base_components),
                 "mapped_cmap_tables": mapped,
                 "status": "synthesized",
             }
@@ -978,11 +1044,19 @@ def main() -> int:
     if args.dry_run:
         print("\nSynthesized glyphs")
         for item in spec.get("synthesized_glyphs", []):
+            if item.get("components"):
+                formula = " + ".join(
+                    str(component["character"])
+                    for component in item["components"]
+                )
+            else:
+                formula = (
+                    f"{item['left_character']} + "
+                    f"{item['right_character']}"
+                )
             print(
                 "  "
-                f"{item['character']} = "
-                f"{item['left_character']} + "
-                f"{item['right_character']} "
+                f"{item['character']} = {formula} "
                 f"reading={item['reading']} "
                 f"prototype={item['prototype_character']}"
             )
@@ -1058,11 +1132,19 @@ def main() -> int:
 
     print("\nPatched synthesized glyphs")
     for item in patched_synthesized:
+        if item.get("components"):
+            formula = " + ".join(
+                str(component["character"])
+                for component in item["components"]
+            )
+        else:
+            formula = (
+                f"{item['left_character']} + "
+                f"{item['right_character']}"
+            )
         print(
             "  "
-            f"{item['character']} = "
-            f"{item['left_character']} + "
-            f"{item['right_character']} "
+            f"{item['character']} = {formula} "
             f"reading={item['reading']} "
             f"status={item['status']}"
         )
