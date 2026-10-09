@@ -334,3 +334,31 @@ representative listening QA case; after PASS, that rule is reusable across all
 assets and future age cohorts.
 
 Canonical title / author / poem text remains immutable.
+
+## Age 8 pronunciation rule gate COMPLETE（2026-10-09）
+
+The 14 newly introduced proxy rules were regenerated on one representative
+asset each and all passed human listening QA.
+
+~~~text
+unique pronunciation rules   = 71
+classified                    = 71
+canonical                     = 40
+proxy                         = 31
+validated proxy               = 31
+pending proxy                 = 0
+representative QA             = 14 / 14 PASS
+per-WAV remaining review      = not required
+pronunciation rule gate       = PASS
+~~~
+
+Production contract from this point forward:
+
+- pronunciation is resolved before the TTS API call;
+- canonical text remains immutable;
+- validated proxy rules are reusable across poems and age cohorts;
+- only a genuinely new special pronunciation rule requires one representative
+  listening-QA asset;
+- full per-asset pronunciation listening review is not part of the production
+  gate.
+
