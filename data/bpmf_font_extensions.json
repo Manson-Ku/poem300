@@ -1,5 +1,5 @@
 {
-  "version": "bpmf_font_extensions_v7",
+  "version": "bpmf_font_extensions_v8",
   "base_font": {
     "expected_filename": "BpmfHuninn-Regular.ttf",
     "upstream": "ButTaiwan/bpmfvs",
@@ -964,8 +964,8 @@
       "character": "澒",
       "codepoint": "U+6F92",
       "reading": "ㄏㄨㄥˋ",
-      "prototype_character": "哄",
-      "prototype_codepoint": "U+54C4",
+      "prototype_character": "鬨",
+      "prototype_codepoint": "U+9B28",
       "components": [
         {
           "character": "水",
@@ -987,7 +987,7 @@
       "contexts": [
         "p059 觀公孫大娘弟子舞劍器行并序：澒洞"
       ],
-      "evidence_note": "Age 9 context 澒洞 uses ㄏㄨㄥˋ. Synthesize 水+項."
+      "evidence_note": "Age 9 rare glyph; BpmfVS records 澒 ㄏㄨㄥˋ. Use 鬨 ㄏㄨㄥˋ as the pronunciation prototype; visual structure remains 水+項."
     },
     {
       "character": "璫",
