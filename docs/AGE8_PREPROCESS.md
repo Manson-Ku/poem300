@@ -226,3 +226,33 @@ Next step after all preprocessing gates pass:
 2. generate only pronunciation-sensitive TTS QA assets;
 3. human listening QA;
 4. only then proceed to full TTS and image production.
+
+## Age 8 pronunciation-sensitive TTS generation
+
+Production run completed before full TTS rollout:
+
+~~~text
+pronunciation-sensitive assets total = 123
+existing assets reused                = 13
+new assets generated                  = 110
+failed                                = 0
+new audio seconds                     = 545.280
+new estimated cost USD                = 0.082402500
+status                                = GENERATED / LISTENING QA PENDING
+~~~
+
+This satisfies the generation prerequisite for human listening QA. No Age 8
+`synthesis_text` proxy is authorized merely by generation success; proxies may
+be added only for assets that fail human listening QA.
+
+The temporary Free-tier key/runtime investigation is not part of the Age 8
+production contract and is intentionally deferred. Production resumed with the
+working paid key.
+
+Next gate:
+
+1. verify all 123 pronunciation-sensitive WAV assets exist;
+2. human listening QA against the registered target readings;
+3. register only actual failures with TTS-boundary synthesis proxies;
+4. rerun failed assets only;
+5. reach 123/123 listening PASS before full Age 8 TTS production.

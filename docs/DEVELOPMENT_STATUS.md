@@ -1365,3 +1365,21 @@ Age 8 preprocessing registration is complete:
 - no Age 8 synthesis proxy is pre-authorized.
 
 The project font binary remains local/gitignored and is reproducibly rebuilt from the pinned upstream font. See `docs/AGE8_PREPROCESS.md` and `.github/workflows/preproduction_qa.yml`.
+
+## Age 8 pronunciation-sensitive TTS generation（2026-10-09）
+
+~~~text
+registered sensitive assets = 123
+existing                     = 13
+generated                    = 110
+failed                       = 0
+new audio seconds            = 545.280
+estimated new cost USD       = 0.082402500
+~~~
+
+Status: **generation complete; human listening QA pending**.
+
+Canonical text remains unchanged. No Age 8 synthesis proxy has been pre-authorized.
+Only assets that fail listening QA may receive a TTS-boundary proxy, following
+the Age 7 contract. Full Age 8 TTS production remains blocked until the 123
+sensitive assets reach listening PASS.
